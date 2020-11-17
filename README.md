@@ -1,4 +1,8 @@
 # zdog-scope
+Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor.
+[Zdog](https://zzz.dog/), pseudo 3D Graphics 
+
+
 
 ## Project setup
 ```
