@@ -25,6 +25,7 @@
       </div>
       <div ref="gutter2" class="gutter-column-2"></div>
       <div class="split-column property-panel">
+        <h2>Properties</h2>
         <PropertyPanel ref="menuPropertyPanel"/>
       </div>
     </div>
@@ -88,7 +89,7 @@ export default {
       return this.$refs[refName];
     },
     deselect(event){
-      if (!this.selected.node) return;
+      if (!this.selected.id) return;
         var isClickInside = this.$refs.treeview.contains(event.target);
         
         if (isClickInside) {
@@ -168,7 +169,7 @@ html,body{
 
 [class^='gutter'] {
   position:relative;
-  background-color: #A0A0A0;
+  background-color:#616161;
   background-repeat: no-repeat;
   background-position: 50%;
   cursor: col-resize;
@@ -177,7 +178,7 @@ html,body{
 
 [class^='gutter']:before {
   content:'...';
-  color:white;
+  color:#ebebeb;
   line-height:0;
   font-size: 20px;
   width: 100%;

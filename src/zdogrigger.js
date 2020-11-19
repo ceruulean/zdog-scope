@@ -198,14 +198,15 @@ function ZdogFilterProps(ZdogObject){
   if(!ZdogObject || !ZdogObject.assignedType) return;
   let type = ZdogObject.assignedType;
   let classN = ZDOG_CLASS_NAME[type];
-  console.log(classN);
   let recordProps = SET_PROPS[classN]
+  if (!recordProps) return
 
   let result = {
     assignedType: type,
     assignedName: ZdogObject.assignedName,
     id: ZdogObject.id
   }
+  console.log('asfasdfa')
 
   let strin = (prop) =>{
     if (prop == 'dragRotate') {
@@ -217,7 +218,6 @@ function ZdogFilterProps(ZdogObject){
   }
 
   recordProps.forEach(prop=>{
-    console.log(prop);
     result[prop] = strin(prop);
   })
 
@@ -240,6 +240,7 @@ function ZdogFilterProps(ZdogObject){
   return result;
 }
 
+
 /**
  * Make easy tree viewing of Zdog objects
  * https://chrissmith.xyz/super-fast-tree-view-in-javascript/
@@ -255,9 +256,10 @@ class Ztree{
 
   //Flatten existing zdog object into Map and Set to record relations
   static Flatten(ZdogObject, nodeMap, relationSet){
-    nodeMap.set(ZdogObject.id, ZdogObject);
+    let mainID = Ztree._nodeID(ZdogObject)
+    nodeMap.set(mainID, ZdogObject);
     if (ZdogObject.addTo){
-      let r = {from: ZdogObject.addTo.id, to: ZdogObject.id}
+      let r = {from: ZdogObject.addTo.id, to: mainID}
       relationSet.add(r);
     }
     for (let c in ZdogObject.children){
@@ -267,7 +269,7 @@ class Ztree{
         && ZdogObject.children[c].id
         ){ 
         //it is a Zdog object (Some objects like boxes/cylinders store their faces as children but they aren't complete objects)
-        let relation = {from: ZdogObject.id, to: ZdogObject.children[c].id}
+        let relation = {from: mainID, to: ZdogObject.children[c].id}
         relationSet.add(relation);
         Ztree.Flatten(ZdogObject.children[c], nodeMap);
       }
@@ -295,12 +297,22 @@ class Ztree{
     return obj
   }
 
+  trimmedView(node){
+    let {id,assignedName,assignedType,visible} = node;
+    if (!id || !assignedType) return null;
+    let index = this.indexOf(node);
+    assignedType = ZDOG_CLASS_NAME[assignedType];
+    if (visible === undefined) visible = true
+    // children = (children.length > 0? true : false);
+    return ({id,assignedName,assignedType,index,visible})
+  }
+
   addNode(ZdogObject){
     Ztree.Flatten(ZdogObject, this.nodeMap, this.relationSet);
   }
   //can be id string or the object itself
   removeNode(node){
-    let id = this._nodeID(node);
+    let id = Ztree._nodeID(node);
     this.nodeMap.delete(this.nodeMap.get(id));
 
     //remove record of relations
@@ -316,18 +328,20 @@ class Ztree{
   }
 //Can be id string or object itself, returns insertion order index
   indexOf(node){
-    let id = this._nodeID(node);
+    let id = Ztree._nodeID(node);
     return [...this.nodeMap.keys()].indexOf(id);
   }
 
   hasChildren(node){
-    let id = this._nodeID(node);
+    let id = Ztree._nodeID(node);
     let n = this.nodeMap.get(id);
-    return (n.children > 0);
+    return (n.children.some(child=>{
+      return child.id
+    }));
   }
 
   hasParent(node){
-    let id = this._nodeID(node);
+    let id = Ztree._nodeID(node);
     let n = this.nodeMap.get(id);
     return (n.addTo != null && n.addTo != undefined && n.addTo != {});
   }
@@ -336,7 +350,7 @@ class Ztree{
     return this.nodeMap.get(id);
   }
 
-  _nodeID(arg){
+  static _nodeID(arg){
     let ID = arg
     if (typeof node === "string") {
       ID = arg;
@@ -363,7 +377,7 @@ class Ztree{
   }
 
   getChildNodes(node){
-    let ID = this._nodeID(node);
+    let ID = Ztree._nodeID(node);
     let childIds = [];
     this.relationSet.forEach((relation)=>{
       if (relation.from == ID){
@@ -404,7 +418,9 @@ let Zdogger = (type) => {
 Zdogger.tree = Ztree
 Zdogger.isClass = isClass
 
-export {Zdogger, Ztree, isClass, ZdogFilterProps,
-  ZDOG_CLASS_TYPE, ZDOG_CLASS_STRING, ZDOG_CLASS_NAME}
+export {
+  Zdogger, Ztree, isClass, ZdogFilterProps,
+  ZDOG_CLASS_TYPE, ZDOG_CLASS_STRING, ZDOG_CLASS_NAME,
+  }
 
 export default Zdogger;

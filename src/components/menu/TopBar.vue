@@ -60,10 +60,9 @@ export default {
         type:itemName,
         options:options
         }
-      //if a node is selected, add to that, otherwise add to illustration
-      let selected = this.selectedNode || this.illustration;
-      temp.options.addTo = selected;
 
+      let selected = this.selectedid;
+      temp.options.addTo = selected;
       this.newZdogObject(temp)
       this.creationItemName = null
     },
@@ -74,8 +73,8 @@ export default {
   },
   computed:{
     ...mapState({
-      selectedNode(state){
-        return (state.selected.node)
+      selectedid(state){
+        return (state.selected.id)
       }
     }),
     illustration(){

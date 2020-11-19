@@ -1,6 +1,8 @@
 # zdog-scope
 Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor.
+
 [Zdog](https://zzz.dog/), pseudo 3D Graphics 
+
 [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid) for panel resizing
 
 

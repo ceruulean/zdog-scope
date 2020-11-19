@@ -8,8 +8,7 @@
 </template>
 
 <script>
-//import {ref, onMounted, } from 'vue' // onUpdated, onUnmounted
-
+//import {ref, } from 'vue' // onUpdated, onUnmounted
 import { mapState, } from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
@@ -20,16 +19,22 @@ export default {
   props: {
   },
   methods:{
+    log(){
+      console.table(this.treeOrphans);
+    }
   },
   computed:{
     ...mapState({
       Ztree:state => state.Ztree,
-      treeOrphans:state => state.Ztree.orphans
+      treeOrphans(state){
+        return state.Ztree.orphans.map(node=>{
+          return this.Ztree.trimmedView(node);
+        })
+      }
     }),
   },
   data(){
     return{
-
       rerender:false,
     }
   }
@@ -37,8 +42,8 @@ export default {
 </script>
 
 <style >
-.hello{
-  border:1px solid black;
+.tree-view{
+  background-color: rgb(255,255,255)
 }
 
 .tree-view header{
@@ -63,6 +68,10 @@ export default {
   padding:0 0.2rem 0 0.1rem;
   width:6rem;
   background-color:rgba(255,255,255,0.2);
+}
+
+.tree-view ul ul {
+  padding-left:1rem;
 }
 
 </style>

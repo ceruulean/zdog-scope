@@ -2,16 +2,16 @@
   <div v-if="itemName">
     <h2>Create new {{itemName}}</h2>
     <form class="row">
-      <label v-for="(field, index) in fields" :key="`${field}_creation`">
+      <label v-for="(value, field) in fields" :key="`${field}_creation`">
         {{field}}
-        <input type="text" v-model="wipOptions[field]" :placeholder="placeholders[index]"/>
+        <input type="text" v-model="wipOptions[field]" :placeholder="value"/>
       </label>
       <span v-if="isShape && itemName != 'shape'">
         <label
-          v-for="(field, index) in shapeFields"
+          v-for="(value, field) in shapeFields"
           :key="`${field}_label`">
           {{field}}
-          <input type="text" v-model="wipOptions[field]" :placeholder="shapePlaceholders[index]"/>
+          <input type="text" v-model="wipOptions[field]" :placeholder="value"/>
         </label>
       </span>
     </form>
@@ -88,13 +88,7 @@ export default {
       return ZdogJSONSchema.optionSchema[this.itemName];
     },
     shapeFields(){
-      return Object.keys(ZdogJSONSchema.optionSchema['shape'])
-    },
-    shapePlaceholders(){
-      return Object.values(ZdogJSONSchema.optionSchema['shape'])
-    },
-    placeholders(){
-      return Object.values(ZdogJSONSchema.optionSchema[this.itemName]);
+      return ZdogJSONSchema.optionSchema['shape'];
     },
     isShape(){
       return (this.itemName != 'vector') && (this.itemName != 'anchor') && (this.itemName != 'group')

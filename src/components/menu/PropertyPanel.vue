@@ -1,16 +1,13 @@
 <template>
-  <div class="hello">
-    <h2>Properties</h2>
-    <ul v-if="selected.node">
-      <h3>{{selected.node.assignedName}}</h3>
-        <ul>
-          <li v-for="(value, prop, index) in displayJSON" :key="index">
-            {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="value"/>
-          </li>
-        </ul>
-        <button @click="log()">Console Log this</button>
-    </ul>
-  </div>
+  <ul v-if="selected.id">
+    <h3>{{selected.id.assignedName}}</h3>
+      <ul>
+        <li v-for="(value, prop, index) in displayJSON" :key="index">
+          {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="value"/>
+        </li>
+      </ul>
+      <button @click="log()">Console Log this</button>
+  </ul>
 </template>
 
 <script>
@@ -29,15 +26,16 @@ export default {
     log(){
       //console.table(this.selected);
       //console.table(this.selected);
-      console.table(this.selected);
+      console.table(this.Ztree.find(this.selected.id));
     }
   },
   computed:{
     ...mapState([
-      'selected',
+      'selected','Ztree'
     ]),
     displayJSON(){
-      return ZdogFilterProps(this.selected.node);
+      let n = this.Ztree.find(this.selected.id)
+      return ZdogFilterProps(n);
     }
   },
   data(){
@@ -48,8 +46,9 @@ export default {
 }
 </script>
 
-<style scoped>
-.hello{
+<style>
+.property-panel{
   border:1px solid black;
+  background-color:rgb(255,255,255)
 }
 </style>

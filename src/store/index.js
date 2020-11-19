@@ -15,9 +15,10 @@ import {Zdogger} from '../zdogrigger'
 const state = () => ({
   Ztree:undefined,
   selected:{
-    node:undefined,
+    id:undefined,
     element:undefined
-  }
+  },
+  updateTree:false,
 })
 
 // getters
@@ -25,6 +26,10 @@ const getters = {
   illustration:(state) => {
     if (!state.Ztree) return undefined;
     return state.Ztree.illustration;
+  },
+  Zrelations:(state) => {
+    if (!state.Ztree) return undefined;
+    return state.Ztree.relationSet;
   }
     // treeOrphans:(state) => {
     //   return state.Ztree.orphans
@@ -75,7 +80,13 @@ const actions = {
     animate()
   },
 
-  newZdogObject({commit}, {type, options}){
+  newZdogObject({commit, state}, {type, options}){
+    if(options.addTo){
+      options.addTo = state.Ztree.find(options.addTo);
+    } else {
+      options.addTo = state.Ztree.illustration
+    }
+    console.log(options);
     let newO = Zdogger(type)(options);
     commit('addZtreeNode', newO);
   },
@@ -84,9 +95,9 @@ const actions = {
     commit('setAssignedName', newName);
   },
 
-  changeSelected({commit}, {node, element}){
+  changeSelected({commit}, {id, element}){
     //click handler here?
-    commit('setSelected', {node, element});
+    commit('setSelected', {id, element});
   }
   // checkout ({ commit, state }, products) {
   //   const savedCartItems = [...state.items]
@@ -113,24 +124,27 @@ const actions = {
 const mutations = {
 
   setZtree(state, illustration){
+    state.Ztree = null;
     state.Ztree = new Zdogger.tree(illustration)
   },
 
   addZtreeNode(state, node){
     if (!state.Ztree) throw new Error('Cannot add node to nonexistent tree');
     state.Ztree.addNode(node);
+    state.updateTree = !state.updateTree;
   },
 
   setAssignedName(state, newName){
     if (!state.selected) throw new Error('Cannot assign name to null selected node');
-    state.selected.assignedName = newName;
+    state.Ztree.find(state.selected.id)
+      .assignedName = newName;
+    state.updateTree = !state.updateTree;
   },
 
-  setSelected(state, {node, element}){
-    state.selected.node = node;
+  setSelected(state, {id, element}){
+    state.selected.id = id;
     state.selected.element = element;
-  }
-
+  },
   // pushProductToCart (state, { id }) {
   //   state.items.push({
   //     id,

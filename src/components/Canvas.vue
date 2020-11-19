@@ -1,7 +1,8 @@
 <template>
   <canvas ref="workingCanvas" class="zdog-canvas"
   :width="width"
-  :height="height"></canvas>
+  :height="height"
+  :style="{'background':background}"></canvas>
 </template>
 
 <script>
@@ -28,8 +29,13 @@ export default {
     },
     height(){
       return window.innerHeight;
-    }
+    },
   },
+  data(){
+    return{
+      background:'#d9d9d9'
+    }
+  }
 }
 </script>
 

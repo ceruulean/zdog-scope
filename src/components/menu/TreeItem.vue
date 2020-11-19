@@ -10,24 +10,28 @@
           'row':true,
           'highlight': isSelected}"
       >
-      <button v-if="node.children.length > 0" @click="toggleCollapse">{{collapsed? '+' : '-'}}</button>
-      <div class="index">{{nodeIndex}}</div>
+      <button v-if="hasChildren"
+        @click="toggleCollapse"
+        >
+        {{collapsed? '+' : '-'}}
+      </button>
+      <div class="index">{{node.index}}</div>
 
       <input v-if="editingName && isSelected"
         autofocus
         ref="textbox"
         class="name" type="text" v-model="wipName"
-        :placeholder="assignedName"
+        :placeholder="node.assignedName"
         @keydown="keydownHandler"
         @blur="finishEditAssignedName"/>
       <label v-else
         class="name"
         @dblclick="editAssignedName">
-          {{assignedName}}
+          {{node.assignedName}}
       </label>
 
       <div class="type">
-        {{zDogType}}
+        {{node.assignedType}}
       </div>
     </div>
 
@@ -37,8 +41,8 @@
         @click="editBlocker"
         ></div>
     </teleport>-->
-    <ul v-if="node.children.length > 0">
-    <TreeItem v-for="(node) in node.children" :key="node.id"
+    <ul v-if="children">
+    <TreeItem v-for="(node) in children" :key="node.id"
     :class="{'collapsed':collapsed}"
     :node="node"
     />
@@ -51,16 +55,22 @@
 //import {ref } from 'vue' // onUpdated, onUnmounted
 import { mapState, mapActions} from 'vuex'// mapGetters
 
-import {ZDOG_CLASS_NAME} from '../../zdogrigger'
-
 export default {
   name: 'TreeItem',
   props: {
     node:Object,
   },
   watch:{
-    selectednode(){
+    selectedid(){
       this.finishEditAssignedName();
+    },
+    hasChildren(newVal, oldVal){
+      if (!oldVal) {
+        this.getChildrenView();
+      }
+    },
+    updateTree(){
+      this.getChildrenView();
     }
   },
   methods:{
@@ -86,7 +96,7 @@ export default {
     },
     highlight(){
       //this.listElement.classList.add('highlight');
-      let payload = {node: this.node,
+      let payload = {id: this.node.id,
        element: this.selectItem
        }
       this.changeSelected(payload)
@@ -94,38 +104,50 @@ export default {
     },
     toggleCollapse(){
       this.collapsed = !this.collapsed;
+      if (!this.children) {
+        //fetch children
+        this.getChildrenView();
+      }
     },
-    debug(){
-      //console.log(this.nodee);
-    }
+    getChildrenView(){
+      try{
+        let fk = this.ZdogObject.children.map(child=>{
+          return this.Ztree.trimmedView(child);
+        }).filter(x=>x)
+        this.children = fk;
+      } catch(e){
+        //console.log(e)
+      }
+    },
   },
   computed:{
-    // ...mapGetters([
-    //   'treeOrphans',
-    //   // ...
-    // ]),
     ...mapState({
-      selectednode:state => state.selected.node,
-      Ztree: 'Ztree'
+      selectedid:state => state.selected.id,
+      Ztree: 'Ztree',
+      updateTree:'updateTree'
     }),
     selectItem(){
       return this.$refs.selectitem;
     },
-    nodeIndex(){
-      return this.Ztree.indexOf(this.node);
-    },
-    assignedName(){
-      return this.node.assignedName;
-    },
     isSelected(){
-      return (this.selectednode && this.selectednode.id == this.node.id)
+      return (this.selectedid && this.selectedid == this.node.id)
     },
-    zDogType(){
-      return ZDOG_CLASS_NAME[this.node.assignedType];
+    hasChildren(){
+      try{
+        return (this.ZdogObject.children.some(child=>{
+          return child.id
+        }))
+      }catch(e){
+        return false
+      }
+    },
+    ZdogObject(){
+      return this.Ztree.find(this.node.id);
     },
   },
   data(){
     return{
+      children:null,
       editingName:false,
       wipName:null,
       collapsed:false,
@@ -164,9 +186,6 @@ export default {
 }
 .tree-item ul{
   position:relative;
-}
-.tree-item ul ul {
-  padding-left:1rem;
 }
 
 .tree-item button{
