@@ -1,63 +1,75 @@
 <template>
-  <li ref="listitem"
-    :class="{
-    'tree-item':true, 'row':true,
-    'highlight':bHighlight}"
-      @click="highlight"
+<div class="roq" v-if="node">
+  <li
+    :class="{'tree-item':true}"
       >
-    <div class="index">{{index}}</div>
-    <label v-if="!editingName"
-      class="name"
-      @dblclick="editAssignedName">
-        {{assignedname}}
-    </label>
-    <input v-if="editingName"
-      autofocus
-      ref="textbox"
-      class="name" type="text" v-model="wipName"
-      :placeholder="assignedname"
-      @keydown="keydownHandler"
-      @blur="finishEditAssignedName"/>
-    <div class="type">
-      {{zdogtype}}
+    <div @click.stop="highlight"
+        ref="selectitem"
+        :class="{
+          'data-set':true,
+          'row':true,
+          'highlight': (selectednode && selectednode.id == node.id)}"
+      >
+      <button v-if="node.children.length > 0" @click="toggleCollapse">{{collapsed? '+' : '-'}}</button>
+      <div class="index">{{nodeIndex}}</div>
+      <label v-if="!editingName"
+        class="name"
+        @dblclick="editAssignedName">
+          {{assignedName}}
+      </label>
+      <input v-if="editingName"
+        autofocus
+        ref="textbox"
+        class="name" type="text" v-model="wipName"
+        :placeholder="assignedName"
+        @keydown="keydownHandler"
+        @blur="finishEditAssignedName"/>
+      <div class="type">
+        {{zDogType}}
+      </div>
     </div>
+
     <!--
     <teleport to="[data-teleport]">
       <div v-if="editingName" class="editing-blocker"
         @click="editBlocker"
         ></div>
     </teleport>-->
+    <ul v-if="node.children.length > 0">
+    <TreeItem v-for="(node) in node.children" :key="node.id"
+    :class="{'collapsed':collapsed}"
+    :node="node"
+    />
+    </ul>
   </li>
+</div>
 </template>
 
 <script>
+//import {ref } from 'vue' // onUpdated, onUnmounted
+import { mapState, mapActions} from 'vuex'// mapGetters
+
+import {ZDOG_CLASS_NAME} from '../../zdogrigger'
+
 export default {
   name: 'TreeItem',
-  emit:['editing-tree','edit-zdogger-node-name', 'change-selected'],
   props: {
-    zdogtype:String,
-    assignedname:String,
-    index:Number
+    node:Object,
   },
   methods:{
+    ...mapActions([
+      'changeSelectedName', //newName
+      'changeSelected' //{node: obj, element: element}
+    ]),
     editAssignedName(){
-      //event.preventDefault();
-      //change to input box
       this.editingName = true;
-      this.$emit('editing-tree');
-      
-      // this.$nextTick(() => {
-      //   console.log(this.$refs.textbook)
-      //     const textbox = this.$refs.textbox.$el;
-      //     textbox.focus();
-      //   });
-      
     },
     finishEditAssignedName(){
       this.editingName = false;
       if (!this.wipName) return
-      let newName = this.wipName
-      this.$emit('edit-zdogger-node-name', this.index, newName);
+      this.changeSelectedName(this.wipName)
+      // let newName = this.wipName
+      // this.$emit('edit-zdogger-node-name', this.node, newName);
       this.wipName = null;
     },
     keydownHandler(event){
@@ -66,19 +78,47 @@ export default {
       }
     },
     highlight(){
-      this.$emit('change-selected', this.index, this.listElement);
+      //this.listElement.classList.add('highlight');
+      let payload = {node: this.node.id,
+       element: this.selectItem
+       }
+      this.changeSelected(payload)
+      //this.$emit('change-selected', this.node.id, this.selectedElement);
+    },
+    toggleCollapse(){
+      this.collapsed = !this.collapsed;
+    },
+    debug(){
+      //console.log(this.nodee);
     }
   },
   computed:{
-    listElement(){
-      return this.$refs.listitem;
-    }
+    // ...mapGetters([
+    //   'treeOrphans',
+    //   // ...
+    // ]),
+    ...mapState({
+      selectednode:state => state.selected.node,
+      Ztree: 'Ztree'
+    }),
+    selectItem(){
+      return this.$refs.selectitem;
+    },
+    nodeIndex(){
+      return this.Ztree.indexOf(this.node);
+    },
+    assignedName(){
+      return this.node.assignedName;
+    },
+    zDogType(){
+      return ZDOG_CLASS_NAME[this.node.assignedType];
+    },
   },
   data(){
     return{
       editingName:false,
       wipName:null,
-      bHighlight:false
+      collapsed:false,
     }
   }
 }
@@ -86,10 +126,19 @@ export default {
 
 <style>
 .tree-item{
-  border:1px solid rgba(0,0,0,0.2);
-  background-color:rgba(0,0,0,0.1);
+ /* background-color:rgba(100, 97, 97, 1);*/
   display:flex;
   justify-content:space-between;
+  flex-direction:column;
+}
+
+.tree-item * {
+  cursor:pointer;
+}
+
+
+.tree-item .row{
+  border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 
 .tree-item.highlight{
@@ -100,12 +149,30 @@ export default {
   z-index:51;
 }
 
-.editing-blocker{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-  z-index:50;
+.tree-item .data-set{
+  width: 100%;
 }
+.tree-item ul{
+  position:relative;
+}
+.tree-item ul ul {
+  padding-left:1rem;
+}
+
+.tree-item button{
+  position:absolute;
+  left:0;
+  line-height:0.3rem;
+  padding:0.2rem 0.1rem;
+}
+
+.tree-item .index{
+  text-align:right;
+  border-right:1px solid rgb(92, 85, 85);
+}
+
+.collapsed{
+  display:none;
+}
+
 </style>

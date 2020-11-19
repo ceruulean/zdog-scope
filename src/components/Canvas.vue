@@ -1,44 +1,35 @@
 <template>
-  <section class="canvas-wrapper">
-    <canvas ref="workingCanvas" class="zdog-canvas"></canvas>
-  </section>
+  <canvas ref="workingCanvas" class="zdog-canvas"
+  :width="width"
+  :height="height"></canvas>
 </template>
 
 <script>
-//import {ref, onMounted, watch} from 'vue' // onUpdated, onUnmounted
+//import {ref, onMounted} from 'vue' // onUpdated, onUnmounted
+//import { mapState} from 'vuex'// mapActions 
+
+//import {Zdogger} from '../zdogrigger'
 
 export default {
   
   name: 'Canvas',
-  emit: ['illustration-mounted'],
   props: {
-    zdogobjects:Object
   },
-  // setup(props){
-  //   watch(() => {console.log(props.zdogobjects)})
-  // },
-  
+  setup(){
+  },
   methods:{
-    createNew(item){
-      let itemType = item.toLowerCase();
-      return this.zdogobjects[itemType];
-    },
-
-    newIllustration(){
-      let options = {element: this.$refs.workingCanvas}
-      this.workingIllustration = this.createNew('illustration')(options);
-      this.$emit('illustration-mounted', this.workingIllustration)
-    }
   },
   computed:{
-
-  },
-  data(){
-    return {
-      workingIllustration: null,
-
+    // ...mapState([
+    //   'illustration',
+    // ]),
+    width(){
+      return window.innerWidth;
+    },
+    height(){
+      return window.innerHeight;
     }
-  }
+  },
 }
 </script>
 
@@ -48,8 +39,8 @@ export default {
   top:0;
   left:0;
   border:1px dotted blue;
-  width:100vw;
-  height:100vh;
+  width:100%;
+  height:100%;
   z-index:0;
 }
 </style>

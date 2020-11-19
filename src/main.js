@@ -1,7 +1,7 @@
 import {createApp } from 'vue'
-
+import Vuex from './store'
 import App from './App.vue'
 
-var Vue = createApp(App)
-
-Vue.mount('#app')
+var app = createApp(App)
+app.use(Vuex)
+app.mount('#app')

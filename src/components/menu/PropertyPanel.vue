@@ -1,64 +1,51 @@
 <template>
   <div class="hello">
     <h2>Properties</h2>
-    <ul v-if="selectednode">
-      <h3>{{selectednode.name}}</h3>
+    <ul v-if="selected.node">
+      <h3>{{selected.node.assignedName}}</h3>
         <ul>
-          <li v-for="(prop, index) in filteredNode" :key="index">
-            {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="toString(selectednode.data[prop])"/>
+          <li v-for="(value, prop, index) in displayJSON" :key="index">
+            {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="value"/>
           </li>
         </ul>
-        <button @click="log(selectednode)">Console Log this</button>
+        <button @click="log()">Console Log this</button>
     </ul>
-    <!--Display the canvas/illustration root specs?
-    <span v-if="!selectednode">
-      <span v-if="workingillustration">
-        <h3>Canvas</h3>
-        <ul>
-          <li v-for="(prop, index) in filteredIllustration" :key="index">
-            {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="toString(workingillustration[prop])"/>
-          </li>
-        </ul>
-        <button @click="log(workingillustration)">Console Log Illustration</button>
-      </span>
-
-    </span>-->
   </div>
 </template>
 
 <script>
+import { mapState} from 'vuex'// mapActions  mapGetters,
+
+import {ZdogFilterProps} from '../../zdogrigger'
+
 export default {
   name: 'PropertyPanel',
   props: {
-    selectednode:Object,
-    workingillustration:Object
   },
   methods:{
     toString(object){
       return JSON.stringify(object);
     },
-    filterProps(zDogObject){
-      let k = Object.keys(zDogObject);
-      return k.filter((prop)=>{
-        let value = zDogObject[prop]
-        return !(Array.isArray(value)) && (typeof value !== "function")
-      })
-    },
-    log(object){
-      console.log(object);
+    log(){
+      //console.table(this.selected);
+      //console.table(this.selected);
+      console.table(this.displayJSON);
     }
   },
   computed:{
-    filteredIllustration(){
-      return this.filterProps(this.workingillustration)
-    },
-    filteredNode(){
-      return this.filterProps(this.selectednode.data);
+    ...mapState([
+      'selected',
+    ]),
+    displayJSON(){
+      if (!this.selected.node) return null
+      let u = ZdogFilterProps(this.selected.node);
+      console.log(u)
+      return u;
     }
   },
   data(){
     return{
-      wipOptions:{}
+      wipOptions:{},
     }
   }
 }

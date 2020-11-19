@@ -1,22 +1,33 @@
 <template>
-  <div class="toolbar row">
-    <button v-for="item in zdoglist" :key="item"
-      @click="promptCreate(item)"
+  <div class="toolbar row"
+    :aria-label="`Create new`">
+    <button v-for="(item,index) in ZDOG_CLASS_NAME" :key="`${item}_${index}`"
+      :aria-label="item"
+      @click="promptCreate"
       :class="{
-        'hide': (item != 'illustration' && !hasWorkingIllu)
+        'hide': (item != 'illustration' && !hasIllustration)
       }"
       >
       +{{item}}
     </button>
-    <Modal ref="promptModal">
-      <Creation :itemName="creationItemName"
-      @submit-new-shape="emitCreateNew"/>
+    <Modal v-if="!bWarning && hasIllustration && creationItemName">
+      <Creation
+        :itemName="creationItemName"
+        @submit-new-shape="createNew"/>
+    </Modal>
+    <Modal v-if="bWarning && hasIllustration">
+      <p>WARNING: Are you sure you want to replace the current illustration?</p>
+      <button @click="confirmNewIllustration">Yes</button><button @click="closeModal">Cancel</button>
     </Modal>
   </div>
 </template>
 
 <script>
 //import Zdog from 'zdog'
+import {mapState, mapActions} from 'vuex'// mapActions 
+
+import {ZDOG_CLASS_NAME} from '../../zdogrigger'
+
 import Modal from '../Modal.vue'
 import Creation from '../Creation.vue'
 
@@ -25,35 +36,62 @@ export default {
   components:{Modal,Creation},
   emits: ['create-new'],
   props: {
-    zdoglist: Object,
-    workingillustration:Object
   },
 
   methods:{
-    promptCreate(itemName){
-
-      this.creationItemName = itemName;
-
-      if(itemName == "illustration"){
-        this.emitCreateNew(itemName);
+    ...mapActions([
+      'newZdogObject', //argument should be in format {type:int, options:{}}
+      'newIllustration'
+    ]),
+    promptCreate(event){
+      let itemName = event.target.ariaLabel;
+      if(!this.hasIllustration){
+        this.newIllustration();
         return;
+      } else if (itemName == "illustration") {
+        this.bWarning = true;
       }
-      this.$refs.promptModal.open();
+      this.creationItemName = itemName;
+      //console.log('fkme')
     },
-    emitCreateNew(itemName, payload){
-      console.log(`Emitting: 'create-new', payload: ${itemName}, ${payload}`);
-      this.$refs.promptModal.close();
-      this.$emit('create-new', itemName, payload);
-    }
+    createNew(itemName, options){
+      console.log(`Emitting: 'create-new', args: ${itemName}, ${options}`);
+      let temp = {
+        type:itemName,
+        options:options
+        }
+      //if a node is selected, add to that, otherwise add to illustration
+      let selected = this.selectedNode || this.illustration;
+      temp.options.addTo = selected;
+      console.log(temp);
+      this.newZdogObject(temp)
+      this.creationItemName = null
+      this.closeModal();
+    },
+    confirmNewIllustration(){
+      this.newIllustration();
+      this.closeModal();
+      this.bWarning = false;
+    },
   },
   computed:{
-    hasWorkingIllu(){
-      return (this.workingillustration != null && this.workingillustration != undefined && this.workingillustration != {});
-    }
+    ...mapState({
+      selectedNode(state){
+        return (state.selected.node)
+      }
+    }),
+    illustration(){
+      return this.$store.getters.illustration;
+    },
+    hasIllustration() {
+    return (this.illustration !== null && this.illustration !== undefined)
+    },
   },
   data(){
     return {
-      creationItemName: null
+      creationItemName: null,
+      bWarning:false,
+      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
     }
   }
 }

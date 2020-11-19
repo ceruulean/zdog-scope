@@ -1,49 +1,46 @@
 <template>
-  <main data-teleport @click="deselect">
-    <TopBar @create-new="eventCreateNew"
-      :zdoglist="ZdogList"
-      :workingillustration="workingIllustration"/>
-    <Canvas ref="refCanvas" :zdogobjects="ZdogObjects"
-      @illustration-mounted="updateWorkingIllustration"/>
+  <main @click="deselect">
+    <TopBar
+      ref="menuTopbar"
+      />
     <div class="split-grid overlay" style="">
-      <div class="split-column">
-        <TreeView :workingillustration="workingIllustration"
-          :nodeindexset="nodeIndexSet"
-          :selectednode="selected.node"
-          @change-selected="changeSelected"
-          />
+      <div class="split-column tree-view">
+        <h2>Tree View</h2>
+        filter anchor icon links
+        <div class="tree-view">
+        <header class="row between">
+          <div class="col index">
+            Index
+          </div>
+          <div class="col name">Name</div>
+          <div class="col type">Type</div>
+        </header>
+          <TreeView/>
+        </div>
       </div>
       <div ref="gutter1" class="gutter-column-1"></div>
       <div class="split-column">
-        <!--empty-->
+        <Canvas ref="refCanvas"/>
       </div>
       <div ref="gutter2" class="gutter-column-2"></div>
-      <div class="split-column">
-        <PropertyPanel ref="menuPropertyPanel"
-        :selectednode="selected.node"
-        :workingillustration="workingIllustration"/>
+      <div class="split-column property-panel">
+        <PropertyPanel ref="menuPropertyPanel"/>
       </div>
     </div>
-    <Modal ref="warning">
-      <p>WARNING: Are you sure you want to replace the current illustration?</p>
-      <button @click="confirmNewIllustration">Yes</button><button @click="closeModal">Cancel</button>
-    </Modal>
   </main>
 </template>
 
 <script>
 import {ref, onMounted, } from 'vue' // onUpdated, onUnmounted
+import { mapState, mapActions} from 'vuex'// mapActions 
 
 import TopBar from './components/menu/TopBar.vue'
 import PropertyPanel from './components/menu/PropertyPanel.vue'
 import TreeView from './components/menu/TreeView.vue'
 import Canvas from './components/Canvas.vue'
 
-import Modal from './components/Modal.vue'
-
 import Split from 'split-grid'
-import Zdog from 'zdog'
-import Zdogger from './zdogrigger'
+//import Zdog from 'zdog'
 
 
 export default {
@@ -52,15 +49,15 @@ export default {
     TopBar,
     PropertyPanel,
     TreeView,
+ //   TreeTest,
     Canvas,
-    Modal
   },
   setup(){
     const gutter1 = ref(null);
     const gutter2 = ref(null);
 
     onMounted(()=>{
-        Split({
+        window.split = Split({
         columnGutters: [{
           track: 1,//index of element to resize
           element: gutter1.value,
@@ -73,7 +70,6 @@ export default {
         //   element: this.$refs.menuPropertyPanel,
         // }]
       })
-
     })
 
     return {
@@ -84,102 +80,36 @@ export default {
   watch:{
   },
   methods:{
+    ...mapActions([
+      'changeSelected'
+    ]),
     getRef(refName){
       return this.$refs[refName];
     },
-
-    eventCreateNew(itemName, options){
-      console.log(`Creating ${itemName}`);
-      if (itemName == "illustration"){
-        if (this.workingIllustration){
-        this.$refs.warning.open();
-        } else {
-          this.confirmNewIllustration();
-        }
-      } else {
-        this._addToSelected(itemName, options);
-      }
-    },
-    _addToSelected(itemName, options){
-      let selected = this.selected.node || this.workingIllustration;
-      let tempOp = Object.assign({}, {addTo:selected});
-      Object.assign(tempOp, options);
-      let newItem = this.$refs.refCanvas.createNew(itemName)(tempOp);
-      this.createZdogger(itemName, newItem);
-    },
-    createZdogger(itemName, zDogObject){
-      this.nodeIndexSet.add(new Zdogger.Node(itemName, zDogObject, 'unnamed'));
-    },
-    confirmNewIllustration(){
-      this.$refs.refCanvas.newIllustration();
-      this.closeModal();
-    },
-
-    updateWorkingIllustration(illuObj){
-      this.workingIllustration = illuObj;
-      this.nodeIndexSet = new Set();
-      this.nodeIndexSet.add(new Zdogger.Node('illustration', illuObj, 'root'));
-    },
-
-    closeModal(){
-      this.$refs.warning.close();
-    },
     deselect(event){
       if (!this.selected.node) return;
-        let cn = (el, event) => {return el.contains(event.target)}
-        var isClickInside = cn(this.selected.element, event);
-        var isClickPropertyPanel = cn(this.$refs.menuPropertyPanel.$el, event);
-        //Gutterhandle must be done differently, maybe ondrag block click events?
-       // var isClickGutter = cn(this.gutter1, event) || cn(this.gutter2, event); 
 
-        if (!isClickInside && !isClickPropertyPanel) {
+        var isClickInside = (this.selected.element.contains(event.target)
+        || this.$refs.menuPropertyPanel.$el.contains(event.target))
+        || this.$refs.menuTopbar.$el.contains(event.target);
+
+        if (!isClickInside) {
           //the click was outside the specifiedElement, do something
-          this.selected.node = null;
-         // this.selected.node.element = null;
-         this._updateNodeSet();
+          this.changeSelected(null);
         }
     },
-    changeSelected(index, payload){
-
-      let o = Array.from(this.nodeIndexSet)[index];
-      this.selected.node = o;
-      this.selected.element = payload;
-      this._updateNodeSet();
-    },
-    _updateNodeSet(){
-      this.nodeIndexSet.add(-1);
-      this.nodeIndexSet.delete(-1);
-    }
   },
 
   data(){
     return {
-      workingIllustration:null,
-      nodeIndexSet:null,
-      ZdogObjects : {
-        illustration:(options)=>{return new Zdog.Illustration(options)},
-        anchor:(options)=>{return new Zdog.Anchor(options);},
-        shape:(options)=>{return new Zdog.Shape(options);},
-        rect:(options)=>{return new Zdog.Rect(options);},
-        roundedrect:(options)=>{return new Zdog.RoundedRect(options);},
-        ellipse:(options)=>{return new Zdog.Ellipse(options);},
-        hemisphere:(options)=>{return new Zdog.Hemisphere(options);},
-        polygon:(options)=>{return new Zdog.Polygon(options);},
-        cone:(options)=>{return new Zdog.Cone(options);},
-        cylinder:(options)=>{return new Zdog.Cylinder(options);},
-        box:(options)=>{return new Zdog.Box(options);},
-        group:(options)=>{return new Zdog.Group(options);},
-        //dragger:(options)=>{return new Zdog.Dragger(options);},
-        vector:(options)=>{return new Zdog.Vector(options);},
-      },
-      selected:{},
       bWarning:false,
+      isClickInsideEvent:null,
     }
   },
   computed:{
-    ZdogList(){
-      return Object.keys(this.ZdogObjects);
-    }
+    ...mapState([
+      'selected'
+    ]),
   }
   
 }
@@ -220,24 +150,28 @@ html,body{
   position:relative;
   top:0;
   width:100vw;
+  height:var(--canvasHeight);
 }
 
 .split-column {
   overflow: auto;
   width: 100%;
+}.split-column.tree-view, .split-column.property-panel{
+  z-index:19
 }
 
 [class^='gutter'] {
   position:relative;
-  background-color: pink;
+  background-color: #A0A0A0;
   background-repeat: no-repeat;
   background-position: 50%;
   cursor: col-resize;
+  z-index:20;
 }
 
 [class^='gutter']:before {
   content:'...';
-  color:black;
+  color:white;
   line-height:0;
   font-size: 20px;
   width: 100%;
@@ -248,7 +182,7 @@ html,body{
 
 [class^='gutter-column']:before{
   top:0;
-  right:-2px;
+  right:-2.5px;
   width:3px;
   height:calc(100% - 3ch);
   writing-mode: vertical-rl;

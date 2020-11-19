@@ -2,14 +2,14 @@
   <div v-if="itemName">
     <h2>Create new {{itemName}}</h2>
     <form class="row">
-      <label v-for="(field, index) in fields" :key="field">
+      <label v-for="(field, index) in fields" :key="`${field}_creation`">
         {{field}}
         <input type="text" v-model="wipOptions[field]" :placeholder="placeholders[index]"/>
       </label>
       <span v-if="isShape && itemName != 'shape'">
         <label
           v-for="(field, index) in shapeFields"
-          :key="field">
+          :key="`${field}_label`">
           {{field}}
           <input type="text" v-model="wipOptions[field]" :placeholder="shapePlaceholders[index]"/>
         </label>
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+//import {mapState, mapActions} from 'vuex'// mapActions 
 import ZdogJSONSchema from '../zdogobjects.json'
 
 export default {
@@ -46,12 +47,6 @@ export default {
           console.log(invalids[i]);
         }
       }
-    },
-    getFieldNames(item){
-      return Object.keys(this.optionSchema[item]);
-    },
-    getPlaceholders(item){
-      return Object.values(this.optionSchema[item]);
     },
     validateFields(){
       let incorrectFields = [];
@@ -91,21 +86,19 @@ export default {
   },
   computed:{
     fields(){
-      let test = this.optionSchema[this.itemName];
-      if (!test) return
-      return this.getFieldNames(this.itemName);
+      //console.log(this.itemName);
+      let uh  = ZdogJSONSchema.optionSchema[this.itemName];
+      console.log(uh);
+      return Object.keys(uh)
     },
     shapeFields(){
-      return this.getFieldNames('shape');
+      return Object.keys(ZdogJSONSchema.optionSchema['shape'])
     },
     shapePlaceholders(){
-      return this.getPlaceholders('shape');
+      return Object.values(ZdogJSONSchema.optionSchema['shape'])
     },
     placeholders(){
-      let test = this.optionSchema[this.itemName];
-      if (!test) return
-       test = Object.values(this.optionSchema[this.itemName])
-      return test;
+      return Object.values(ZdogJSONSchema.optionSchema[this.itemName]);
     },
     isShape(){
       return (this.itemName != 'vector') && (this.itemName != 'anchor') && (this.itemName != 'group')
