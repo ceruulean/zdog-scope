@@ -8,22 +8,24 @@
         :class="{
           'data-set':true,
           'row':true,
-          'highlight': (selectednode && selectednode.id == node.id)}"
+          'highlight': isSelected}"
       >
       <button v-if="node.children.length > 0" @click="toggleCollapse">{{collapsed? '+' : '-'}}</button>
       <div class="index">{{nodeIndex}}</div>
-      <label v-if="!editingName"
-        class="name"
-        @dblclick="editAssignedName">
-          {{assignedName}}
-      </label>
-      <input v-if="editingName"
+
+      <input v-if="editingName && isSelected"
         autofocus
         ref="textbox"
         class="name" type="text" v-model="wipName"
         :placeholder="assignedName"
         @keydown="keydownHandler"
         @blur="finishEditAssignedName"/>
+      <label v-else
+        class="name"
+        @dblclick="editAssignedName">
+          {{assignedName}}
+      </label>
+
       <div class="type">
         {{zDogType}}
       </div>
@@ -56,6 +58,11 @@ export default {
   props: {
     node:Object,
   },
+  watch:{
+    selectednode(){
+      this.finishEditAssignedName();
+    }
+  },
   methods:{
     ...mapActions([
       'changeSelectedName', //newName
@@ -79,7 +86,7 @@ export default {
     },
     highlight(){
       //this.listElement.classList.add('highlight');
-      let payload = {node: this.node.id,
+      let payload = {node: this.node,
        element: this.selectItem
        }
       this.changeSelected(payload)
@@ -109,6 +116,9 @@ export default {
     },
     assignedName(){
       return this.node.assignedName;
+    },
+    isSelected(){
+      return (this.selectednode && this.selectednode.id == this.node.id)
     },
     zDogType(){
       return ZDOG_CLASS_NAME[this.node.assignedType];
@@ -141,7 +151,7 @@ export default {
   border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 
-.tree-item.highlight{
+.tree-item .highlight{
   background-color:rgba(31, 79, 255, 0.4);
 }
 

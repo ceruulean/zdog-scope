@@ -4,9 +4,10 @@
       ref="menuTopbar"
       />
     <div class="split-grid overlay" style="">
-      <div class="split-column tree-view">
+      <div class="split-column tree-view"
+       ref="treeview">
         <h2>Tree View</h2>
-        filter anchor icon links
+        TODO: filter anchors, add icon, searchbar
         <div class="tree-view">
         <header class="row between">
           <div class="col index">
@@ -88,15 +89,20 @@ export default {
     },
     deselect(event){
       if (!this.selected.node) return;
-
-        var isClickInside = (this.selected.element.contains(event.target)
-        || this.$refs.menuPropertyPanel.$el.contains(event.target))
-        || this.$refs.menuTopbar.$el.contains(event.target);
-
-        if (!isClickInside) {
-          //the click was outside the specifiedElement, do something
-          this.changeSelected(null);
+        var isClickInside = this.$refs.treeview.contains(event.target);
+        
+        if (isClickInside) {
+          //the click inside the element
+          this.changeSelected({node:null,element:null});
         }
+        // var isClickInside = (this.selected.element.contains(event.target)
+        // || this.$refs.menuPropertyPanel.$el.contains(event.target))
+        // || this.$refs.menuTopbar.$el.contains(event.target);
+
+        // if (!isClickInside) {
+        //   //the click was outside the specifiedElement, do something
+        //   this.changeSelected({node:null,element:null});
+        // }
     },
   },
 

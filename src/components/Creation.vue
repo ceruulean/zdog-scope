@@ -36,7 +36,6 @@ export default {
   },
   methods:{
     submit(){
-      console.log(this.wipOptions);
       let invalids = this.validateFields();
       if (invalids.length == 0) { // the returned array is empty
         let payload = Object.assign({},this.wipOptions);
@@ -86,10 +85,7 @@ export default {
   },
   computed:{
     fields(){
-      //console.log(this.itemName);
-      let uh  = ZdogJSONSchema.optionSchema[this.itemName];
-      console.log(uh);
-      return Object.keys(uh)
+      return ZdogJSONSchema.optionSchema[this.itemName];
     },
     shapeFields(){
       return Object.keys(ZdogJSONSchema.optionSchema['shape'])

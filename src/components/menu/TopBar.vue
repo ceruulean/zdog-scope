@@ -10,14 +10,16 @@
       >
       +{{item}}
     </button>
-    <Modal v-if="!bWarning && hasIllustration && creationItemName">
+    <Modal v-if="!bWarning && hasIllustration && creationItemName"
+      @close="creationItemName = null">
       <Creation
         :itemName="creationItemName"
         @submit-new-shape="createNew"/>
     </Modal>
-    <Modal v-if="bWarning && hasIllustration">
+    <Modal v-if="bWarning && hasIllustration"
+      @close="bWarning = false">
       <p>WARNING: Are you sure you want to replace the current illustration?</p>
-      <button @click="confirmNewIllustration">Yes</button><button @click="closeModal">Cancel</button>
+      <button @click="confirmNewIllustration">Yes</button><button @click="bWarning = false">Cancel</button>
     </Modal>
   </div>
 </template>
@@ -44,7 +46,7 @@ export default {
       'newIllustration'
     ]),
     promptCreate(event){
-      let itemName = event.target.ariaLabel;
+      let itemName = event.target.getAttribute('aria-label');
       if(!this.hasIllustration){
         this.newIllustration();
         return;
@@ -52,10 +54,8 @@ export default {
         this.bWarning = true;
       }
       this.creationItemName = itemName;
-      //console.log('fkme')
     },
     createNew(itemName, options){
-      console.log(`Emitting: 'create-new', args: ${itemName}, ${options}`);
       let temp = {
         type:itemName,
         options:options
@@ -63,14 +63,12 @@ export default {
       //if a node is selected, add to that, otherwise add to illustration
       let selected = this.selectedNode || this.illustration;
       temp.options.addTo = selected;
-      console.log(temp);
+
       this.newZdogObject(temp)
       this.creationItemName = null
-      this.closeModal();
     },
     confirmNewIllustration(){
       this.newIllustration();
-      this.closeModal();
       this.bWarning = false;
     },
   },
@@ -89,7 +87,7 @@ export default {
   },
   data(){
     return {
-      creationItemName: null,
+      creationItemName: '',
       bWarning:false,
       ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
     }

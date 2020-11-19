@@ -67,12 +67,12 @@ const actions = {
     commit('setZtree', illuObj)
 
 
-    // let animate = () => {
-    //   illuObj.updateRenderGraph()
-    //   requestAnimationFrame(animate);
-    // }
+    let animate = () => {
+      illuObj.updateRenderGraph()
+      requestAnimationFrame(animate);
+    }
 
-    // animate()
+    animate()
   },
 
   newZdogObject({commit}, {type, options}){
@@ -113,9 +113,7 @@ const actions = {
 const mutations = {
 
   setZtree(state, illustration){
-    let wtf = new Zdogger.tree(illustration);
-    console.log(wtf)
-    state.Ztree = wtf;
+    state.Ztree = new Zdogger.tree(illustration)
   },
 
   addZtreeNode(state, node){

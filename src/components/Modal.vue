@@ -1,8 +1,5 @@
 <template>
-  <div :class="{
-      'modal':true,
-      'active':isActive
-      }">
+  <div class="modal">
     <div class="dimmer" @click="close">
     </div>
     <button class="close" @click="close">X</button>
@@ -15,20 +12,15 @@
 <script>
 export default {
   name: 'TreeItem',
+  emits:['close'],
   props: {
     zdogtype:String,
     label:String
   },
 
   methods:{
-    open(){
-      this.isActive = true;
-    },
     close(){
-      this.isActive = false;
-    },
-    toggle(){
-      this.isActive = !this.isActive;
+      this.$emit('close')
     }
   },
   data(){
@@ -46,15 +38,13 @@ export default {
   left:0;
   width:100vw;
   height:100vh;
-  display:none;
-  visibility:hidden;
-  opacity:0;
   justify-content:center;
   align-items:center;
   z-index:999;
+  display:flex;
 }
 .modal.active{
-  display:flex;
+
   visibility:visible;
   opacity:1;
 }

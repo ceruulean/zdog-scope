@@ -29,7 +29,7 @@ export default {
     log(){
       //console.table(this.selected);
       //console.table(this.selected);
-      console.table(this.displayJSON);
+      console.table(this.selected);
     }
   },
   computed:{
@@ -37,10 +37,7 @@ export default {
       'selected',
     ]),
     displayJSON(){
-      if (!this.selected.node) return null
-      let u = ZdogFilterProps(this.selected.node);
-      console.log(u)
-      return u;
+      return ZdogFilterProps(this.selected.node);
     }
   },
   data(){
