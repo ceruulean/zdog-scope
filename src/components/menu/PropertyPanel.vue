@@ -1,19 +1,21 @@
 <template>
-  <ul v-if="selected.id">
-    <h3>{{selected.id.assignedName}}</h3>
+  <div v-if="selected.id">
+    <div class="row info">
+      <div class="type">{{TYPE}}</div><div>id: {{displayProps['id']}}</div>
+    </div>
       <ul>
-        <li v-for="(value, prop, index) in displayJSON" :key="index">
-          {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="value"/>
+        <li v-for="(value, prop, index) in writableProps" :key="index">
+          {{prop}}: <input type="text" v-model="this.wipOptions[prop]" :placeholder="toString(value)"/>
         </li>
       </ul>
       <button @click="log()">Console Log this</button>
-  </ul>
+  </div>
 </template>
 
 <script>
 import { mapState} from 'vuex'// mapActions  mapGetters,
 
-import {ZdogFilterProps} from '../../zdogrigger'
+import {ZdogFilterProps, ZDOG_CLASS_NAME} from '../../zdogrigger'
 
 export default {
   name: 'PropertyPanel',
@@ -33,14 +35,27 @@ export default {
     ...mapState([
       'selected','Ztree'
     ]),
-    displayJSON(){
+    displayProps(){
       let n = this.Ztree.find(this.selected.id)
       return ZdogFilterProps(n);
-    }
+    },
+    writableProps(){
+      let some = {...this.displayProps};
+      for(let P of this.READ_ONLY){
+        delete some[P];
+      }
+      return some;
+    },
+    TYPE(){
+      return ZDOG_CLASS_NAME[this.displayProps['assignedType']];
+    },
   },
   data(){
     return{
       wipOptions:{},
+      READ_ONLY: [
+        'assignedType', 'id'
+      ],
     }
   }
 }
@@ -50,5 +65,16 @@ export default {
 .property-panel{
   border:1px solid black;
   background-color:rgb(255,255,255)
+}
+
+.property-panel .info{
+  justify-content:space-between;
+}.property-panel .info div{
+  color:rgba(0,0,0,0.6);
+  font-size:0.9em;
+  padding:0 0.2rem;
+}
+.property-panel .info .type{
+  font-variant: small-caps;
 }
 </style>

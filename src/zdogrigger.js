@@ -92,12 +92,13 @@ return (idStr);
  * Adds an "assignedName" property to the Zdog item for human viewing in the tree (and maybe search/filter options?)
  * @param {*} ZdogItem 
  */
-function assignName(ZdogItem){
+function assignName(ZdogItem, name){
+  if (!name) name = "untitled";
   Object.defineProperty(ZdogItem, "assignedName", {
     enumerable: true,
     writable: true,
     configurable:false,
-    value: "untitled"
+    value: name
   })
 }
 /**
@@ -164,7 +165,6 @@ const SET_PROPS = {
     "radius"
   ],
   illustration:[
-    //element
   "centered","zoom","dragRotate","resize"
     // onPrerender: noop,
     // onDragStart: noop,
@@ -197,6 +197,7 @@ const SET_PROPS = {
 function ZdogFilterProps(ZdogObject){
   if(!ZdogObject || !ZdogObject.assignedType) return;
   let type = ZdogObject.assignedType;
+  if (type == 4) return //we're not serializing dragger type
   let classN = ZDOG_CLASS_NAME[type];
   let recordProps = SET_PROPS[classN]
   if (!recordProps) return
@@ -206,7 +207,8 @@ function ZdogFilterProps(ZdogObject){
     assignedName: ZdogObject.assignedName,
     id: ZdogObject.id
   }
-  console.log('asfasdfa')
+  //console.log('asfasdfa')
+  //TODO: handle Anchors
 
   let strin = (prop) =>{
     if (prop == 'dragRotate') {
@@ -214,9 +216,10 @@ function ZdogFilterProps(ZdogObject){
         return true;
       }
     }
-    return JSON.stringify(ZdogObject[prop])
+    return ZdogObject[prop]
   }
 
+  //Assing props
   recordProps.forEach(prop=>{
     result[prop] = strin(prop);
   })
@@ -234,10 +237,133 @@ function ZdogFilterProps(ZdogObject){
       recordProps.forEach(prop=>{
         result[prop] = strin(prop);
       })
+    } else if (type == 8 ) {
+      //illustration element prop set to a selector
+      result.element = '.zdog-canvas';
     }
+    
   }
 
   return result;
+}
+
+/**
+ * Revives an Object or a stringified object into a Zdog object
+ * @param {Object} plainObject 
+ */
+function reviveZdog(plainObject){
+  if (typeof plainObject === "string"){
+    plainObject = JSON.parse(plainObject);
+  }
+  let {id, assignedName, assignedType, ...options} = plainObject;
+  let ZdogO = new ZDOG_CLASS_TYPE[assignedType](options);
+  
+  assignName(ZdogO, assignedName);
+  assignType(ZdogO, assignedType)
+  ZdogO.id = id;
+  Object.defineProperty(ZdogO, "id", {enumerable:true, configurable: false, writable: false });
+  return ZdogO
+}
+
+/**
+ * Accepts a Ztree instance or a JSON file in the constructor
+ */
+class ZtreeReader{
+  constructor(arg){
+    if (!arg) {
+      this.Ztree = null
+    } else if (arg instanceof Ztree) {
+      this.Ztree = Ztree
+    } else {
+      this.reviveTree(arg);
+    }
+  }
+
+  static revivePlain(key, value){
+    if (key == 'nodes'){
+      let temp = value.map(plain=>{
+        return reviveZdog(plain);
+      })
+      return temp;
+    } else {
+      return value;
+    }
+  }
+
+  /**
+   * Revives a JSON file to a Ztree
+   * @param {String} JSONstring 
+   */
+  reviveTree(JSONstring){
+    //parse arg into a Ztree
+    let objecT = JSON.parse(JSONstring, ZtreeReader.revivePlain);
+    let maP = new Map()
+    objecT.nodes.forEach(node=>{
+      maP.set(node.id, node);
+      if(node.id == objecT.illustration){
+        this.Ztree = new Ztree(node);
+      }
+    })
+    this.Ztree.nodeMap = maP;
+    //set relations, each relation is {from:'id', to:'id'}
+    for(var r of objecT.relations){
+      this.Ztree.relationSet.add(r)
+      let f = maP.get(r.from)
+      let t = maP.get(r.to)
+      f.addChild(t)
+    }
+
+    return this.Ztree;
+  }
+
+  static Download(content, fileName, contentType){
+    const a = document.createElement("a");
+    var file = new Blob([content], {type: contentType});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+    //window.URL.revokeObjectURL(file);
+  }
+
+  download(){
+    if (!this.Ztree) throw new Error('Cannot download if there is no tree')
+    let content = this.Ztree._JSON();
+    ZtreeReader.Download(content, this.Ztree.illustration.assignedName, 'text/json');
+  }
+
+  static async Import(){
+    const input = document.createElement('input')
+    input.setAttribute('type','file');
+    input.setAttribute('accept','.json');
+    return new Promise((resolve, reject)=>{
+      input.addEventListener('change', (event) => {
+        let file = event.target.files;
+        if (file !== null && file !== undefined) {
+          resolve(event.target.files);
+        } else {
+          reject('No file chosen');
+        }
+      });
+      input.click()
+    })
+  }
+
+  async load(){
+    return new Promise((resolve, reject) => {
+      ZtreeReader.Import().then(fileList=>{
+        var fileReader = new FileReader();
+        fileReader.onloadend = (ev) => {
+          this.reviveTree(ev.target.result);
+          resolve(this.Ztree);
+        }
+        for (let f of fileList){
+          fileReader.readAsText(f);
+        }
+      }).catch(e=>{
+        reject(e);
+      })
+    })
+  }
 }
 
 
@@ -297,6 +423,12 @@ class Ztree{
     return obj
   }
 
+  download(){
+    let content = this._JSON();
+    ZtreeReader.Download(content,
+      `${this.illustration.assignedName}.json`, 'text/json');
+  }
+
   trimmedView(node){
     let {id,assignedName,assignedType,visible} = node;
     if (!id || !assignedType) return null;
@@ -305,6 +437,20 @@ class Ztree{
     if (visible === undefined) visible = true
     // children = (children.length > 0? true : false);
     return ({id,assignedName,assignedType,index,visible})
+  }
+
+  _JSON(){
+    let {illustration, nodeMap, relationSet} = this;
+
+    let result = {
+      illustration: illustration.id,
+      nodes: [...nodeMap.values()].map(node=>{
+        return ZdogFilterProps(node)
+      }),
+      relations: [...relationSet.values()]
+    }
+
+    return JSON.stringify(result);
   }
 
   addNode(ZdogObject){
@@ -415,11 +561,13 @@ let Zdogger = (type) => {
   return null;
 }
 
-Zdogger.tree = Ztree
+Zdogger.Tree = Ztree
 Zdogger.isClass = isClass
+Zdogger.Reader = ZtreeReader
 
 export {
-  Zdogger, Ztree, isClass, ZdogFilterProps,
+  Zdogger, Ztree, ZtreeReader,
+  isClass, ZdogFilterProps,
   ZDOG_CLASS_TYPE, ZDOG_CLASS_STRING, ZDOG_CLASS_NAME,
   }
 

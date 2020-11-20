@@ -42,9 +42,11 @@
         ></div>
     </teleport>-->
     <ul v-if="children">
-    <TreeItem v-for="(node) in children" :key="node.id"
+    <TreeItem v-for="(node, index) in children" :key="node.id"
     :class="{'collapsed':collapsed}"
     :node="node"
+    :nestedindex="index"
+    @change-name="changeChildName"
     />
     </ul>
   </li>
@@ -52,13 +54,15 @@
 </template>
 
 <script>
-//import {ref } from 'vue' // onUpdated, onUnmounted
+//import {ref} from 'vue' // onUpdated, onUnmounted
 import { mapState, mapActions} from 'vuex'// mapGetters
 
 export default {
   name: 'TreeItem',
+  emits:['change-name'],
   props: {
     node:Object,
+    nestedindex:Number
   },
   watch:{
     selectedid(){
@@ -86,7 +90,7 @@ export default {
       if (!this.wipName) return
       this.changeSelectedName(this.wipName)
       // let newName = this.wipName
-      // this.$emit('edit-zdogger-node-name', this.node, newName);
+      this.$emit('change-name', this.nestedindex, this.wipName);
       this.wipName = null;
     },
     keydownHandler(event){
@@ -103,22 +107,29 @@ export default {
       //this.$emit('change-selected', this.node.id, this.selectedElement);
     },
     toggleCollapse(){
-      this.collapsed = !this.collapsed;
-      if (!this.children) {
+      if (!this.children) { 
         //fetch children
         this.getChildrenView();
+        /*
+        for some reason the DOM wont react unless the variable is set a little later...
+        need to find a better solution than setTimeout...
+        */
+          setTimeout(()=>{
+          this.collapsed = !this.collapsed;
+          }, 100)
+      } else {
+        this.collapsed = !this.collapsed;
       }
     },
     getChildrenView(){
-      try{
-        let fk = this.ZdogObject.children.map(child=>{
+      this.children = this.ZdogObject.children.map(child=>{
           return this.Ztree.trimmedView(child);
         }).filter(x=>x)
-        this.children = fk;
-      } catch(e){
-        //console.log(e)
-      }
+      console.log(this.children);
     },
+    changeChildName(index, newName){
+      this.children[index].assignedName = newName
+    }
   },
   computed:{
     ...mapState({
@@ -150,7 +161,7 @@ export default {
       children:null,
       editingName:false,
       wipName:null,
-      collapsed:false,
+      collapsed:true,
     }
   }
 }

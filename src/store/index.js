@@ -5,7 +5,7 @@ import { createStore, createLogger } from 'vuex'
 
 const debug = process.env.NODE_ENV !== 'production'
 
-import {Zdogger} from '../zdogrigger'
+import {Zdogger, ZDOG_CLASS_TYPE} from '../zdogrigger'
 
 /**
  *  GLOBALS
@@ -71,13 +71,6 @@ const actions = {
     let illuObj = Zdogger('illustration')(optionsDefault);
     commit('setZtree', illuObj)
 
-
-    let animate = () => {
-      illuObj.updateRenderGraph()
-      requestAnimationFrame(animate);
-    }
-
-    animate()
   },
 
   newZdogObject({commit, state}, {type, options}){
@@ -95,9 +88,21 @@ const actions = {
     commit('setAssignedName', newName);
   },
 
-  changeSelected({commit}, {id, element}){
+  changeSelected({commit, state}, {id, element}){
     //click handler here?
+    if (state.selected.id == id) return;
     commit('setSelected', {id, element});
+  },
+
+  exportTree({state}){
+    //save current ztree TODO
+    state.Ztree.download();
+  },
+
+  async importTree({commit}){
+    //save current ztree TODO
+    let newTree = await new Zdogger.Reader().load();
+    commit('setZtree', newTree);
   }
   // checkout ({ commit, state }, products) {
   //   const savedCartItems = [...state.items]
@@ -123,9 +128,22 @@ const actions = {
 // mutations
 const mutations = {
 
-  setZtree(state, illustration){
+  setZtree(state, arg){
     state.Ztree = null;
-    state.Ztree = new Zdogger.tree(illustration)
+    if (arg instanceof ZDOG_CLASS_TYPE[8]) {
+      state.Ztree = new Zdogger.Tree(arg)
+    } else if (arg instanceof Zdogger.Tree) {
+      console.log(arg);
+      state.Ztree = arg
+    }
+    state.updateTree = !state.updateTree;
+
+    let animate = () => {
+      state.Ztree.illustration.updateRenderGraph()
+      requestAnimationFrame(animate);
+    }
+
+    animate()
   },
 
   addZtreeNode(state, node){
@@ -138,7 +156,6 @@ const mutations = {
     if (!state.selected) throw new Error('Cannot assign name to null selected node');
     state.Ztree.find(state.selected.id)
       .assignedName = newName;
-    state.updateTree = !state.updateTree;
   },
 
   setSelected(state, {id, element}){

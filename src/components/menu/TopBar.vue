@@ -1,15 +1,19 @@
 <template>
-  <div class="toolbar row"
-    :aria-label="`Create new`">
-    <button v-for="(item,index) in ZDOG_CLASS_NAME" :key="`${item}_${index}`"
-      :aria-label="item"
-      @click="promptCreate"
-      :class="{
-        'hide': (item != 'illustration' && !hasIllustration)
-      }"
-      >
-      +{{item}}
-    </button>
+  <div class="toolbar row">
+    <button @click="exportTree">Export</button>
+    <button @click="importTree">Import</button>
+    <div :aria-label="`Create new`" tabIndex="0">
+      <button v-for="(item,index) in ZDOG_CLASS_NAME" :key="`${item}_${index}`"
+        :aria-label="item"
+        @click="promptCreate"
+        :class="{
+          'hide': (item != 'illustration' && !hasIllustration)
+        }"
+        >
+        +{{item}}
+      </button>
+    </div>
+
     <Modal v-if="!bWarning && hasIllustration && creationItemName"
       @close="creationItemName = null">
       <Creation
@@ -43,7 +47,9 @@ export default {
   methods:{
     ...mapActions([
       'newZdogObject', //argument should be in format {type:int, options:{}}
-      'newIllustration'
+      'newIllustration',
+      'exportTree',
+      'importTree'
     ]),
     promptCreate(event){
       let itemName = event.target.getAttribute('aria-label');
@@ -69,7 +75,7 @@ export default {
     confirmNewIllustration(){
       this.newIllustration();
       this.bWarning = false;
-    },
+    }
   },
   computed:{
     ...mapState({

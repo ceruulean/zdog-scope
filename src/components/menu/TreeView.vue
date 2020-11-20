@@ -1,9 +1,10 @@
 <template>
-  <ul v-if="Ztree">
-    <TreeItem v-for="(node) in treeOrphans" :key="node.id"
+  <ul v-if="Ztree" :key="updateTree">
+    <TreeItem v-for="node in treeOrphans" :key="node.id"
       :node="node"
       />
       <button @click="log">FK me</button>
+      <textarea v-model="fkme"></textarea>
   </ul>
 </template>
 
@@ -21,11 +22,13 @@ export default {
   methods:{
     log(){
       console.table(this.treeOrphans);
+      this.fkme = this.Ztree._JSON();
     }
   },
   computed:{
     ...mapState({
       Ztree:state => state.Ztree,
+      updateTree:'updateTree',
       treeOrphans(state){
         return state.Ztree.orphans.map(node=>{
           return this.Ztree.trimmedView(node);
@@ -36,6 +39,8 @@ export default {
   data(){
     return{
       rerender:false,
+      fkme:null,
+      draggingObject:null,
     }
   }
 }

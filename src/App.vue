@@ -139,6 +139,10 @@ html,body{
   box-sizing:border-box;
 }
 
+h1,h2,h3,h4,h5{
+  margin:0.5rem 0.5rem 1rem 0.5rem
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
