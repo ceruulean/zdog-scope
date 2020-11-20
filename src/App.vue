@@ -67,6 +67,7 @@ export default {
           track: 3,
           element: gutter2.value,
         }],
+      /**Horizontal gutters */
         // rowGutters: [{
         //   track: 1,
         //   element: this.$refs.menuPropertyPanel,
@@ -96,14 +97,6 @@ export default {
           //the click inside the element
           this.changeSelected({node:null,element:null});
         }
-        // var isClickInside = (this.selected.element.contains(event.target)
-        // || this.$refs.menuPropertyPanel.$el.contains(event.target))
-        // || this.$refs.menuTopbar.$el.contains(event.target);
-
-        // if (!isClickInside) {
-        //   //the click was outside the specifiedElement, do something
-        //   this.changeSelected({node:null,element:null});
-        // }
     },
   },
 

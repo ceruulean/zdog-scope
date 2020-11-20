@@ -5,6 +5,7 @@ Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor
 
 
 [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid) for panel resizing
+Built with [Vue 3](https://v3.vuejs.org/)
 
 ## Todo
 - Draggable tree sort
@@ -23,6 +24,8 @@ Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor
 ## Done
 - Import/Export JSON
 - Tree view of objects
+
+![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/Capture.PNG)
 
 ## Project setup
 ```
