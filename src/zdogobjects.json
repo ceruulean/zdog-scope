@@ -81,7 +81,7 @@
         "type":"number",
         "default":0
       },
-      "diamater":{
+      "diameter":{
         "type":"number",
         "default":0
       },
@@ -100,6 +100,10 @@
       "color":{
         "type":"string",
         "default":"#ba9661"
+      },
+      "fill":{
+        "type":"boolean",
+        "default":true
       },
       "leftFace":{
         "type":"string",
@@ -156,6 +160,38 @@
       "scale":{
         "type":"object",
         "default":null
+      },
+      "centered":{
+        "type":"boolean",
+        "default":true
+      },
+      "zoom":{
+        "type":"number",
+        "default":10
+      },
+      "dragRotate":{
+        "type":"boolean",
+        "default":true
+      },
+      "resize":{
+        "type":"boolean",
+        "default":false
+      },
+      "visible":{
+        "type":"boolean",
+        "default":true    
+      },
+      "front":{
+        "type":"object",
+        "default":"{ \"y\": 1 }"     
+      },
+      "backface":{
+        "type":"boolean",
+        "default":true      
+      },
+      "updateSort":{
+        "type":"boolean",
+        "default":false      
       }
     }
 }

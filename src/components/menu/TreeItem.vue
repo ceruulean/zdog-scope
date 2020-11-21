@@ -1,15 +1,19 @@
 <template>
-<div class="roq" v-if="node">
-  <li
-    :class="{'tree-item':true}"
-      >
+<div :class="{'roq':true}" v-if="node">
+  <li class="tree-item"
+    @dragover="dragOver"
+    @dragleave="dragOverIndicate = false"
+    @drop="drop"
+  >
     <div @click.stop="highlight"
         ref="selectitem"
         :class="{
           'data-set':true,
           'row':true,
           'highlight': isSelected}"
-      >
+      draggable="true"
+      @dragstart="dragStart"
+      @dragend="this.dragging = false;dragOverIndicate = false">
       <button v-if="hasChildren"
         @click="toggleCollapse"
         >
@@ -30,23 +34,24 @@
           {{node.assignedName}}
       </label>
 
-      <div class="type">
+      <div class="text-display-type type">
         {{node.assignedType}}
       </div>
     </div>
-
+    <div v-show="dragOverIndicate"
+      class="drag-over-ghost">
+      </div>
     <!--
     <teleport to="[data-teleport]">
       <div v-if="editingName" class="editing-blocker"
         @click="editBlocker"
         ></div>
     </teleport>-->
-    <ul v-if="children">
-    <TreeItem v-for="(node, index) in children" :key="node.id"
+    <ul v-if="hasChildren">
+    <TreeItem v-for="(node) in node.children" :key="node.id"
     :class="{'collapsed':collapsed}"
     :node="node"
-    :nestedindex="index"
-    @change-name="changeChildName"
+    :depth="depth + 1"
     />
     </ul>
   </li>
@@ -56,32 +61,52 @@
 <script>
 //import {ref} from 'vue' // onUpdated, onUnmounted
 import { mapState, mapActions} from 'vuex'// mapGetters
+//import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
   name: 'TreeItem',
-  emits:['change-name'],
+  emits:['change-name', 'sort-tree'],
+ // components:{draggable: VueDraggableNext},
   props: {
     node:Object,
-    nestedindex:Number
+    depth:Number
   },
   watch:{
     selectedid(){
       this.finishEditAssignedName();
-    },
-    hasChildren(newVal, oldVal){
-      if (!oldVal) {
-        this.getChildrenView();
-      }
-    },
-    updateTree(){
-      this.getChildrenView();
     }
   },
   methods:{
     ...mapActions([
       'changeSelectedName', //newName
-      'changeSelected' //{node: obj, element: element}
+      'changeSelected', //{node: obj, element: element}
     ]),
+    dragStart(e){
+      this.dragging = true;
+      let payload = {childId: this.node.id, childDepth: this.depth}
+      e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+    },
+    dragOver(e){
+      e.preventDefault();
+      e.stopPropagation();
+      this.dragOverIndicate = true;
+      e.dataTransfer.dropEffect = "move";
+    },
+    drop(e){
+      e.preventDefault();
+      e.stopPropagation();
+      let data = JSON.parse(e.dataTransfer.getData("text/plain"));
+      let payload = {
+        id: data.childId,
+        newParentId: this.node.id,
+        parentDepth: this.depth,
+        childDepth: Number(data.childDepth)
+      }
+      this.$store.dispatch('treeview/sortItem', payload)
+      //this.$emit('sort-tree', payload)
+      this.dragging = false
+      this.dragOverIndicate = false
+    },
     editAssignedName(){
       this.editingName = true;
     },
@@ -90,7 +115,7 @@ export default {
       if (!this.wipName) return
       this.changeSelectedName(this.wipName)
       // let newName = this.wipName
-      this.$emit('change-name', this.nestedindex, this.wipName);
+     // this.$emit('change-name', this.nestedindex, this.wipName);
       this.wipName = null;
     },
     keydownHandler(event){
@@ -107,29 +132,11 @@ export default {
       //this.$emit('change-selected', this.node.id, this.selectedElement);
     },
     toggleCollapse(){
-      if (!this.children) { 
-        //fetch children
-        this.getChildrenView();
-        /*
-        for some reason the DOM wont react unless the variable is set a little later...
-        need to find a better solution than setTimeout...
-        */
-          setTimeout(()=>{
-          this.collapsed = !this.collapsed;
-          }, 100)
-      } else {
-        this.collapsed = !this.collapsed;
-      }
+      this.collapsed = !this.collapsed;
     },
-    getChildrenView(){
-      this.children = this.ZdogObject.children.map(child=>{
-          return this.Ztree.trimmedView(child);
-        }).filter(x=>x)
-      console.log(this.children);
+    log(event) {
+      console.log(event)
     },
-    changeChildName(index, newName){
-      this.children[index].assignedName = newName
-    }
   },
   computed:{
     ...mapState({
@@ -143,22 +150,17 @@ export default {
     isSelected(){
       return (this.selectedid && this.selectedid == this.node.id)
     },
-    hasChildren(){
-      try{
-        return (this.ZdogObject.children.some(child=>{
-          return child.id
-        }))
-      }catch(e){
-        return false
-      }
-    },
     ZdogObject(){
       return this.Ztree.find(this.node.id);
+    },
+    hasChildren(){
+      return (this.node.children && this.node.children.length > 0)
     },
   },
   data(){
     return{
-      children:null,
+      dragOverIndicate:false,
+      dragging:false,
       editingName:false,
       wipName:null,
       collapsed:true,
@@ -167,7 +169,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .tree-item{
  /* background-color:rgba(100, 97, 97, 1);*/
   display:flex;
@@ -213,6 +215,18 @@ export default {
 
 .collapsed{
   display:none;
+}
+
+.tree-item .empty-list-dropzone{
+  padding:0.5rem 0 0 0;
+}
+
+.drag-over-ghost{
+  border:1px dashed grey;
+  background-color:rgba(0,255,255,0.3);
+  height:1rem;
+  margin-left:1rem;
+  /*needs arrow to indicate child*/
 }
 
 </style>

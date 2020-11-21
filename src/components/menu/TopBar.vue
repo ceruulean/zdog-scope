@@ -2,8 +2,9 @@
   <div class="toolbar row">
     <button @click="exportTree">Export</button>
     <button @click="importTree">Import</button>
+    <button @click="demo">Demo</button>
     <div :aria-label="`Create new`" tabIndex="0">
-      <button v-for="(item,index) in ZDOG_CLASS_NAME" :key="`${item}_${index}`"
+      <button v-for="(item,index) in creatables" :key="`${item}_${index}`"
         :aria-label="item"
         @click="promptCreate"
         :class="{
@@ -14,16 +15,16 @@
       </button>
     </div>
 
-    <Modal v-if="!bWarning && hasIllustration && creationItemName"
-      @close="creationItemName = null">
+    <Modal v-if="!bWarning && hasIllustration && creationItemType"
+      @close="cancelPrompt">
       <Creation
-        :itemName="creationItemName"
+        :itemtype="creationItemType"
         @submit-new-shape="createNew"/>
     </Modal>
     <Modal v-if="bWarning && hasIllustration"
-      @close="bWarning = false">
+      @close="cancelPrompt">
       <p>WARNING: Are you sure you want to replace the current illustration?</p>
-      <button @click="confirmNewIllustration">Yes</button><button @click="bWarning = false">Cancel</button>
+      <button @click="closeWarning">Yes</button><button @click="cancelPrompt">Cancel</button>
     </Modal>
   </div>
 </template>
@@ -39,7 +40,10 @@ import Creation from '../Creation.vue'
 
 export default {
   name: 'TopBar',
-  components:{Modal,Creation},
+  components:{
+  Modal,
+  Creation,
+  },
   emits: ['create-new'],
   props: {
   },
@@ -48,33 +52,45 @@ export default {
     ...mapActions([
       'newZdogObject', //argument should be in format {type:int, options:{}}
       'newIllustration',
+      'replaceIllustration',
       'exportTree',
       'importTree'
     ]),
     promptCreate(event){
-      let itemName = event.target.getAttribute('aria-label');
+      let ItemType = event.target.getAttribute('aria-label');
       if(!this.hasIllustration){
         this.newIllustration();
         return;
-      } else if (itemName == "illustration") {
+      } else if (ItemType == "illustration") {
         this.bWarning = true;
       }
-      this.creationItemName = itemName;
+      this.creationItemType = ItemType;
     },
-    createNew(itemName, options){
+    createNew(ItemType, options){
       let temp = {
-        type:itemName,
+        type:ItemType,
         options:options
         }
 
       let selected = this.selectedid;
       temp.options.addTo = selected;
       this.newZdogObject(temp)
-      this.creationItemName = null
+      this.creationItemType = null
     },
     confirmNewIllustration(){
       this.newIllustration();
       this.bWarning = false;
+    },
+    cancelPrompt(){
+      this.creationItemType = null;
+      this.bWarning = false;
+    },
+    closeWarning(){
+      this.bWarning = false;
+    },
+    demo(){
+    let TestIllo = require('../../testmodel').default;
+    this.replaceIllustration(TestIllo)
     }
   },
   computed:{
@@ -89,10 +105,16 @@ export default {
     hasIllustration() {
     return (this.illustration !== null && this.illustration !== undefined)
     },
+    creatables(){
+      let c = [...ZDOG_CLASS_NAME];
+      return c.filter(name=>{
+        return name != "dragger"
+      })
+    }
   },
   data(){
     return {
-      creationItemName: '',
+      creationItemType: '',
       bWarning:false,
       ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
     }

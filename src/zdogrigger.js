@@ -1,12 +1,12 @@
 import Zdog from 'zdog'
 
 /**
- * new create(classType: int) 
+ * 
  * classType only accepts 0-13 (corresponding to ZDog types)
  */
 const ZDOG_CLASS_TYPE = [
   Zdog.Anchor,
-  Zdog.Box,
+  Zdog.Shape,
   Zdog.Cone,
   Zdog.Cylinder,
   Zdog.Dragger,
@@ -17,13 +17,13 @@ const ZDOG_CLASS_TYPE = [
   Zdog.Polygon,
   Zdog.Rect,
   Zdog.RoundedRect,
-  Zdog.Shape,
+  Zdog.Box,
   Zdog.Vector
 ]
 
-const ZDOG_CLASS_STRING = {
+const ZDOG_CLASS = {
   'anchor':0,
-  'box':1,
+  'shape':1,
   'cone':2,
   'cylinder':3,
   'dragger':4,
@@ -34,11 +34,11 @@ const ZDOG_CLASS_STRING = {
   'polygon':9,
   'rect':10,
   'roundedrect':11,
-  'shape':12,
+  'box':12,
   'vector':13
 }
 
-const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS_STRING);
+const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS);
 
 // Creates Zdog objects with assignedName and uid.
 function make(int){
@@ -52,25 +52,20 @@ function make(int){
   }
 }
 
+// function importRaw(ZdogObject){
+//   assignUID(ZdogObject);
+//   assignName(ZdogObject);
+//   assignType(ZdogObject, int);
+// }
+
 // Instead of new Zdog.Anchor(options), can call
-// create['anchor'] and defer instance creation until you receive all options
-//    let makeAnchor = (options) => create['anchor'](options)
+// create('anchor') and defer instance creation until you receive all options
+//    let makeAnchor = (options) => create('anchor')(options)
 //    makeAnchor({translate:{x:0,y:0}})
-const create = {
-  anchor:make(0),
-  illustration:make(8),
-  shape:make(12),
-  rect:make(10),
-  roundedrect:make(11),
-  ellipse:make(5),
-  hemisphere:make(7),
-  polygon:make(9),
-  cone:make(2),
-  cylinder:make(3),
-  box:make(1),
-  group:make(6),
-  dragger:make(4),
-  vector:make(13),
+
+
+const create = (itemName) => {
+  return make(ZDOG_CLASS[itemName])
 }
 
 //**Utility Function from https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript */
@@ -133,11 +128,47 @@ function isClass(ZdogItem, zdogType){
   let int = 0;
   if (typeof zdogType == 'string') {
     zdogType = zdogType.toLowerCase();
-    int = ZDOG_CLASS_NAME[zdogType];
+    int = ZDOG_CLASS[zdogType];
   } else if (Number.isInteger(zdogType)) {
     int = zdogType
+  } else {
+    return false
   }
-  return ZdogItem instanceof new ZDOG_CLASS_TYPE[int]
+  return (ZdogItem instanceof ZDOG_CLASS_TYPE[int]);
+}
+
+/**
+ * Add properties to native Zdog objects that don't have ids or type assigned to them yet
+ * @param {*} ZdogObject 
+ */
+function assignExisting(ZdogObject){
+  //start backwards because anchor is 0 and is the parent of almost all objects
+  let type = -1;
+  for(let n = ZDOG_CLASS_NAME.length - 1; n >= 0; n--){
+    if (isClass(ZdogObject, n)){
+      type = n;
+      break;
+    }
+  }
+  if (type < 0) return ZdogObject; // return the original because can only do certain objects...? UGH this is annoying
+  assignName(ZdogObject, 'untitled');
+  assignUID(ZdogObject);
+  assignType(ZdogObject, type);
+  
+  for (let c of ZdogObject.children){
+    assignExisting(c);
+  }
+  return ZdogObject
+}
+
+/**
+ * Add properties to an illustration and returns a copy
+ * @param {*} ZdogObject 
+ */
+function importExisting(illustration){
+  let copy = illustration.copyGraph();
+  assignExisting(copy);
+  return copy;
 }
 
 
@@ -195,7 +226,7 @@ const SET_PROPS = {
  * @param {*} ZdogObject 
  */
 function ZdogFilterProps(ZdogObject){
-  if(!ZdogObject || !ZdogObject.assignedType) return;
+  if(!ZdogObject || (isNaN(ZdogObject.assignedType)) ) return;
   let type = ZdogObject.assignedType;
   if (type == 4) return //we're not serializing dragger type
   let classN = ZDOG_CLASS_NAME[type];
@@ -248,7 +279,7 @@ function ZdogFilterProps(ZdogObject){
 }
 
 /**
- * Revives an Object or a stringified object into a Zdog object
+ * Revives the plain Object or a stringified object into a Zdog object
  * @param {Object} plainObject 
  */
 function reviveZdog(plainObject){
@@ -266,12 +297,13 @@ function reviveZdog(plainObject){
 }
 
 /**
- * Accepts a Ztree instance or a JSON file in the constructor
+ * Accepts a Ztree instance or a JSON string in the constructor
  */
 class ZtreeReader{
   constructor(arg){
+    this.Ztree = null
     if (!arg) {
-      this.Ztree = null
+      return
     } else if (arg instanceof Ztree) {
       this.Ztree = Ztree
     } else {
@@ -305,12 +337,16 @@ class ZtreeReader{
       }
     })
     this.Ztree.nodeMap = maP;
-    //set relations, each relation is {from:'id', to:'id'}
+    //set relations, each relation is {parent:'parentid', children:[array of childids]}
     for(var r of objecT.relations){
-      this.Ztree.relationSet.add(r)
-      let f = maP.get(r.from)
-      let t = maP.get(r.to)
-      f.addChild(t)
+      let parent = maP.get(r.parent);
+      let set = new Set(r.children.map(id=>{
+        let child = maP.get(id)
+        parent.addChild(child)
+        return id;
+      }));
+      this.Ztree.relationMap.set(r.parent, set);
+      
     }
 
     return this.Ztree;
@@ -373,31 +409,49 @@ class ZtreeReader{
  */
 class Ztree{
   constructor(illustration){
-    this.illustration = illustration;
     this.nodeMap = new Map();
-    this.relationSet = new Set(); //{from: sourceId, to: childId}
-    this.addNode(illustration);
-    illustration.assignedName = 'root'
+    this.relationMap = new Map(); //{key: id, value: Set() of child ids}
+
+    if (illustration.id) {
+      this.illustration = illustration
+    } else {
+      this.illustration = importExisting(illustration)
+      this.flatten(this.illustration)
+    }
+    this.addNode(this.illustration);
+    this.illustration.assignedName = 'root'
   }
 
-  //Flatten existing zdog object into Map and Set to record relations
-  static Flatten(ZdogObject, nodeMap, relationSet){
+  //flatten existing zdog object into Map and Set to record relations
+  flatten(ZdogObject){
     let mainID = Ztree._nodeID(ZdogObject)
-    nodeMap.set(mainID, ZdogObject);
+    this.nodeMap.set(mainID, ZdogObject);
     if (ZdogObject.addTo){
-      let r = {from: ZdogObject.addTo.id, to: mainID}
-      relationSet.add(r);
+      let pID = ZdogObject.addTo.id;
+      let set = this.relationMap.get(pID);
+      if (!set) {
+        this.relationMap.set(pID, new Set([mainID]))
+        return
+      }
+      set.add(mainID);
     }
-    for (let c in ZdogObject.children){
-      if (
-        (ZdogObject.children.assignedType !== undefined)
-        && (ZdogObject.children.assignedType !== null)
-        && ZdogObject.children[c].id
-        ){ 
-        //it is a Zdog object (Some objects like boxes/cylinders store their faces as children but they aren't complete objects)
-        let relation = {from: mainID, to: ZdogObject.children[c].id}
-        relationSet.add(relation);
-        Ztree.Flatten(ZdogObject.children[c], nodeMap);
+    if (ZdogObject.children.length > 0) {
+      let set = this.relationMap.get(mainID);
+      if (!set) {
+        set = new Set();
+        this.relationMap.set(mainID, set);
+      }
+      for (let child of ZdogObject.children){
+        if (
+          !isNaN(child.assignedType)
+          // (child.assignedType !== undefined)
+          // && (child.assignedType !== null)
+          // && child.id
+          ){ 
+
+          set.add(child.id);
+          this.flatten(child);
+        }
       }
     }
   }
@@ -423,50 +477,80 @@ class Ztree{
     return obj
   }
 
+  trimNode(node){
+    let {id,assignedName,assignedType,visible,children} = node;
+    if (!id || isNaN(assignedType)) return null;
+    let index = this.indexOf(node);
+    assignedType = ZDOG_CLASS_NAME[assignedType];
+    if (visible === undefined) visible = true
+
+    if (children && children.length > 0) {
+      children = children.map(child=>{
+        return this.trimNode(child);
+      }).filter(x=>x);
+    } else {
+      children = null
+    }
+    return ({id,assignedName,assignedType,index,visible,children})
+  }
+
   download(){
     let content = this._JSON();
     ZtreeReader.Download(content,
       `${this.illustration.assignedName}.json`, 'text/json');
   }
 
-  trimmedView(node){
-    let {id,assignedName,assignedType,visible} = node;
-    if (!id || !assignedType) return null;
-    let index = this.indexOf(node);
-    assignedType = ZDOG_CLASS_NAME[assignedType];
-    if (visible === undefined) visible = true
-    // children = (children.length > 0? true : false);
-    return ({id,assignedName,assignedType,index,visible})
+  trimmedView(){
+    return [this.trimNode(this.illustration)]
   }
 
   _JSON(){
-    let {illustration, nodeMap, relationSet} = this;
+    let {illustration, nodeMap, relationMap} = this;
 
     let result = {
       illustration: illustration.id,
       nodes: [...nodeMap.values()].map(node=>{
         return ZdogFilterProps(node)
       }),
-      relations: [...relationSet.values()]
+      relations: [...relationMap.entries()].map(entry=>{
+        let key = entry[0]
+        let valset = entry[1]
+        return {parent: key, children: Array.from(valset)}
+      })
     }
 
     return JSON.stringify(result);
   }
 
   addNode(ZdogObject){
-    Ztree.Flatten(ZdogObject, this.nodeMap, this.relationSet);
+    this.flatten(ZdogObject);
   }
   //can be id string or the object itself
   removeNode(node){
     let id = Ztree._nodeID(node);
-    this.nodeMap.delete(this.nodeMap.get(id));
+    this.nodeMap.delete(id);
 
     //remove record of relations
-    this.relationSet.forEach(relation=>{
-      if (relation.from == id || relation.to == id) {
-        this.relationSet.delete(relation);
-      }
+    this.relationMap.delete(id);
+    this.relationMap.forEach(childSet=>{
+      childSet.delete(id);
     })
+  }
+//id of the node to be adopted
+  changeParent(id, newParentId){
+    let childnode = this.nodeMap.get(id)
+    let oldParentId = childnode.addTo.id
+    if (oldParentId){childnode.remove()}
+    //remove child from set record
+    this.relationMap.get(oldParentId).delete(id);
+    let newSet = this.relationMap.get(newParentId)
+    if (!newSet) {
+      newSet = new Set([id])
+      this.relationMap.set(newParentId, newSet);
+    } else {
+      newSet.add(id);
+    }
+    this.nodeMap.get(newParentId).addChild(childnode);
   }
 
   get nodes(){
@@ -480,16 +564,16 @@ class Ztree{
 
   hasChildren(node){
     let id = Ztree._nodeID(node);
-    let n = this.nodeMap.get(id);
-    return (n.children.some(child=>{
-      return child.id
+    let set = [...this.relationMap.get(id).values()];
+    return (set.children.some(child=>{
+      return !isNaN(child.assignedType)
     }));
   }
 
   hasParent(node){
     let id = Ztree._nodeID(node);
-    let n = this.nodeMap.get(id);
-    return (n.addTo != null && n.addTo != undefined && n.addTo != {});
+    let set = this.relationMap.get(id);
+    return (set && set.size() > 0);
   }
 
   find(id){
@@ -525,7 +609,7 @@ class Ztree{
   getChildNodes(node){
     let ID = Ztree._nodeID(node);
     let childIds = [];
-    this.relationSet.forEach((relation)=>{
+    this.relationMap.forEach((relation)=>{
       if (relation.from == ID){
         childIds.push(relation.to);
       }
@@ -556,7 +640,7 @@ class Ztree{
 }
 
 let Zdogger = (type) => {
-  if (typeof type == 'string') return create[type];
+  if (typeof type == 'string') return create(type);
   if (typeof type == 'number') return make(type);
   return null;
 }
@@ -568,7 +652,8 @@ Zdogger.Reader = ZtreeReader
 export {
   Zdogger, Ztree, ZtreeReader,
   isClass, ZdogFilterProps,
-  ZDOG_CLASS_TYPE, ZDOG_CLASS_STRING, ZDOG_CLASS_NAME,
+  ZDOG_CLASS_TYPE, ZDOG_CLASS, ZDOG_CLASS_NAME,
+  SET_PROPS
   }
 
 export default Zdogger;

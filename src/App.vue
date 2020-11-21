@@ -4,11 +4,11 @@
       ref="menuTopbar"
       />
     <div class="split-grid overlay" style="">
-      <div class="split-column tree-view"
+      <div class="split-column tree-view
+          user-select-none"
        ref="treeview">
         <h2>Tree View</h2>
         TODO: filter anchors, add icon, searchbar
-        <div class="tree-view">
         <header class="row between">
           <div class="col index">
             Index
@@ -16,8 +16,7 @@
           <div class="col name">Name</div>
           <div class="col type">Type</div>
         </header>
-          <TreeView/>
-        </div>
+        <TreeView/>
       </div>
       <div ref="gutter1" class="gutter-column-1"></div>
       <div class="split-column">
@@ -206,5 +205,18 @@ ul{
 }
 [class*="between-"]{
   justify-content:space-between;
+}
+
+.text-display-type{
+  font-variant: small-caps;
+  color: rgba(0,0,0,0.6);
+  font-size: 0.9em;
+}
+
+.user-select-none{
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 </style>

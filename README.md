@@ -11,6 +11,7 @@ Built with [Vue 3](https://v3.vuejs.org/)
 ---
 
 ## Todo
+- Change relationset to relationmap
 - Draggable tree sort
 - Edit properties input
 - Color picker

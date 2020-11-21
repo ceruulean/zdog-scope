@@ -1,19 +1,25 @@
 <template>
-  <div v-if="itemName">
-    <h2>Create new {{itemName}}</h2>
+  <div v-if="itemtype">
+    <h2>Create new {{itemtype}}</h2>
     <form class="row">
-      <label v-for="(value, field) in fields" :key="`${field}_creation`">
-        {{field}}
-        <input type="text" v-model="wipOptions[field]" :placeholder="value"/>
-      </label>
-      <span v-if="isShape && itemName != 'shape'">
-        <label
-          v-for="(value, field) in shapeFields"
-          :key="`${field}_label`">
+      <div class="field-list">
+        <label v-for="(field) in editableProps" :key="`${field}_creation`">
           {{field}}
-          <input type="text" v-model="wipOptions[field]" :placeholder="value"/>
+          <input type="text" v-model="wipOptions[field]" :placeholder="optionDefault(field)"/>
         </label>
-      </span>
+      </div>
+
+      <div>Color picker component here</div>
+      <div v-if="advEditableProps" class="field-list">
+        <h3>Advanced</h3>
+        <label
+          v-for="(field) in advEditableProps"
+          :key="`${field}_adv`">
+          {{field}}
+          <input type="text" v-model="wipOptions[field]" :placeholder="optionDefault(field)"/>
+        </label>
+      </div>
+
     </form>
     <button @click="submit">Create</button>
   </div>
@@ -22,15 +28,16 @@
 <script>
 //import {mapState, mapActions} from 'vuex'// mapActions 
 import ZdogJSONSchema from '../zdogobjects.json'
+import {SET_PROPS} from '../zdogrigger'
 
 export default {
   name: 'Creation',
   emit:['submit-new-shape'],
   props: {
-    itemName:String
+    itemtype:String
   },
   watch:{
-    itemName(){
+    itemtype(){
       this.wipOptions = {};
     }
   },
@@ -39,13 +46,16 @@ export default {
       let invalids = this.validateFields();
       if (invalids.length == 0) { // the returned array is empty
         let payload = Object.assign({},this.wipOptions);
-        this.$emit('submit-new-shape', this.itemName, payload);
+        this.$emit('submit-new-shape', this.itemtype, payload);
       } else {
           console.log(`You have errors in your fields: `)
         for (let i in invalids){
           console.log(invalids[i]);
         }
       }
+    },
+    optionDefault(field){
+      return ZdogJSONSchema.optionValidator[field].default;
     },
     validateFields(){
       let incorrectFields = [];
@@ -59,23 +69,18 @@ export default {
           if (validType == 'Array') { // needs to be array
             if (Array.isArray(value)){
               continue;
-            } else {
-              incorrectFields.push(field);
+            }
+          } else if (validType == 'integer') {
+            let toNum = Number(value);
+            if (Number.isInteger(toNum)){
               continue;
             }
           } else if (validType == 'number'){
-              let toNum = Number(value);
-              if (isNaN(value)){
-                incorrectFields.push(field);
-                continue;
-              } else if (validType == 'integer') {
-                if (Number.isInteger(toNum)){
-                  continue;
-                } //otherwise mark incorrect
-                incorrectFields.push(field);
-              } else {
-                continue;
-              }
+            let toNum = Number(value);
+            if (isNaN(toNum)){
+              incorrectFields.push(field);
+              continue;
+            }
           }
         incorrectFields.push(field);
         }
@@ -85,19 +90,37 @@ export default {
   },
   computed:{
     fields(){
-      return ZdogJSONSchema.optionSchema[this.itemName];
+      return ZdogJSONSchema.optionSchema[this.itemtype];
     },
     shapeFields(){
       return ZdogJSONSchema.optionSchema['shape'];
     },
     isShape(){
-      return (this.itemName != 'vector') && (this.itemName != 'anchor') && (this.itemName != 'group')
-      && (this.itemName != 'illustration');
+      return (this.itemtype != 'vector') && (this.itemtype != 'anchor') && (this.itemtype != 'group')
+      && (this.itemtype != 'illustration');
     },
     isAbstract(){
-      return (this.itemName == 'vector') || (this.itemName == 'anchor') || (this.itemName == 'group')
-      || (this.itemName == 'illustration');
+      return (this.itemtype == 'vector') || (this.itemtype == 'anchor') || (this.itemtype == 'group')
+      || (this.itemtype == 'illustration');
     },
+    editableProps(){
+      let iN = this.itemtype;
+      let basic = SET_PROPS[iN]
+      if (iN != 'vector' && iN != 'anchor' && iN != 'dragger'){
+        basic = [...SET_PROPS['anchor'], ...basic]
+      }
+      return basic.filter(prop=>{
+          return (prop != 'color')
+        });
+    },
+    advEditableProps(){
+      if (this.isShape && this.itemtype != 'shape'){
+        return SET_PROPS['shape'].filter(prop=>{
+          return (prop != 'color' && prop != 'path')
+        });
+      }
+      return null;
+    }
   },
   data(){
     return{
@@ -117,5 +140,10 @@ export default {
 <style scoped>
 input{
   max-width:10ch;
+}
+
+.field-list{
+  display:flex;
+  flex-flow:column nowrap;
 }
 </style>

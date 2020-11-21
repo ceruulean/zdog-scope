@@ -1,7 +1,7 @@
 <template>
   <div v-if="selected.id">
     <div class="row info">
-      <div class="type">{{TYPE}}</div><div>id: {{displayProps['id']}}</div>
+      <div>id: {{displayProps['id']}}</div><div class="text-display-type">{{TYPE}}</div>
     </div>
       <ul>
         <li v-for="(value, prop, index) in writableProps" :key="index">
@@ -73,8 +73,5 @@ export default {
   color:rgba(0,0,0,0.6);
   font-size:0.9em;
   padding:0 0.2rem;
-}
-.property-panel .info .type{
-  font-variant: small-caps;
 }
 </style>

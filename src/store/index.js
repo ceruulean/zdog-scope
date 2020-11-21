@@ -1,10 +1,13 @@
 import { createStore, createLogger } from 'vuex'
 
 //import MODULES from './modules/MODUELS' if ever gets more modules NEED TO AUTOMATE THIS
+import treeview from './modules/treeview'
 
 const debug = process.env.NODE_ENV !== 'production'
 
-import {Zdogger, ZDOG_CLASS_TYPE} from '../zdogrigger'
+import {Zdogger, isClass} from '../zdogrigger'
+
+
 
 /**
  *  GLOBALS
@@ -50,13 +53,16 @@ const actions = {
 
   },
 
+  replaceIllustration({commit}, illustration){
+    commit('setZtree', illustration);
+  },
+
   newZdogObject({commit, state}, {type, options}){
     if(options.addTo){
       options.addTo = state.Ztree.find(options.addTo);
     } else {
       options.addTo = state.Ztree.illustration
     }
-    console.log(options);
     let newO = Zdogger(type)(options);
     commit('addZtreeNode', newO);
   },
@@ -80,28 +86,30 @@ const actions = {
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
     commit('setZtree', newTree);
-  }
+  },
 }
 
 // mutations
 const mutations = {
 
   setZtree(state, arg){
-    state.Ztree = null;
-    if (arg instanceof ZDOG_CLASS_TYPE[8]) {
+    if (isClass(arg, 8)) {
       state.Ztree = new Zdogger.Tree(arg)
     } else if (arg instanceof Zdogger.Tree) {
-      console.log(arg);
       state.Ztree = arg
+    } else {
+      state.Ztree = null;
+      return;
     }
     state.updateTree = !state.updateTree;
 
-    let animate = () => {
-      state.Ztree.illustration.updateRenderGraph()
-      requestAnimationFrame(animate);
-    }
+    // let animate = () => {
+    //   state.Ztree.illustration.updateRenderGraph()
+    //   requestAnimationFrame(animate);
+    // }
 
-    animate()
+    // animate()
+
   },
 
   addZtreeNode(state, node){
@@ -114,18 +122,24 @@ const mutations = {
     if (!state.selected) throw new Error('Cannot assign name to null selected node');
     state.Ztree.find(state.selected.id)
       .assignedName = newName;
+      state.updateTree = !state.updateTree;
   },
 
   setSelected(state, {id, element}){
     state.selected.id = id;
     state.selected.element = element;
   },
+
+  nodeChangeParent(state, {id, newParentId}){
+    state.Ztree.changeParent(id, newParentId);
+    state.updateTree = !state.updateTree;
+  },
 }
 
 export default createStore({
-  // modules: {
-  //   global
-  // },
+  modules: {
+    treeview
+  },
   state,
   getters,
   mutations,

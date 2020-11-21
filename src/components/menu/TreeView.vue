@@ -1,43 +1,61 @@
 <template>
-  <ul v-if="Ztree" :key="updateTree">
-    <TreeItem v-for="node in treeOrphans" :key="node.id"
+  <ul v-if="Ztree"
+    >
+    <TreeItem v-for="(node,index) in treeView" :key="node.id"
       :node="node"
+      :listindex="index"
+      :depth="0"
       />
-      <button @click="log">FK me</button>
-      <textarea v-model="fkme"></textarea>
+    <button @click="log">Console Log</button>
+    <br/>
   </ul>
 </template>
 
 <script>
-//import {ref, } from 'vue' // onUpdated, onUnmounted
-import { mapState, } from 'vuex'// mapActions mapGetters
+//import {reactive, onMounted} from 'vue' // onUpdated, onUnmounted
+import { mapState, mapActions} from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
+//import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
   name: 'TreeView',
-  components:{TreeItem},
+  components:{
+    TreeItem,
+ //   draggable: VueDraggableNext
+    },
   props: {
   },
-  methods:{
-    log(){
-      console.table(this.treeOrphans);
-      this.fkme = this.Ztree._JSON();
+  watch:{
+    updateTree(){
+      this.treeView = this.$store.getters['treeview/view']
     }
+  },
+  methods:{
+    ...mapActions([
+      'sortTreeItem',
+    ]),
+    log(){
+      this.fkme = this.Ztree._JSON();
+    },
   },
   computed:{
     ...mapState({
       Ztree:state => state.Ztree,
       updateTree:'updateTree',
-      treeOrphans(state){
-        return state.Ztree.orphans.map(node=>{
-          return this.Ztree.trimmedView(node);
-        })
-      }
     }),
+    treeView: {
+      get() {
+        return this.$store.state.treeview.list
+      },
+      set(value) {
+        this.$store.dispatch('treeview/setList', value)
+      }
+    }
   },
   data(){
     return{
+      ghost:false,
       rerender:false,
       fkme:null,
       draggingObject:null,
@@ -48,7 +66,7 @@ export default {
 
 <style >
 .tree-view{
-  background-color: rgb(255,255,255)
+  background-color: rgb(255,255,255);
 }
 
 .tree-view header{
@@ -77,6 +95,10 @@ export default {
 
 .tree-view ul ul {
   padding-left:1rem;
+}
+
+.pink{
+  background-color:pink
 }
 
 </style>
