@@ -30,7 +30,7 @@ const getters = {
   Zrelations:(state) => {
     if (!state.Ztree) return undefined;
     return state.Ztree.relationSet;
-  }
+  },
 }
 
 // actions
@@ -57,13 +57,14 @@ const actions = {
     commit('setZtree', illustration);
   },
 
-  newZdogObject({commit, state}, {type, options}){
+  newZdogObject({commit, state}, {type, options, assignedName}){
     if(options.addTo){
       options.addTo = state.Ztree.find(options.addTo);
     } else {
       options.addTo = state.Ztree.illustration
     }
     let newO = Zdogger(type)(options);
+    if (assignedName) {newO.assignedName = assignedName}
     commit('addZtreeNode', newO);
   },
 

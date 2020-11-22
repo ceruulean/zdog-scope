@@ -13,13 +13,15 @@
           'highlight': isSelected}"
       draggable="true"
       @dragstart="dragStart"
-      @dragend="this.dragging = false;dragOverIndicate = false">
-      <button v-if="hasChildren"
+      @dragend="dragEnd">
+      <div class="index">
+        <button v-if="hasChildren"
         @click="toggleCollapse"
         >
-        {{collapsed? '+' : '-'}}
-      </button>
-      <div class="index">{{node.index}}</div>
+          {{collapsed? '+' : '-'}}
+        </button>
+        <p>{{node.index}}</p>
+      </div>
 
       <input v-if="editingName && isSelected"
         autofocus
@@ -38,9 +40,9 @@
         {{node.assignedType}}
       </div>
     </div>
-    <div v-show="dragOverIndicate"
+    <div v-if="dragOverIndicate"
       class="drag-over-ghost">
-      </div>
+    </div>
     <!--
     <teleport to="[data-teleport]">
       <div v-if="editingName" class="editing-blocker"
@@ -48,10 +50,11 @@
         ></div>
     </teleport>-->
     <ul v-if="hasChildren">
-    <TreeItem v-for="(node) in node.children" :key="node.id"
+    <TreeItem v-for="(child) in node.children" :key="child.id"
     :class="{'collapsed':collapsed}"
-    :node="node"
+    :node="child"
     :depth="depth + 1"
+    :parentId="node.id"
     />
     </ul>
   </li>
@@ -65,11 +68,12 @@ import { mapState, mapActions} from 'vuex'// mapGetters
 
 export default {
   name: 'TreeItem',
-  emits:['change-name', 'sort-tree'],
+  emits:['drag-started', 'drag-stop'],
  // components:{draggable: VueDraggableNext},
   props: {
     node:Object,
-    depth:Number
+    depth:Number,
+    parentId:String
   },
   watch:{
     selectedid(){
@@ -77,35 +81,40 @@ export default {
     }
   },
   methods:{
-    ...mapActions([
-      'changeSelectedName', //newName
-      'changeSelected', //{node: obj, element: element}
-    ]),
+    ...mapActions({
+      changeSelectedName:'changeSelectedName', //newName
+      changeSelected:'changeSelected', //{node: obj, element: element}
+      startDrag:'treeview/startDrag',
+      stopDrag:'treeview/stopDrag'
+    }),
     dragStart(e){
-      this.dragging = true;
-      let payload = {childId: this.node.id, childDepth: this.depth}
+      let payload = {childId: this.node.id}
+      this.startDrag(this.node.id, this.parentId)
       e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+    },
+    dragEnd(){
+      this.dragOverIndicate = false;
+      this.stopDrag()
     },
     dragOver(e){
       e.preventDefault();
       e.stopPropagation();
+      if (!this.validDropzone) return;
       this.dragOverIndicate = true;
       e.dataTransfer.dropEffect = "move";
     },
     drop(e){
       e.preventDefault();
       e.stopPropagation();
+      if (!this.validDropzone) return;
       let data = JSON.parse(e.dataTransfer.getData("text/plain"));
       let payload = {
         id: data.childId,
         newParentId: this.node.id,
-        parentDepth: this.depth,
-        childDepth: Number(data.childDepth)
       }
       this.$store.dispatch('treeview/sortItem', payload)
       //this.$emit('sort-tree', payload)
-      this.dragging = false
-      this.dragOverIndicate = false
+      this.dragEnd();
     },
     editAssignedName(){
       this.editingName = true;
@@ -114,8 +123,6 @@ export default {
       this.editingName = false;
       if (!this.wipName) return
       this.changeSelectedName(this.wipName)
-      // let newName = this.wipName
-     // this.$emit('change-name', this.nestedindex, this.wipName);
       this.wipName = null;
     },
     keydownHandler(event){
@@ -124,12 +131,11 @@ export default {
       }
     },
     highlight(){
-      //this.listElement.classList.add('highlight');
       let payload = {id: this.node.id,
        element: this.selectItem
        }
+      if (this.selectedid == this.node.id) {return}
       this.changeSelected(payload)
-      //this.$emit('change-selected', this.node.id, this.selectedElement);
     },
     toggleCollapse(){
       this.collapsed = !this.collapsed;
@@ -156,11 +162,18 @@ export default {
     hasChildren(){
       return (this.node.children && this.node.children.length > 0)
     },
+    validDropzone(){
+      let nid = this.node.id;
+      if ((nid != this.$store.state.treeview.draggingId)
+      && (nid != this.$store.state.treeview.parentDraggingId)) {
+        return true
+      }
+      return false
+    }
   },
   data(){
     return{
       dragOverIndicate:false,
-      dragging:false,
       editingName:false,
       wipName:null,
       collapsed:true,
@@ -175,6 +188,7 @@ export default {
   display:flex;
   justify-content:space-between;
   flex-direction:column;
+  position:relative;
 }
 
 .tree-item * {
@@ -202,15 +216,33 @@ export default {
 }
 
 .tree-item button{
-  position:absolute;
-  left:0;
+  position:relative;
   line-height:0.3rem;
   padding:0.2rem 0.1rem;
+  width:2.5ch;
 }
 
 .tree-item .index{
   text-align:right;
-  border-right:1px solid rgb(92, 85, 85);
+  border-right:1px solid rgba(92, 85, 85, 0.2);
+  display:flex;
+  flex-flow:row nowrap;
+}
+
+.tree-item .index p{
+  margin:0;
+  padding:0;
+  width:3ch;
+  font-size:0.9rem;
+}
+
+.tree-item li:before{
+  position:absolute;
+  top:0;
+  content:'';
+  width:1px;
+  background-color:#343040;
+  height:100%;
 }
 
 .collapsed{

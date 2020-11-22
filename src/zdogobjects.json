@@ -1,60 +1,4 @@
 {
-  "optionSchema":{
-    "shape":{
-      "color":"#fff",
-      "stroke":"#e3e3e3",
-      "path":null,
-      "closed":true
-    },
-    "rect":{
-      "width": 3,
-      "height": 6
-    },
-    "roundedrect":{
-      "width":2,
-      "height":5,
-      "cornerRadius":1
-    },
-    "ellipse":{
-      "diameter":1,
-      "width": null,
-      "height": null,
-      "quarters":null
-    },
-    "polygon":{
-      "radius": 3,
-      "sides": 3
-    },
-    "hemisphere":{
-      "diameter": 3,
-      "backface":"#fff"
-    },
-    "cone":{
-      "diameter":2,
-      "length":1,
-      "backface":"#fff"
-    },
-    "cylinder":{
-      "diameter":1,
-      "length":1,
-      "frontFace":"#fff",
-      "backface":"#fff"
-    },
-    "box":{
-      "width": 1,
-      "height": 1,
-      "depth":1,
-      "leftFace":"#fff",
-      "rightFace":"#fff",
-      "topFace":"#fff",
-      "bottomFace":"#fff"
-    },
-    "vector":{
-      "x":0,
-      "y":0,
-      "z":0
-    }
-  },
   "optionValidator":
     {
       "width":{
@@ -71,7 +15,7 @@
       },
       "depth":{
         "type":"number",
-        "default":0
+        "default":1
       },
       "radius":{
         "type":"number",
@@ -126,6 +70,10 @@
         "default":"#3e3e3e"
       },
       "frontFace":{
+        "type":"string",
+        "default":"#3e3e3e"
+      },
+      "rearFace":{
         "type":"string",
         "default":"#3e3e3e"
       },

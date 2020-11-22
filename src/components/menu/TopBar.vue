@@ -1,7 +1,7 @@
 <template>
   <div class="toolbar row">
     <button @click="exportTree">Export</button>
-    <button @click="importTree">Import</button>
+    <button @click="importing">Import</button>
     <button @click="demo">Demo</button>
     <div :aria-label="`Create new`" tabIndex="0">
       <button v-for="(item,index) in creatables" :key="`${item}_${index}`"
@@ -19,19 +19,20 @@
       @close="cancelPrompt">
       <Creation
         :itemtype="creationItemType"
-        @submit-new-shape="createNew"/>
+        @close-prompt="cancelPrompt"/>
     </Modal>
     <Modal v-if="bWarning && hasIllustration"
       @close="cancelPrompt">
       <p>WARNING: Are you sure you want to replace the current illustration?</p>
-      <button @click="closeWarning">Yes</button><button @click="cancelPrompt">Cancel</button>
+      <button @click="closeWarning">Yes</button>
+      <button @click="cancelPrompt">Cancel</button>
     </Modal>
   </div>
 </template>
 
 <script>
 //import Zdog from 'zdog'
-import {mapState, mapActions} from 'vuex'// mapActions 
+import {mapActions} from 'vuex'// mapActions 
 
 import {ZDOG_CLASS_NAME} from '../../zdogrigger'
 
@@ -50,7 +51,6 @@ export default {
 
   methods:{
     ...mapActions([
-      'newZdogObject', //argument should be in format {type:int, options:{}}
       'newIllustration',
       'replaceIllustration',
       'exportTree',
@@ -66,17 +66,6 @@ export default {
       }
       this.creationItemType = ItemType;
     },
-    createNew(ItemType, options){
-      let temp = {
-        type:ItemType,
-        options:options
-        }
-
-      let selected = this.selectedid;
-      temp.options.addTo = selected;
-      this.newZdogObject(temp)
-      this.creationItemType = null
-    },
     confirmNewIllustration(){
       this.newIllustration();
       this.bWarning = false;
@@ -87,6 +76,18 @@ export default {
     },
     closeWarning(){
       this.bWarning = false;
+      if (this.bImporting){
+        this.importTree();
+      }
+    },
+    importing(){
+      this.bImporting = true;
+      if (this.hasIllustration){
+        this.bWarning = true;
+      } else {
+        this.importTree();
+        this.bImporting = false;
+      }
     },
     demo(){
     let TestIllo = require('../../testmodel').default;
@@ -94,11 +95,11 @@ export default {
     }
   },
   computed:{
-    ...mapState({
-      selectedid(state){
-        return (state.selected.id)
-      }
-    }),
+    // ...mapState({
+    //   selectedid(state){
+    //     return (state.selected.id)
+    //   }
+    // }),
     illustration(){
       return this.$store.getters.illustration;
     },
@@ -114,7 +115,8 @@ export default {
   },
   data(){
     return {
-      creationItemType: '',
+      bImporting:false,
+      creationItemType: null,
       bWarning:false,
       ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
     }

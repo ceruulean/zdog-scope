@@ -3,6 +3,10 @@
     <h2>Create new {{itemtype}}</h2>
     <form class="row">
       <div class="field-list">
+         <label>
+          Name:
+          <input type="text" v-model="wipAssignedName" placeholder="untitled"/>
+        </label>
         <label v-for="(field) in editableProps" :key="`${field}_creation`">
           {{field}}
           <input type="text" v-model="wipOptions[field]" :placeholder="optionDefault(field)"/>
@@ -26,13 +30,13 @@
 </template>
 
 <script>
-//import {mapState, mapActions} from 'vuex'// mapActions 
+import {mapActions} from 'vuex'// mapActions 
 import ZdogJSONSchema from '../zdogobjects.json'
 import {SET_PROPS} from '../zdogrigger'
 
 export default {
   name: 'Creation',
-  emit:['submit-new-shape'],
+  emit:['close'],
   props: {
     itemtype:String
   },
@@ -42,17 +46,33 @@ export default {
     }
   },
   methods:{
+    ...mapActions([
+      'newZdogObject', //argument should be in format {type:int, options:{}}
+    ]),
     submit(){
       let invalids = this.validateFields();
       if (invalids.length == 0) { // the returned array is empty
-        let payload = Object.assign({},this.wipOptions);
-        this.$emit('submit-new-shape', this.itemtype, payload);
+        this.createNew();
+       // this.$emit('submit-new-shape', this.itemtype, payload, this.wipAssignedName);
       } else {
           console.log(`You have errors in your fields: `)
         for (let i in invalids){
           console.log(invalids[i]);
         }
       }
+    },
+    createNew(){
+      let options = Object.assign({},this.wipOptions);
+      let temp = {
+        type: this.itemtype,
+        options:options,
+        assignedName:this.wipAssignedName
+        }
+
+      let selected = this.$store.state.selected.id;
+      temp.options.addTo = selected;
+      this.newZdogObject(temp)
+      this.$emit('close-prompt');
     },
     optionDefault(field){
       return ZdogJSONSchema.optionValidator[field].default;
@@ -89,12 +109,6 @@ export default {
     }
   },
   computed:{
-    fields(){
-      return ZdogJSONSchema.optionSchema[this.itemtype];
-    },
-    shapeFields(){
-      return ZdogJSONSchema.optionSchema['shape'];
-    },
     isShape(){
       return (this.itemtype != 'vector') && (this.itemtype != 'anchor') && (this.itemtype != 'group')
       && (this.itemtype != 'illustration');
@@ -120,18 +134,13 @@ export default {
         });
       }
       return null;
-    }
+    },
   },
   data(){
     return{
-      optionSchema: ZdogJSONSchema.optionSchema,
       optionValidator: ZdogJSONSchema.optionValidator,
-      transformOptions:{
-        translate: null,
-        rotate:null,
-        scale:null,
-      },
-      wipOptions:{}
+      wipOptions:{},
+      wipAssignedName: null
     }
   }
 }

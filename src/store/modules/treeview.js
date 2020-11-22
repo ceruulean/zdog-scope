@@ -2,6 +2,8 @@
 // State object
 const state = {
   list: [],
+  draggingId:null,
+  parentDraggingId:null
 }
 // Getter functions
 const getters = {
@@ -31,6 +33,14 @@ const actions = {
   sortItem({commit}, payload){
     commit('nodeChangeParent', payload, {root:true})
   },
+
+  startDrag({commit}, nodeId, parentId){
+    commit('changeDragging', nodeId, parentId);
+  },
+
+  stopDrag({commit}){
+    commit('changeDragging', null, null)
+  }
   
 }
 
@@ -82,6 +92,11 @@ const mutations = {
   // },
   changeList(state, payload){
     state.list = payload;
+  },
+
+  changeDragging(state, nodeId, parentId){
+    state.draggingId = nodeId
+    state.parentDraggingId = parentId
   }
   // SET_VARIABLE_2(state, data) {
   //    state.variable2 = data;

@@ -1,9 +1,8 @@
 <template>
   <ul v-if="Ztree"
     >
-    <TreeItem v-for="(node,index) in treeView" :key="node.id"
+    <TreeItem v-for="(node) in treeView" :key="node.id"
       :node="node"
-      :listindex="index"
       :depth="0"
       />
     <button @click="log">Console Log</button>
@@ -59,6 +58,7 @@ export default {
       rerender:false,
       fkme:null,
       draggingObject:null,
+      dragId:null
     }
   }
 }
@@ -81,7 +81,6 @@ export default {
 .tree-view .index{
   padding:0 0.2rem 0 0.2rem;
   background-color:rgba(255,255,255,0.2);
-  width:2rem;
 }
 .tree-view .name{
   flex-grow:4;
