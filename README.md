@@ -9,11 +9,14 @@ Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor
 Built with [Vue 3](https://v3.vuejs.org/)
 
 ---
+## Done
+- Import/Export JSON
+- Tree view of objects w/ draggable sort
+- Assign name (double click on treeview)
 
 ## Todo
-- Change relationset to relationmap
-- Draggable tree sort
 - Edit properties input
+- Selecting a node outlines it on canvas
 - Color picker
 - Sliders for adjusting coordinates/stroke
 - Better creation of objects
@@ -25,10 +28,6 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Resize canvas on viewport change
 - Zoom and pan controls
 
-## Done
-- Import/Export JSON
-- Tree view of objects
-- Assign name (double click on treeview)
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/Capture.PNG)
 

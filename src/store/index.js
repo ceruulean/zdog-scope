@@ -53,8 +53,9 @@ const actions = {
 
   },
 
-  replaceIllustration({commit}, illustration){
-    commit('setZtree', illustration);
+  demoJSON({commit}, payload){
+    let reader = new Zdogger.Reader(payload);
+    commit('setZtree', reader.Ztree)
   },
 
   newZdogObject({commit, state}, {type, options, assignedName}){
@@ -104,12 +105,12 @@ const mutations = {
     }
     state.updateTree = !state.updateTree;
 
-    // let animate = () => {
-    //   state.Ztree.illustration.updateRenderGraph()
-    //   requestAnimationFrame(animate);
-    // }
+    let animate = () => {
+      state.Ztree.illustration.updateRenderGraph()
+      requestAnimationFrame(animate);
+    }
 
-    // animate()
+    animate()
 
   },
 

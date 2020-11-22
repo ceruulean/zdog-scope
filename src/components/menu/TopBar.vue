@@ -52,7 +52,7 @@ export default {
   methods:{
     ...mapActions([
       'newIllustration',
-      'replaceIllustration',
+      'demoJSON',
       'exportTree',
       'importTree'
     ]),
@@ -90,8 +90,8 @@ export default {
       }
     },
     demo(){
-    let TestIllo = require('../../testmodel').default;
-    this.replaceIllustration(TestIllo)
+    let testmodel = require('../../testmodel').default;
+    this.demoJSON(testmodel);
     }
   },
   computed:{

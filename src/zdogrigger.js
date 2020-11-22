@@ -1,7 +1,6 @@
 import Zdog from 'zdog'
 
 /**
- * 
  * classType only accepts 0-13 (corresponding to ZDog types)
  */
 const ZDOG_CLASS_TYPE = [
@@ -21,6 +20,9 @@ const ZDOG_CLASS_TYPE = [
   Zdog.Vector
 ]
 
+/**
+ * Treated like an enum
+ */
 const ZDOG_CLASS = {
   'anchor':0,
   'shape':1,
@@ -38,9 +40,15 @@ const ZDOG_CLASS = {
   'vector':13
 }
 
+/**
+ * Treated like an enum, convert an integer to the Zdog class/type/object name
+ */
 const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS);
 
-// Creates Zdog objects with assignedName and uid.
+/**
+ * Creates Zdog objects with assignedName, uid and assignedType (see ZDOG_CLASS, an 'enum')
+ * @param {Number} int 
+ */
 function make(int){
   let construct = ZDOG_CLASS_TYPE[int];
   return function(options){
@@ -52,24 +60,25 @@ function make(int){
   }
 }
 
-// function importRaw(ZdogObject){
-//   assignUID(ZdogObject);
-//   assignName(ZdogObject);
-//   assignType(ZdogObject, int);
-// }
-
-// Instead of new Zdog.Anchor(options), can call
-// create('anchor') and defer instance creation until you receive all options
-//    let makeAnchor = (options) => create('anchor')(options)
-//    makeAnchor({translate:{x:0,y:0}})
-
-
+/**
+ * Instead of new Zdog.Anchor(options), can call
+ * create('anchor') and defer object creation until you receive all options
+ * 
+ * e.g.
+ * let makeAnchor = (options) => create('anchor')(options)
+ * 
+ * makeAnchor({translate:{x:0,y:0}}) returns new Zdog.Anchor
+ * @param {String} itemName 
+ */
 const create = (itemName) => {
   return make(ZDOG_CLASS[itemName])
 }
 
-//**Utility Function from https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript */
-function generateUID() {
+/**
+ * Generates a random ID in the format "x_xxxxxxxx_xxxxx"
+ * (Code from https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript)
+ */
+function generateUid() {
 // desired length of Id
 var idStrLen = 16;
 // always start with a letter -- base 36 makes for a nice shortcut
@@ -83,8 +92,9 @@ do {
 
 return (idStr);
 }
+
 /**
- * Adds an "assignedName" property to the Zdog item for human viewing in the tree (and maybe search/filter options?)
+ * Adds an "assignedName" property to the Zdog item for human covenience (and open up for search/filter options in the future?)
  * @param {*} ZdogItem 
  */
 function assignName(ZdogItem, name){
@@ -96,17 +106,18 @@ function assignName(ZdogItem, name){
     value: name
   })
 }
+
 /**
- * Adds a unique identifier "id" property to the Zdog item, that is immutable.
+ * Adds a unique identifier "id" immutable property to the Zdog item.
  * @param {*} ZdogItem 
  */
 function assignUID(ZdogItem){
-  ZdogItem.id = generateUID();
+  ZdogItem.id = generateUid();
   // freeze the id
   Object.defineProperty(ZdogItem, "id", {enumerable:true, configurable: false, writable: false });
 }
 /**
- * Adds a the type as property "assignedType" as an integer.
+ * Adds the property "assignedType" as an integer for class checking
  * @param {*} ZdogItem 
  */
 function assignType(ZdogItem, int){
@@ -119,9 +130,9 @@ function assignType(ZdogItem, int){
 }
 
 /**
- * Checks if the Zdog item is a certain type of instance, 'Shape,' 'Vector,' etc. Will return true for super classes (like Illustration is an Anchor)
- * @param {*} ZdogItem 
- * @param {String, Integer} zdogType can be 'anchor' or corresponding flag '0' for example
+ * Checks if the Zdog item is a certain type of instance ('Shape,' 'Vector,' etc.) Will return true for super classes (like Illustration is an Anchor)
+ * @param {*} ZdogItem the Zdog item
+ * @param {String} zdogType can be String or Number (e.g. 'anchor' or 0 or '0')
  */
 function isClass(ZdogItem, zdogType){
   //string argument
@@ -139,31 +150,31 @@ function isClass(ZdogItem, zdogType){
 
 /**
  * Add properties to native Zdog objects that don't have ids or type assigned to them yet
- * @param {*} ZdogObject 
+ * @param {*} ZdogItem 
  */
-function assignExisting(ZdogObject){
+function assignExisting(ZdogItem){
   //start backwards because anchor is 0 and is the parent of almost all objects
   let type = -1;
   for(let n = ZDOG_CLASS_NAME.length - 1; n >= 0; n--){
-    if (isClass(ZdogObject, n)){
+    if (isClass(ZdogItem, n)){
       type = n;
       break;
     }
   }
-  if (type < 0) return ZdogObject; // return the original because can only do certain objects...? UGH this is annoying
-  assignName(ZdogObject, 'untitled');
-  assignUID(ZdogObject);
-  assignType(ZdogObject, type);
+  if (type < 0) return ZdogItem; // return the original because can only do certain objects...? UGH this is annoying
+  assignName(ZdogItem, 'untitled');
+  assignUID(ZdogItem);
+  assignType(ZdogItem, type);
   
-  for (let c of ZdogObject.children){
+  for (let c of ZdogItem.children){
     assignExisting(c);
   }
-  return ZdogObject
+  return ZdogItem
 }
 
 /**
- * Add properties to an illustration and returns a copy
- * @param {*} ZdogObject 
+ * Add 'id', 'type' and 'assignedName' properties to an illustration and returns a copy
+ * @param {Zdog.Illustration} illustration
  */
 function importExisting(illustration){
   let copy = illustration.copyGraph();
@@ -171,7 +182,9 @@ function importExisting(illustration){
   return copy;
 }
 
-
+/**
+ * User settable props for when calling 'new Zdog.Item'
+ */
 const SET_PROPS = {
   anchor:[
     'rotate',
@@ -222,12 +235,12 @@ const SET_PROPS = {
 }
 
 /**
- * Zerialises Zdog object and returns JSON string
- * @param {*} ZdogObject 
+ * Zerialises Zdog object and returns JSON string with bare minimum properties
+ * @param {*} ZdogItem 
  */
-function ZdogFilterProps(ZdogObject){
-  if(!ZdogObject || (isNaN(ZdogObject.assignedType)) ) return;
-  let type = ZdogObject.assignedType;
+function ZdogFilterProps(ZdogItem){
+  if(!ZdogItem || (isNaN(ZdogItem.assignedType)) ) return;
+  let type = ZdogItem.assignedType;
   if (type == 4) return //we're not serializing dragger type
   let classN = ZDOG_CLASS_NAME[type];
   let recordProps = SET_PROPS[classN]
@@ -235,19 +248,17 @@ function ZdogFilterProps(ZdogObject){
 
   let result = {
     assignedType: type,
-    assignedName: ZdogObject.assignedName,
-    id: ZdogObject.id
+    assignedName: ZdogItem.assignedName,
+    id: ZdogItem.id
   }
-  //console.log('asfasdfa')
-  //TODO: handle Anchors
 
   let strin = (prop) =>{
     if (prop == 'dragRotate') {
-      if (typeof ZdogObject[prop] != 'boolean'){
+      if (typeof ZdogItem[prop] != 'boolean'){
         return true;
       }
     }
-    return ZdogObject[prop]
+    return ZdogItem[prop]
   }
 
   //Assing props
@@ -279,8 +290,8 @@ function ZdogFilterProps(ZdogObject){
 }
 
 /**
- * Revives the plain Object or a stringified object into a Zdog object
- * @param {Object} plainObject 
+ * Revives the plain Object or a stringified JSON into a Zdog object
+ * @param {*} plainObject 
  */
 function reviveZdog(plainObject){
   if (typeof plainObject === "string"){
@@ -297,9 +308,13 @@ function reviveZdog(plainObject){
 }
 
 /**
- * Accepts a Ztree instance or a JSON string in the constructor
+ * JSON converter for Ztree
  */
 class ZtreeReader{
+  /**
+   * Accepts a Ztree instance a JSON string. Can be null.
+   * @param {Ztree} arg 
+   */
   constructor(arg){
     this.Ztree = null
     if (!arg) {
@@ -311,6 +326,9 @@ class ZtreeReader{
     }
   }
 
+  /**
+   * Zdog reviver function for JSON.parse second argument
+   */
   static revivePlain(key, value){
     if (key == 'nodes'){
       let temp = value.map(plain=>{
@@ -323,7 +341,7 @@ class ZtreeReader{
   }
 
   /**
-   * Revives a JSON file to a Ztree
+   * Revives a JSON file to a Ztree and returns a new Ztree
    * @param {String} JSONstring 
    */
   reviveTree(JSONstring){
@@ -352,6 +370,9 @@ class ZtreeReader{
     return this.Ztree;
   }
 
+  /**
+   * Sends a download prompt
+   */
   static Download(content, fileName, contentType){
     const a = document.createElement("a");
     var file = new Blob([content], {type: contentType});
@@ -361,12 +382,18 @@ class ZtreeReader{
     //window.URL.revokeObjectURL(file);
   }
 
+  /**
+   * Method to download the Ztree as JSON
+   */
   download(){
     if (!this.Ztree) throw new Error('Cannot download if there is no tree')
     let content = this.Ztree._JSON();
-    ZtreeReader.Download(content, this.Ztree.illustration.assignedName, 'text/json');
+    ZtreeReader.Download(content, `${this.Ztree.illustration.assignedName}.json`, 'text/json');
   }
 
+  /**
+   * Opens the client's File Explorer to only accept .JSON, and returns a Promise that resolves to FileList, otherwise rejects
+   */
   static async Import(){
     const input = document.createElement('input')
     input.setAttribute('type','file');
@@ -384,6 +411,9 @@ class ZtreeReader{
     })
   }
 
+  /**
+   * Parses selected JSON file, returns Promise with the Ztree on success
+   */
   async load(){
     return new Promise((resolve, reject) => {
       ZtreeReader.Import().then(fileList=>{
@@ -402,17 +432,22 @@ class ZtreeReader{
   }
 }
 
-
 /**
  * Make easy tree viewing of Zdog objects
  * https://chrissmith.xyz/super-fast-tree-view-in-javascript/
  */
 class Ztree{
+  /**
+   * Illustration can be null
+   * @param {Zdog.Illustration} illustration 
+   */
   constructor(illustration){
     this.nodeMap = new Map();
     this.relationMap = new Map(); //{key: id, value: Set() of child ids}
-
-    if (illustration.id) {
+    if (!illustration){
+      this.illustration = null;
+      return;
+    } else if (illustration.id) {
       this.illustration = illustration
     } else {
       this.illustration = importExisting(illustration)
@@ -423,11 +458,11 @@ class Ztree{
   }
 
   //flatten existing zdog object into Map and Set to record relations
-  flatten(ZdogObject){
-    let mainID = Ztree._nodeID(ZdogObject)
-    this.nodeMap.set(mainID, ZdogObject);
-    if (ZdogObject.addTo){
-      let pID = ZdogObject.addTo.id;
+  flatten(ZdogItem){
+    let mainID = Ztree._nodeID(ZdogItem)
+    this.nodeMap.set(mainID, ZdogItem);
+    if (ZdogItem.addTo){
+      let pID = ZdogItem.addTo.id;
       let set = this.relationMap.get(pID);
       if (!set) {
         this.relationMap.set(pID, new Set([mainID]))
@@ -435,13 +470,13 @@ class Ztree{
       }
       set.add(mainID);
     }
-    if (ZdogObject.children.length > 0) {
+    if (ZdogItem.children.length > 0) {
       let set = this.relationMap.get(mainID);
       if (!set) {
         set = new Set();
         this.relationMap.set(mainID, set);
       }
-      for (let child of ZdogObject.children){
+      for (let child of ZdogItem.children){
         if (
           !isNaN(child.assignedType)
           // (child.assignedType !== undefined)
@@ -456,14 +491,12 @@ class Ztree{
     }
   }
 
-  static COMMON_PROPERTIES = [
-    'rotate','color','stroke','width','height','depth','origin','closed','length',
-    'translate','scale','fill','visible',
-  ]
-
-  static ADVANCED_PROPERTIES  = ['path','updateSort','front',
-  'backface','leftFace','rightFace','bottomFace','frontFace','rearFace','topFace',
-  'quarters']
+  /**
+   * Zdog properties that are derived, or do esoteric things
+   */
+  static ADVANCED_PROPERTIES  = ['origin','sortValue','pixelRatio',
+  'renderOrigin','renderFront','renderNormal','pathCommands',
+  'canvasHeight','canvasWidth']
 
   static getCommonProps(node){
     let filtered = Object.keys(node).filter((prop) => {
@@ -477,6 +510,10 @@ class Ztree{
     return obj
   }
 
+  /**
+   * Returns an object with the bare minimum display properties of the Zdog item
+   * @param {*} node a Zdog object within the tree
+   */
   trimNode(node){
     let {id,assignedName,assignedType,visible,children} = node;
     if (!id || isNaN(assignedType)) return null;
@@ -500,10 +537,16 @@ class Ztree{
       `${this.illustration.assignedName}.json`, 'text/json');
   }
 
+  /**
+   * Returns a stripped down tree with nesting, for UI tree display
+   */
   trimmedView(){
     return [this.trimNode(this.illustration)]
   }
 
+  /**
+   * Returns a JSON string of the tree
+   */
   _JSON(){
     let {illustration, nodeMap, relationMap} = this;
 
@@ -522,8 +565,8 @@ class Ztree{
     return JSON.stringify(result);
   }
 
-  addNode(ZdogObject){
-    this.flatten(ZdogObject);
+  addNode(ZdogItem){
+    this.flatten(ZdogItem);
   }
   //can be id string or the object itself
   removeNode(node){
@@ -553,10 +596,17 @@ class Ztree{
     this.nodeMap.get(newParentId).addChild(childnode);
   }
 
+  /**
+   * Returns an array of all Zdog items in the tree
+   */
   get nodes(){
     return [...this.nodeMap.values()];
   }
-//Can be id string or object itself, returns insertion order index
+
+  /**
+   * Returns insertion order index of the Zdog object (insertion order accoridng to Map API is not reliable)
+   * @param {*} node String id or Zdog object
+   */
   indexOf(node){
     let id = Ztree._nodeID(node);
     return [...this.nodeMap.keys()].indexOf(id);
@@ -580,6 +630,10 @@ class Ztree{
     return this.nodeMap.get(id);
   }
 
+  /**
+   * Internal helper function meant for retrieving the ID incase someone passes the Zdog object instead. Returns String
+   * @param {*} arg String id or Zdog object
+   */
   static _nodeID(arg){
     let ID = arg
     if (typeof node === "string") {
@@ -639,6 +693,13 @@ class Ztree{
 
 }
 
+/**
+ * To create a Zdog object with id: Zdogger('anchor')
+ * 
+ * To create a Ztree: new Zdogger.Tree(illustration)
+ * 
+ * To create a file reader: new Zdogger.Reader(Ztree)
+ */
 let Zdogger = (type) => {
   if (typeof type == 'string') return create(type);
   if (typeof type == 'number') return make(type);

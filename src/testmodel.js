@@ -1,4 +1,5 @@
 import Zdog from 'zdog'
+import Zdogger from './zdogrigger'
 
 // Made with Zdog
 
@@ -155,5 +156,7 @@ upperArm.copyGraph({
 
 // animate();
 
+let tree = new Zdogger.Tree(illo)
+let testmodel = tree._JSON();
 
-export default illo
+export default testmodel;
