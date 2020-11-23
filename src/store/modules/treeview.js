@@ -26,20 +26,20 @@ const actions = {
   //            resolve();
   //     })
   // },
-  setList({commit}, payload){
-    commit('changeList', payload)
+  changeList({commit}, payload){
+    commit('setList', payload)
   },
 
   sortItem({commit}, payload){
-    commit('nodeChangeParent', payload, {root:true})
+    commit('setNodeParent', payload, {root:true})
   },
 
   startDrag({commit}, nodeId, parentId){
-    commit('changeDragging', nodeId, parentId);
+    commit('setDragging', nodeId, parentId);
   },
 
   stopDrag({commit}){
-    commit('changeDragging', null, null)
+    commit('setDragging', null, null)
   }
   
 }
@@ -90,11 +90,11 @@ const mutations = {
   //   //  //state.list = payload;
   //   //  parentNode.children.push(childNode);
   // },
-  changeList(state, payload){
+  setList(state, payload){
     state.list = payload;
   },
 
-  changeDragging(state, nodeId, parentId){
+  setDragging(state, nodeId, parentId){
     state.draggingId = nodeId
     state.parentDraggingId = parentId
   }

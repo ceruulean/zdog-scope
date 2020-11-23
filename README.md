@@ -16,10 +16,10 @@ Built with [Vue 3](https://v3.vuejs.org/)
 
 ## Todo
 - Edit properties input
-- Selecting a node outlines it on canvas
 - Color picker
 - Sliders for adjusting coordinates/stroke
 - Better creation of objects
+- Selecting a node outlines it on canvas
 - Toggle visbility (eye icon?)
 - Advanced Path maker
 - Sort by groups/anchors...
@@ -27,6 +27,7 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Wireframe view
 - Resize canvas on viewport change
 - Zoom and pan controls
+- Quaternions...
 
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/Capture.PNG)
@@ -40,6 +41,8 @@ npm install
 ```
 npm run serve
 ```
+
+Click on 'Demo' button to load an illustration
 
 ### Compiles and minifies for production
 ```

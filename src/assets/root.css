@@ -1,0 +1,13 @@
+:root{
+  --menuTopBarHeight:2rem;
+  --canvasHeight:calc(100vh - 2rem);
+  --modalBGColor:white;
+  --readableParagraph:76ch;
+
+  --colorDark:#0D1F2D;
+  --colorLight:#FAE1DF;
+  --colorMain:#546A7B;
+  --colorPri:#9EA3B0;
+  --colorSec:#E4C3AD;
+  --colorInputPri: var(--colorMain);
+}

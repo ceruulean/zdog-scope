@@ -1,10 +1,10 @@
 <template>
-  <input :type="type" v-model="newValue" :placeholder="value" />
+ 
 </template>
 
 <script>
 export default {
-  name: 'Input',
+  name: 'Vector',
   emits:['done'],
   props: {
     type:String,

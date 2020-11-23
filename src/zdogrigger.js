@@ -132,7 +132,7 @@ function assignType(ZdogItem, int){
 /**
  * Checks if the Zdog item is a certain type of instance ('Shape,' 'Vector,' etc.) Will return true for super classes (like Illustration is an Anchor)
  * @param {*} ZdogItem the Zdog item
- * @param {String} zdogType can be String or Number (e.g. 'anchor' or 0 or '0')
+ * @param {*} zdogType can be String or Number (e.g. 'anchor' or 0 or '0')
  */
 function isClass(ZdogItem, zdogType){
   //string argument
@@ -173,7 +173,7 @@ function assignExisting(ZdogItem){
 }
 
 /**
- * Add 'id', 'type' and 'assignedName' properties to an illustration and returns a copy
+ * Add 'id', 'assignedType' and 'assignedName' properties to an illustration and returns a copy
  * @param {Zdog.Illustration} illustration
  */
 function importExisting(illustration){
@@ -183,9 +183,9 @@ function importExisting(illustration){
 }
 
 /**
- * User settable props for when calling 'new Zdog.Item'
+ * User settable props for when calling 'new Zdog.Item', taken from documentation @ https://zzz.dog/api
  */
-const SET_PROPS = {
+const CREATE_PROPS = {
   anchor:[
     'rotate',
     'translate',
@@ -234,6 +234,13 @@ const SET_PROPS = {
   cone:["diameter","length","backface"]
 }
 
+  /**
+   * Zdog properties that are derived, or do esoteric things
+   */
+  const ADVANCED_PROPERTIES  = ['origin','sortValue','pixelRatio',
+  'renderOrigin','renderFront','renderNormal','pathCommands',
+  'canvasHeight','canvasWidth']
+
 /**
  * Zerialises Zdog object and returns JSON string with bare minimum properties
  * @param {*} ZdogItem 
@@ -243,7 +250,7 @@ function ZdogFilterProps(ZdogItem){
   let type = ZdogItem.assignedType;
   if (type == 4) return //we're not serializing dragger type
   let classN = ZDOG_CLASS_NAME[type];
-  let recordProps = SET_PROPS[classN]
+  let recordProps = CREATE_PROPS[classN]
   if (!recordProps) return
 
   let result = {
@@ -268,14 +275,14 @@ function ZdogFilterProps(ZdogItem){
 
   //Assign anchor props
   if (type != 0 && type != 13 && type != 4) {
-    recordProps = SET_PROPS['anchor']
+    recordProps = CREATE_PROPS['anchor']
     recordProps.forEach(prop=>{
       result[prop] = strin(prop);
     })
 
     //Assign Shape props
     if (type != 6 && type != 8 ) {
-      recordProps = SET_PROPS['shape']
+      recordProps = CREATE_PROPS['shape']
       recordProps.forEach(prop=>{
         result[prop] = strin(prop);
       })
@@ -491,13 +498,6 @@ class Ztree{
     }
   }
 
-  /**
-   * Zdog properties that are derived, or do esoteric things
-   */
-  static ADVANCED_PROPERTIES  = ['origin','sortValue','pixelRatio',
-  'renderOrigin','renderFront','renderNormal','pathCommands',
-  'canvasHeight','canvasWidth']
-
   static getCommonProps(node){
     let filtered = Object.keys(node).filter((prop) => {
       Ztree.COMMON_PROPERTIES.contains(prop)
@@ -694,12 +694,23 @@ class Ztree{
 }
 
 /**
+ * Converts degrees to radians
+ * @param {Number} degrees 
+ */
+function toRad(degrees) {
+  return (Math.PI * degrees) / 180;
+}
+
+ /**
  * To create a Zdog object with id: Zdogger('anchor')
  * 
  * To create a Ztree: new Zdogger.Tree(illustration)
  * 
  * To create a file reader: new Zdogger.Reader(Ztree)
- */
+ * 
+ * To convert degrees to radians: Zdogger.toRad(degree)
+  * @param {String} type 
+  */
 let Zdogger = (type) => {
   if (typeof type == 'string') return create(type);
   if (typeof type == 'number') return make(type);
@@ -709,12 +720,17 @@ let Zdogger = (type) => {
 Zdogger.Tree = Ztree
 Zdogger.isClass = isClass
 Zdogger.Reader = ZtreeReader
+Zdogger.toRad = toRad
 
 export {
   Zdogger, Ztree, ZtreeReader,
   isClass, ZdogFilterProps,
   ZDOG_CLASS_TYPE, ZDOG_CLASS, ZDOG_CLASS_NAME,
-  SET_PROPS
+  CREATE_PROPS, ADVANCED_PROPERTIES
   }
 
+
 export default Zdogger;
+
+//https://observablehq.com/@mootari/zdog-helpers
+//Has axis and grid rendering...

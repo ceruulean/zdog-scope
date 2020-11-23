@@ -2,6 +2,7 @@ import { createStore, createLogger } from 'vuex'
 
 //import MODULES from './modules/MODUELS' if ever gets more modules NEED TO AUTOMATE THIS
 import treeview from './modules/treeview'
+import properties from './modules/properties'
 
 const debug = process.env.NODE_ENV !== 'production'
 
@@ -119,6 +120,11 @@ const mutations = {
     state.Ztree.addNode(node);
     state.updateTree = !state.updateTree;
   },
+  
+  setSelected(state, {id, element}){
+    state.selected.id = id;
+    state.selected.element = element;
+  },
 
   setAssignedName(state, newName){
     if (!state.selected) throw new Error('Cannot assign name to null selected node');
@@ -127,12 +133,15 @@ const mutations = {
       state.updateTree = !state.updateTree;
   },
 
-  setSelected(state, {id, element}){
-    state.selected.id = id;
-    state.selected.element = element;
+  setNodeProps(state, {node, options}){
+    for (let o in options){
+      console.log(o)
+      node[o] = options[o]
+    }
+    state.updateTree = !state.updateTree;
   },
 
-  nodeChangeParent(state, {id, newParentId}){
+  setNodeParent(state, {id, newParentId}){
     state.Ztree.changeParent(id, newParentId);
     state.updateTree = !state.updateTree;
   },
@@ -140,7 +149,8 @@ const mutations = {
 
 export default createStore({
   modules: {
-    treeview
+    treeview,
+    properties
   },
   state,
   getters,

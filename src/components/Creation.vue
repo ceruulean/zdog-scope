@@ -1,6 +1,14 @@
 <template>
   <div v-if="itemtype">
     <h2>Create new {{itemtype}}</h2>
+    <div v-if="bWarning">
+      Warning: fields that failed validation:
+      <p v-for="f in invalidFields" :key="f">{{f}}</p>
+      <p>Please fix them before proceeding.</p>
+    </div>
+    <div v-if="selected.id">
+      Adding to selected node: {{selected.assignedName}}<br/>(id: {{selected.id}})
+    </div>
     <form class="row">
       <div class="field-list">
          <label>
@@ -30,9 +38,9 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'// mapActions 
+import {mapActions, mapState} from 'vuex'// mapActions 
 import ZdogJSONSchema from '../zdogobjects.json'
-import {SET_PROPS} from '../zdogrigger'
+import {CREATE_PROPS} from '../zdogrigger'
 
 export default {
   name: 'Creation',
@@ -46,19 +54,14 @@ export default {
     }
   },
   methods:{
-    ...mapActions([
-      'newZdogObject', //argument should be in format {type:int, options:{}}
-    ]),
-    submit(){
-      let invalids = this.validateFields();
-      if (invalids.length == 0) { // the returned array is empty
+    ...mapActions({
+        newZdogObject:'newZdogObject', //argument should be in format {type:int, options:{}}
+        validateFields:'properties/validateFields'
+    }),
+    async submit(){
+      await this.validateFields(this.wipOptions);
+      if (this.validationSuccess){
         this.createNew();
-       // this.$emit('submit-new-shape', this.itemtype, payload, this.wipAssignedName);
-      } else {
-          console.log(`You have errors in your fields: `)
-        for (let i in invalids){
-          console.log(invalids[i]);
-        }
       }
     },
     createNew(){
@@ -69,46 +72,24 @@ export default {
         assignedName:this.wipAssignedName
         }
 
-      let selected = this.$store.state.selected.id;
-      temp.options.addTo = selected;
+      let selected = this.selected.id;
+      if (selected) {
+        temp.options.addTo = selected;
+      }
+
       this.newZdogObject(temp)
       this.$emit('close-prompt');
     },
     optionDefault(field){
       return ZdogJSONSchema.optionValidator[field].default;
     },
-    validateFields(){
-      let incorrectFields = [];
-      let k = Object.keys(this.wipOptions);
-      let v = Object.values(this.wipOptions);
-      for (let index = 0; index < k.length; index++){
-        let field = k[index];
-        let value = v[index];
-        let validType = this.optionValidator[field].type;
-        if (typeof value != validType){
-          if (validType == 'Array') { // needs to be array
-            if (Array.isArray(value)){
-              continue;
-            }
-          } else if (validType == 'integer') {
-            let toNum = Number(value);
-            if (Number.isInteger(toNum)){
-              continue;
-            }
-          } else if (validType == 'number'){
-            let toNum = Number(value);
-            if (isNaN(toNum)){
-              incorrectFields.push(field);
-              continue;
-            }
-          }
-        incorrectFields.push(field);
-        }
-      }
-        return incorrectFields;
-    }
   },
   computed:{
+    ...mapState({
+        invalidFields: state => state.properties.invalidFields,
+        validationSuccess:state => state.properties.validationSuccess,
+        selected:state => state.selected,
+    }),
     isShape(){
       return (this.itemtype != 'vector') && (this.itemtype != 'anchor') && (this.itemtype != 'group')
       && (this.itemtype != 'illustration');
@@ -119,9 +100,9 @@ export default {
     },
     editableProps(){
       let iN = this.itemtype;
-      let basic = SET_PROPS[iN]
+      let basic = CREATE_PROPS[iN]
       if (iN != 'vector' && iN != 'anchor' && iN != 'dragger'){
-        basic = [...SET_PROPS['anchor'], ...basic]
+        basic = [...CREATE_PROPS['anchor'], ...basic]
       }
       return basic.filter(prop=>{
           return (prop != 'color')
@@ -129,12 +110,22 @@ export default {
     },
     advEditableProps(){
       if (this.isShape && this.itemtype != 'shape'){
-        return SET_PROPS['shape'].filter(prop=>{
+        return CREATE_PROPS['shape'].filter(prop=>{
           return (prop != 'color' && prop != 'path')
         });
       }
       return null;
     },
+    bWarning:{
+      get(){
+        return this.$store.getters['properties/validationFailed']
+        },
+      set(newVal){
+        if (newVal == false) {
+          this.$store.dispatch('properties/validationReset')
+        }
+      }
+    }
   },
   data(){
     return{

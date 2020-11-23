@@ -115,16 +115,15 @@ export default {
 </script>
 
 <style>
-
-:root{
-  --menuTopBarHeight:2rem;
-  --canvasHeight:calc(100vh - 2rem);
-  --modalBGColor:white;
-  --readableParagraph:76ch;
-}
+@import './assets/root.css';
 
 html,body{
   margin:0;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+}
+
+input,p,label{
+  font-family: Avenir, Helvetica, Arial, sans-serif;
 }
 
 *{
@@ -136,11 +135,9 @@ h1,h2,h3,h4,h5{
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
   overflow:hidden;
 }
 
@@ -195,6 +192,19 @@ ul{
   margin:0;
   padding:0;
   list-style-type:none;
+}
+
+input[type="text"]{
+  border-radius:3px;
+  border:1px solid var(--colorMain);
+  padding: 1px 5px;
+  max-width:6rem;
+}
+
+textarea{
+  border-radius:3px;
+  border:1px solid var(--colorMain);
+  padding: 1px 5px;
 }
 
 .row{

@@ -12,7 +12,7 @@
 
 <script>
 //import {reactive, onMounted} from 'vue' // onUpdated, onUnmounted
-import { mapState, mapActions} from 'vuex'// mapActions mapGetters
+import { mapState} from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
 //import { VueDraggableNext } from 'vue-draggable-next'
@@ -31,9 +31,6 @@ export default {
     }
   },
   methods:{
-    ...mapActions([
-      'sortTreeItem',
-    ]),
     log(){
       this.fkme = this.Ztree._JSON();
     },
@@ -48,7 +45,7 @@ export default {
         return this.$store.state.treeview.list
       },
       set(value) {
-        this.$store.dispatch('treeview/setList', value)
+        this.$store.dispatch('treeview/changeList', value)
       }
     }
   },

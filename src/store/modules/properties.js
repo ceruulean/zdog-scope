@@ -1,8 +1,9 @@
-import {ZdogFilterProps, ZDOG_CLASS_NAME, SET_PROPS} from '../../zdogrigger'
+//import {ZdogFilterProps, ZDOG_CLASS_NAME, SET_PROPS} from '../../zdogrigger'
 import ZdogJSONSchema from '../../zdogobjects.json'
 
-const READ_ONLY = [
-  'assignedType', 'id', 'renderFront', 'renderNormal', 'renderOrigin'
+const CYCLIC_PROPS = [
+  'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
+  'onDragEnd','onResize'
 ]
 /**
  * Checks the proposed options and returns an array of invalid fields (empty if fields are valid)
@@ -39,59 +40,40 @@ function invalidFields(incomingOptions){
   return incorrectFields;
 }
 
-// const ILLUSTRATION_RENDER = [
-//   'canvasHeight', 'canvasWidth', 'height', 'width', 'renderOrigin'
-// ]
+
 /* Module1.store.js */
 // State object
 const state = {
-  wipOptions:null
+  invalidFields:null,
+  validationSuccess:false
 }
 // Getter functions
 const getters = {
-  isShape(state){
-    return (state.itemtype != 'vector') && (state.itemtype != 'anchor') && (state.itemtype != 'group')
-    && (state.itemtype != 'illustration');
+  selectedNode(state, getters, rootState){
+    return rootState.Ztree.find(rootState.selected.id)
   },
-  selectedProps(state, getters, rootState){
-    let n = rootState.Ztree.find(rootState.selected.id)
-    return ZdogFilterProps(n);
+  selectedAllProps(state, getters){
+    let noCyclic = getters.selectedNode.constructor.optionKeys.filter(option=>{
+      return !CYCLIC_PROPS.includes(option)
+    })
+    return noCyclic;
   },
-  TYPE(state, getters){
-    return ZDOG_CLASS_NAME[getters.selectedProps['assignedType']];
-  },
-  writableProps(state, getters){
-    let some = {...getters.selectedProps};
-    for(let P of READ_ONLY){
-      delete some[P];
-    }
-    return some;
-  },
-  editableProps(state){
-    let iN = state.itemtype;
-    let basic = SET_PROPS[iN]
-    if (iN != 'vector' && iN != 'anchor' && iN != 'dragger'){
-      basic = [...SET_PROPS['anchor'], ...basic]
-    }
-    return basic
-  },
-  advEditableProps(state, getters){
-    if (getters.isShape && state.itemtype != 'shape'){
-      return SET_PROPS['shape'].filter(prop=>{
-        return (prop != 'color' && prop != 'path')
-      });
-    }
-    return null;
-  },
+  validationFailed(state){
+    return (state.validationSuccess == false && state.invalidFields);
+  }
 }
 // Actions 
 const actions = {
 
-  setItemType({commit}, itemType){
-    commit('changeItemType', itemType);
+  changeSelectedProps({commit, getters}, incomingOptions){
+    let payload = {
+      node: getters.selectedNode,
+      options: incomingOptions
+    }
+    commit('setNodeProps', payload, {root:true})
   },
 
-  setList({commit}, payload){
+  changeList({commit}, payload){
     let invalids = invalidFields(payload);
     if (invalids.length > 0) {
       //throw error
@@ -100,6 +82,20 @@ const actions = {
       commit('log', payload)
     }
   },
+
+  validateFields({commit}, incomingOptions){
+    let invalids = invalidFields(incomingOptions);
+    if (invalids.length > 0) {
+      commit('VALIDATION_FAIL', invalids);
+    } else {
+      commit('VALIDATION_SUCCESS');
+     // TODO? warning system?
+    }
+  },
+
+  validationReset({commit}){
+    commit('VALIDATION_RESET');
+  }
   
 }
 
@@ -109,17 +105,24 @@ const mutations = {
     console.log(payload);
   },
 
-  INVALID_ERROR(state, invalids){
+  setWipOptions(state, payload){
+    state.wipOptions = payload;
+  },
+
+  VALIDATION_FAIL(state, invalids){
+    state.validationSuccess = false;
     state.invalidFields = invalids;
   },
 
-  changeItemType(state, itemType){
-    state.itemType = itemType;
-  }
+  VALIDATION_SUCCESS(state){
+    state.validationSuccess = true;
+    state.invalidFields = null;
+  },
 
-  // changeList(state, payload){
-  //   state.item = payload;
-  // }
+  VALIDATION_RESET(state){
+    state.validationSuccess = false;
+    state.invalidFields = null;
+  },
 
 }
 

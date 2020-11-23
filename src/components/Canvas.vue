@@ -2,7 +2,8 @@
   <canvas ref="workingCanvas" class="zdog-canvas"
   :width="width"
   :height="height"
-  :style="{'background':background}"></canvas>
+  :style="{'background':background}"
+  @click="clickHandler"></canvas>
 </template>
 
 <script>
@@ -10,6 +11,13 @@
 //import { mapState} from 'vuex'// mapActions 
 
 //import {Zdogger} from '../zdogrigger'
+
+/**
+ * NOTES
+ * https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+ * I want the shape to glow when it's selected...? 'destination-out' option
+ * Need to extend Zdog to have Path2D
+ */
 
 export default {
   
@@ -19,6 +27,18 @@ export default {
   setup(){
   },
   methods:{
+    clickHandler(event){
+      console.log(this.getMousePos(event));
+    },
+    getMousePos(event){
+      return {
+        x: event.clientX,
+        y: event.clientY
+      };
+    },
+    // isShapeClicked(path, {x, y}){
+    //   ctx.isPointInPath
+    // }
   },
   computed:{
     // ...mapState([
