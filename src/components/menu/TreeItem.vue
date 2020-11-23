@@ -137,7 +137,9 @@ export default {
       if (this.selectedid == this.node.id) {return}
       this.changeSelected(payload)
     },
-    toggleCollapse(){
+    toggleCollapse(e){
+      e.preventDefault();
+      e.stopPropagation();
       this.collapsed = !this.collapsed;
     },
     log(event) {

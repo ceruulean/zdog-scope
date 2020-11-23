@@ -1,5 +1,5 @@
 <template>
-  <div v-if="selected.id">
+  <form v-if="selected.id">
     <div class="row info">
       <div>id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
@@ -8,14 +8,24 @@
         <input type="text" v-model="this.wipOptions['assignedName']" :placeholder="toString(selectedNode['assignedName'])"/>
       </label>
     </div>
-      <ul>
-        <li v-for="prop in selectedAllProps" :key="prop">
-          <label>
-            {{prop}}:
-            <input type="text" v-model="this.wipOptions[prop]" :placeholder="toString(selectedNode[prop])"/>
-          </label>
-        </li>
-      </ul>
+    <div class="row">
+      <InputVector v-for="v in vectorProps" :key="v"
+      :default="selectedNode[v]">
+      {{v}}
+      </InputVector>
+    </div>
+    <div class="row">
+      <label v-for="prop in nonVectorProps" :key="prop"
+        :for="prop">
+        {{prop}}:
+        <input 
+          type="text"
+          v-model="this.wipOptions[prop]"
+          :placeholder="toString(selectedNode[prop])"
+          :name="prop"/>
+      </label>
+    </div>
+
     <!--
       <ul>
         <li v-for="prop in advancedProps" :key="prop">
@@ -28,15 +38,20 @@
       -->
       <button @click="saveProps">Save Properties</button>
     <!--Warning-->
-  </div>
+  </form>
 </template>
 
 <script>
 import { mapState, mapGetters} from 'vuex'// mapActions  mapGetters,
 import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
+import InputVector from './controls/InputVector.vue'
+
 export default {
   name: 'PropertyPanel',
+  components:{
+    InputVector
+  },
   props: {
   },
   methods:{
@@ -67,6 +82,16 @@ export default {
     selectedTypeName(){
       return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
     },
+    nonVectorProps(){
+      return this.selectedAllProps.filter((prop)=>{
+        return !this.VECTOR_PROPS.includes(prop);
+      })
+    },
+    vectorProps(){
+      return this.selectedAllProps.filter((prop)=>{
+        return this.VECTOR_PROPS.includes(prop);
+      })
+    }
   },
   data(){
     return{
@@ -74,6 +99,9 @@ export default {
       READ_ONLY: [
         'assignedType', 'id'
       ],
+      VECTOR_PROPS:[
+        'rotate','translate','scale','front'
+      ]
     }
   }
 }
@@ -93,8 +121,9 @@ export default {
   padding:0 0.2rem;
 }
 
-.property-panel li{
-  margin:3px 2px;
+.property-panel form{
+  display:flex;
+  flex-flow:column nowrap
 }
 
 .property-panel ::placeholder
@@ -110,10 +139,14 @@ export default {
 
 .property-panel label{
   font-size:1.05rem;
+  margin:3px 2px;
+  text-transform:capitalize;
+  user-select:none;
 }
 
 .property-panel input{
   color:green;
+  max-width:6rem;
 }
 
 .nameinput{

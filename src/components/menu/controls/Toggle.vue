@@ -1,5 +1,5 @@
 <template>
- 
+ <div>WTF</div>
 </template>
 
 <script>
@@ -12,15 +12,8 @@ export default {
   },
 
   methods:{
-    close(){
-     // this.$emit('close')
-    }
+
   },
-  data(){
-    return{
-      newValue:this.value
-    }
-  }
 }
 </script>
 

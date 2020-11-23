@@ -131,7 +131,7 @@ input,p,label{
 }
 
 h1,h2,h3,h4,h5{
-  margin:0.5rem 0.5rem 1rem 0.5rem
+  margin:0.5rem 0.5rem 0.7rem 0.5rem
 }
 
 #app {
@@ -194,14 +194,7 @@ ul{
   list-style-type:none;
 }
 
-input[type="text"]{
-  border-radius:3px;
-  border:1px solid var(--colorMain);
-  padding: 1px 5px;
-  max-width:6rem;
-}
-
-textarea{
+input[type="text"], textarea{
   border-radius:3px;
   border:1px solid var(--colorMain);
   padding: 1px 5px;
