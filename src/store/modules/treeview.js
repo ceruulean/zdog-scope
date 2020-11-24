@@ -2,8 +2,7 @@
 // State object
 const state = {
   list: [],
-  draggingId:null,
-  parentDraggingId:null
+  blockIds:[]
 }
 // Getter functions
 const getters = {
@@ -17,15 +16,7 @@ const getters = {
 }
 // Actions 
 const actions = {
-  // fetchVariable1({ commit }) {
-  //     return new Promise( (resolve, reject) => {
-  //            // Make network request and fetch data
-  //            // and commit the data
 
-  //            commit('SET_VARIABLE_1', data); 
-  //            resolve();
-  //     })
-  // },
   changeList({commit}, payload){
     commit('setList', payload)
   },
@@ -34,12 +25,12 @@ const actions = {
     commit('setNodeParent', payload, {root:true})
   },
 
-  startDrag({commit}, nodeId, parentId){
-    commit('setDragging', nodeId, parentId);
+  startDrag({commit}, {blockIds}){
+    commit('setDragging', blockIds);
   },
 
   stopDrag({commit}){
-    commit('setDragging', null, null)
+    commit('setDragging', [])
   }
   
 }
@@ -67,36 +58,12 @@ const actions = {
 
 // Mutations  
 const mutations = {
-  // updateSort(state, {id, newParentId}) {
-    
-  //   // let searchList = state.list;
-  //   // for (let i = 0; i < parentDepth; i++){
-  //   //   searchList = searchList.children
-  //   // }
-
-
-  //   // let parentNode = findById(searchList, newParentId)
-  //   // //need to splice child out
-  //   // searchList = state.list;
-  //   // console.log(searchList);
-  //   // for (let c = 0; c < childDepth; c++){
-
-  //   //   console.log(searchList);
-  //   // }
-  //   // let childAt = searchList.findIndex((node)=>{
-  //   //   node.id == id
-  //   // })
-  //   // let childNode = searchList.splice(childAt, 1);
-  //   //  //state.list = payload;
-  //   //  parentNode.children.push(childNode);
-  // },
   setList(state, payload){
     state.list = payload;
   },
 
-  setDragging(state, nodeId, parentId){
-    state.draggingId = nodeId
-    state.parentDraggingId = parentId
+  setDragging(state, blockIds){
+    state.blockIds = blockIds;
   }
   // SET_VARIABLE_2(state, data) {
   //    state.variable2 = data;

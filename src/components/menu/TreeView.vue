@@ -1,4 +1,14 @@
 <template>
+<div class="min-10">
+  <h2>Tree View</h2>
+TODO: filter anchors, add icon, searchbar
+  <header class="row between">
+    <div class="col index">
+      Index
+    </div>
+    <div class="col name">Name</div>
+    <div class="col type">Type</div>
+  </header>
   <ul v-if="Ztree"
     >
     <TreeItem v-for="(node) in treeView" :key="node.id"
@@ -8,6 +18,7 @@
     <button @click="log">Console Log</button>
     <br/>
   </ul>
+</div>
 </template>
 
 <script>
@@ -95,6 +106,10 @@ export default {
 
 .pink{
   background-color:pink
+}
+
+.min-10{
+  min-width:10rem;
 }
 
 </style>

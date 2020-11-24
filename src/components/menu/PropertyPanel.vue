@@ -1,17 +1,20 @@
 <template>
   <form v-if="selected.id">
     <div class="row info">
-      <div>id: {{selectedNode.id}}</div>
+      <div class="word-break">id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
       <label class="nameinput">
         Name:
-        <input type="text" v-model="this.wipOptions['assignedName']" :placeholder="toString(selectedNode['assignedName'])"/>
+        <input type="text" autocomplete="off" autocorrect="off"
+           v-model="this.wipOptions['assignedName']"
+          :placeholder="toString(selectedNode['assignedName'])"/>
       </label>
     </div>
     <div class="row">
-      <InputVector v-for="v in vectorProps" :key="v"
-      :default="selectedNode[v]">
-      {{v}}
+      <InputVector v-for="prop in vectorProps" :key="prop"
+      :default="selectedNode[prop]"
+      @send-coords="update(prop, $event)">
+      {{prop}}
       </InputVector>
     </div>
     <div class="row">
@@ -19,7 +22,7 @@
         :for="prop">
         {{prop}}:
         <input 
-          type="text"
+          type="text" autocomplete="off"
           v-model="this.wipOptions[prop]"
           :placeholder="toString(selectedNode[prop])"
           :name="prop"/>
@@ -58,9 +61,13 @@ export default {
     toString(object){
       return JSON.stringify(object);
     },
-    saveProps(){
+    saveProps(e){
+      e.preventDefault();
       this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
       this.wipOptions = {};
+    },
+    update(prop, data){
+      this.wipOptions[prop] = data;
     },
     log(){
       //console.table(this.selected);
@@ -136,6 +143,9 @@ export default {
   opacity:1;
 }
 
+.word-break{
+  word-break: break-all;
+}
 
 .property-panel label{
   font-size:1.05rem;

@@ -89,7 +89,7 @@ export default {
     }),
     dragStart(e){
       let payload = {childId: this.node.id}
-      this.startDrag(this.node.id, this.parentId)
+      this.startDrag({blockIds:[this.node.id, this.parentId]})
       e.dataTransfer.setData("text/plain", JSON.stringify(payload));
     },
     dragEnd(){
@@ -166,11 +166,8 @@ export default {
     },
     validDropzone(){
       let nid = this.node.id;
-      if ((nid != this.$store.state.treeview.draggingId)
-      && (nid != this.$store.state.treeview.parentDraggingId)) {
-        return true
-      }
-      return false
+      if (this.$store.state.treeview.blockIds.includes(nid)) return false 
+      return true
     }
   },
   data(){

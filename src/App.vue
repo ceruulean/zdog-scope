@@ -7,15 +7,6 @@
       <div class="split-column tree-view
           user-select-none"
        ref="treeview">
-        <h2>Tree View</h2>
-        TODO: filter anchors, add icon, searchbar
-        <header class="row between">
-          <div class="col index">
-            Index
-          </div>
-          <div class="col name">Name</div>
-          <div class="col type">Type</div>
-        </header>
         <TreeView/>
       </div>
       <div ref="gutter1" class="gutter-column-1"></div>
