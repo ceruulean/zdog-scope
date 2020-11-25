@@ -14,10 +14,10 @@ import {Zdogger, isClass} from '../zdogrigger'
  *  GLOBALS
  */
 const state = () => ({
-  Ztree:undefined,
+  Ztree:null,
   selected:{
-    id:undefined,
-    element:undefined
+    id:null,
+    element:null
   },
   updateTree:false,
 })
@@ -25,11 +25,11 @@ const state = () => ({
 // getters
 const getters = {
   illustration:(state) => {
-    if (!state.Ztree) return undefined;
+    if (!state.Ztree) return null;
     return state.Ztree.illustration;
   },
   Zrelations:(state) => {
-    if (!state.Ztree) return undefined;
+    if (!state.Ztree) return null;
     return state.Ztree.relationSet;
   },
 }

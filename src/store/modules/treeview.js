@@ -10,7 +10,7 @@ const getters = {
      return state.varaible1;
   },
   view:(state, getters, rootState) => {
-    if (!rootState.Ztree) return undefined;
+    if (!rootState.Ztree) return null;
     return rootState.Ztree.trimmedView();
   }
 }

@@ -35,8 +35,18 @@ export default {
   },
 
   methods:{
-    sendCoords(){
-      this.$emit('send-coords', this.euler);
+    sendCoords(e){ 
+      let newVal = e.target.value;
+      if (newVal == e.target.placeholder || newVal == "") return;
+      let temp = Object.assign({}, this.euler);
+      Object.keys(temp).forEach((key) => {
+        if (temp[key] == null) {
+           delete temp[key]
+        } else {
+         temp[key] = Number(temp[key]);
+        }
+      });
+      this.$emit('send-coords', temp);
     }
   },
   computed:{
@@ -61,7 +71,6 @@ export default {
 .input-vector{
   display:flex;
   flex-flow:column nowrap;
-  text-transform: capitalize;
   margin:0.4rem 0.5rem 0.6rem 0.5rem;
 }
 

@@ -43,7 +43,7 @@ export default {
   },
   methods:{
     log(){
-      this.fkme = this.Ztree._JSON();
+      console.log(this.Ztree.nodes)
     },
   },
   computed:{
@@ -64,7 +64,6 @@ export default {
     return{
       ghost:false,
       rerender:false,
-      fkme:null,
       draggingObject:null,
       dragId:null
     }

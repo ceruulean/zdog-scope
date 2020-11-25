@@ -50,6 +50,7 @@ const state = {
 // Getter functions
 const getters = {
   selectedNode(state, getters, rootState){
+    if (!rootState.Ztree) return null;
     return rootState.Ztree.find(rootState.selected.id)
   },
   selectedAllProps(state, getters){

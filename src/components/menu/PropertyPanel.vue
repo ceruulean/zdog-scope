@@ -1,5 +1,5 @@
 <template>
-  <form v-if="selected.id">
+  <form v-if="selectedNode">
     <div class="row info">
       <div class="word-break">id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
@@ -13,14 +13,15 @@
     <div class="row">
       <InputVector v-for="prop in vectorProps" :key="prop"
       :default="selectedNode[prop]"
-      @send-coords="update(prop, $event)">
-      {{prop}}
+      @send-coords="updateVectorProp(prop, $event)">
+      {{capitalize(prop)}}
       </InputVector>
     </div>
     <div class="row">
-      <label v-for="prop in nonVectorProps" :key="prop"
+      <label v-for="prop in textProps" :key="prop"
+        class="field"
         :for="prop">
-        {{prop}}:
+        {{capitalize(prop)}}:
         <input 
           type="text" autocomplete="off"
           v-model="this.wipOptions[prop]"
@@ -28,7 +29,18 @@
           :name="prop"/>
       </label>
     </div>
-
+    <div class="row">
+      <label v-for="prop in boolProps" :key="prop"
+        class="field"
+        :for="prop">
+        {{capitalize(prop)}}:
+        <input 
+          type="checkbox" autocomplete="off"
+          v-model="this.wipOptions[prop]"
+          :checked="selectedNode[prop]"
+          :name="prop"/>
+      </label>
+    </div>
     <!--
       <ul>
         <li v-for="prop in advancedProps" :key="prop">
@@ -53,21 +65,31 @@ import InputVector from './controls/InputVector.vue'
 export default {
   name: 'PropertyPanel',
   components:{
-    InputVector
+    InputVector,
   },
   props: {
+  },
+  watch:{
+    selectedNode(){
+      this.wipOptions = {};
+    }
   },
   methods:{
     toString(object){
       return JSON.stringify(object);
+    },
+    capitalize(string){
+      return string.charAt(0).toUpperCase() + string.slice(1);
     },
     saveProps(e){
       e.preventDefault();
       this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
       this.wipOptions = {};
     },
-    update(prop, data){
-      this.wipOptions[prop] = data;
+    updateVectorProp(prop, data){
+      let temp = Object.assign({}, this.selectedNode[prop]);
+      Object.assign(temp, data);
+      this.wipOptions[prop] = temp;
     },
     log(){
       //console.table(this.selected);
@@ -89,14 +111,20 @@ export default {
     selectedTypeName(){
       return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
     },
-    nonVectorProps(){
+    textProps(){
+      let a = [...this.VECTOR_PROPS, ...this.BOOL_PROPS, 'color']
       return this.selectedAllProps.filter((prop)=>{
-        return !this.VECTOR_PROPS.includes(prop);
+        return !a.includes(prop);
       })
     },
     vectorProps(){
       return this.selectedAllProps.filter((prop)=>{
         return this.VECTOR_PROPS.includes(prop);
+      })
+    },
+    boolProps(){
+      return this.selectedAllProps.filter(prop=>{
+        return this.BOOL_PROPS.includes(prop);
       })
     }
   },
@@ -108,6 +136,9 @@ export default {
       ],
       VECTOR_PROPS:[
         'rotate','translate','scale','front'
+      ],
+      BOOL_PROPS:[
+        'fill','backface','visible','closed'
       ]
     }
   }
@@ -147,14 +178,14 @@ export default {
   word-break: break-all;
 }
 
-.property-panel label{
+.property-panel .field{
   font-size:1.05rem;
   margin:3px 2px;
   text-transform:capitalize;
   user-select:none;
 }
 
-.property-panel input{
+.property-panel input[type="text"]{
   color:green;
   max-width:6rem;
 }
