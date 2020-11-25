@@ -1,5 +1,5 @@
 <template>
-  <form v-if="selectedNode">
+  <form v-if="selectedNode" :key="wipOptions">
     <div class="row info">
       <div class="word-break">id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
@@ -13,6 +13,7 @@
     <div class="row">
       <InputVector v-for="prop in vectorProps" :key="prop"
       :default="selectedNode[prop]"
+      :degrees="(prop == 'rotate')"
       @send-coords="updateVectorProp(prop, $event)">
       {{capitalize(prop)}}
       </InputVector>
@@ -71,6 +72,7 @@ export default {
   },
   watch:{
     selectedNode(){
+      console.log('afsafsdf')
       this.wipOptions = {};
     }
   },

@@ -69,7 +69,7 @@ const actions = {
   changeSelectedProps({commit, getters}, incomingOptions){
     let payload = {
       node: getters.selectedNode,
-      options: incomingOptions
+      options: Object.assign({}, incomingOptions)
     }
     commit('setNodeProps', payload, {root:true})
   },

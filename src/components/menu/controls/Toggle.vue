@@ -20,7 +20,7 @@ export default {
     type:String,
     value:String,
     name:String,
-    checked:Boolean,
+    checked:Boolean
   },
 
   methods:{
