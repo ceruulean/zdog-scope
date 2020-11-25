@@ -13,9 +13,9 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Import/Export JSON
 - Tree view of objects w/ draggable sort
 - Assign name (double click on treeview)
+- Edit properties window
 
 ## Todo
-- Edit properties input
 - Color picker
 - Sliders for adjusting coordinates/stroke
 - Better creation of objects

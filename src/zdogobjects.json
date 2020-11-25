@@ -109,6 +109,10 @@
         "type":"object",
         "default":{"x":1, "y":1, "z":1}
       },
+      "element":{
+        "type":"string",
+        "default":".zdog-canvas"
+      },
       "centered":{
         "type":"boolean",
         "default":true
@@ -131,7 +135,7 @@
       },
       "front":{
         "type":"object",
-        "default":{"y":1}  
+        "default":{"z":1}  
       },
       "backface":{
         "type":"boolean",

@@ -7,7 +7,7 @@ import canvas from './modules/canvas'
 
 const debug = process.env.NODE_ENV !== 'production'
 
-import {Zdogger, isClass} from '../zdogrigger'
+import {Zdogger} from '../zdogrigger'
 
 
 
@@ -38,21 +38,9 @@ const getters = {
 // actions
 const actions = {
 
-  newIllustration({commit}, options){
-    let optionsDefault = options;
-    if (!options) {
-      optionsDefault = {
-        element: '.zdog-canvas',
-        width: window.innerWidth,
-        height: window.innerHeight,
-        zoom: 100,
-        dragRotate:true
-        }
-    }
-
-    let illuObj = Zdogger('illustration')(optionsDefault);
-    commit('setZtree', illuObj)
-
+  newIllustration({commit}, payload){
+    if (!payload) { payload = {}}
+    commit('setZtree', payload)
   },
 
   demoJSON({commit}, payload){
@@ -97,13 +85,15 @@ const actions = {
 const mutations = {
 
   setZtree(state, arg){
-    if (isClass(arg, 8)) {
-      state.Ztree = new Zdogger.Tree(arg)
-    } else if (arg instanceof Zdogger.Tree) {
+    if (arg instanceof Zdogger.Tree) {
       state.Ztree = arg
+    } else if (arg.options) {
+      state.Ztree = new Zdogger.Tree(arg.options)
+      if (arg.assignedName) {
+        state.Ztree.illustration.assignedName = arg.assignedName;
+      }
     } else {
-      state.Ztree = null;
-      return;
+      state.Ztree = new Zdogger.Tree({});
     }
     state.updateTree = !state.updateTree;
 

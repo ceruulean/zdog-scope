@@ -86,7 +86,7 @@ import StringHelper from './StringHelperMixin'
 
 export default {
   name: 'Creation',
-  emit:['close'],
+  emits:['close-prompt'],
   mixins:[StringHelper],
   components:{
     InputVector
@@ -102,7 +102,8 @@ export default {
   methods:{
     ...mapActions({
         newZdogObject:'newZdogObject', //argument should be in format {type:int, options:{}}
-        validateFields:'properties/validateFields'
+        validateFields:'properties/validateFields',
+        newIllustration:'newIllustration'
     }),
     async submit(){
       await this.validateFields(this.wipOptions);
@@ -118,12 +119,15 @@ export default {
         assignedName:this.wipAssignedName
         }
 
-      let selected = this.selected.id;
-      if (selected) {
-        temp.options.addTo = selected;
+      if (this.itemtype == 'illustration') {
+        this.newIllustration(temp)
+      } else {
+        let selected = this.selected.id;
+        if (selected) {
+          temp.options.addTo = selected;
+        }
+        this.newZdogObject(temp)
       }
-
-      this.newZdogObject(temp)
       this.$emit('close-prompt');
     },
     optionDefault(field){
@@ -139,13 +143,15 @@ export default {
     ...mapGetters('properties',[
         'BOOL_PROPS',
         'VECTOR_PROPS',
+        'CYCLIC_PROPS',
         'bBlank'
     ]),
     textProps(){
       let a = [...this.BOOL_PROPS, ...this.VECTOR_PROPS];
-      return this.ALL_PROPS.filter(prop=>{
+      let u = this.ALL_PROPS.filter(prop=>{
         return !a.includes(prop)
       })
+      return u
     },
     boolProps(){
       return this.ALL_PROPS.filter(prop=>{
@@ -172,7 +178,8 @@ export default {
     },
     ALL_PROPS(){
       return ZDOG_CLASS_TYPE[ZDOG_CLASS[this.itemtype]].optionKeys.filter(prop=>{
-        return prop != 'addTo'
+        return (prop != 'addTo' && prop != 'onPrerender' && prop != 'onDragStart'
+        && prop != 'onDragMove' && prop != 'onDragEnd' && prop != 'onResize')
       });
     }
   },

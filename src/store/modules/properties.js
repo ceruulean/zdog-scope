@@ -10,7 +10,7 @@ const VECTOR_PROPS = [
   'rotate','translate','scale','front'
 ]
 const BOOL_PROPS = [
-  'fill','backface','visible','closed','updateSort'
+  'fill','backface','visible','closed','updateSort','dragRotate', 'centered', 'resize'
 ]
 /**
  * Checks the proposed options and returns an array of invalid fields (empty if fields are valid)
@@ -93,6 +93,9 @@ const getters = {
   },
   VECTOR_PROPS(){
     return VECTOR_PROPS;
+  },
+  CYCLIC_PROPS(){
+    return CYCLIC_PROPS;
   }
 }
 // Actions 

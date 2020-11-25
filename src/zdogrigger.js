@@ -451,9 +451,22 @@ class Ztree{
   constructor(illustration){
     this.nodeMap = new Map();
     this.relationMap = new Map(); //{key: id, value: Set() of child ids}
+    console.log(illustration)
     if (!illustration){
       this.illustration = null;
       return;
+    }else if (!illustration.element || typeof illustration.element == 'string'){
+      let optionsDefault = {
+        element: '.zdog-canvas',
+        width: window.innerWidth,
+        height: window.innerHeight,
+        zoom: 10,
+        dragRotate:true
+        }
+
+      let options = Object.assign({}, optionsDefault)
+      Object.assign(options, illustration);
+      this.illustration = create('illustration')(options);
     } else if (illustration.id) {
       this.illustration = illustration
     } else {
