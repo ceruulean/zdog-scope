@@ -581,11 +581,13 @@ class Ztree{
   }
 //id of the node to be adopted
   changeParent(id, newParentId){
+    console.log(`CHILDid: ${id}`)
     let childnode = this.nodeMap.get(id)
-    let oldParentId = childnode.addTo.id
-    if (oldParentId){childnode.remove()}
+    let oldParentNode = childnode.addTo
+    let pnode = this.nodeMap.get(newParentId);
+
     //remove child from set record
-    this.relationMap.get(oldParentId).delete(id);
+    this.relationMap.get(oldParentNode.id).delete(id)
     let newSet = this.relationMap.get(newParentId)
     if (!newSet) {
       newSet = new Set([id])
@@ -593,7 +595,15 @@ class Ztree{
     } else {
       newSet.add(id);
     }
-    this.nodeMap.get(newParentId).addChild(childnode);
+
+    if (oldParentNode){
+      oldParentNode.removeChild(childnode);
+      //swap parent and id if changing places
+      oldParentNode.addChild(pnode);
+    }
+
+    pnode.addChild(childnode);
+    return pnode;
   }
 
   /**
@@ -731,6 +741,3 @@ export {
 
 
 export default Zdogger;
-
-//https://observablehq.com/@mootari/zdog-helpers
-//Has axis and grid rendering...

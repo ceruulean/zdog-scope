@@ -3,6 +3,7 @@ import { createStore, createLogger } from 'vuex'
 //import MODULES from './modules/MODUELS' if ever gets more modules NEED TO AUTOMATE THIS
 import treeview from './modules/treeview'
 import properties from './modules/properties'
+import canvas from './modules/canvas'
 
 const debug = process.env.NODE_ENV !== 'production'
 
@@ -118,6 +119,7 @@ const mutations = {
   addZtreeNode(state, node){
     if (!state.Ztree) throw new Error('Cannot add node to nonexistent tree');
     state.Ztree.addNode(node);
+    state.Ztree.illustration.renderGraph(node)
     state.updateTree = !state.updateTree;
   },
   
@@ -142,7 +144,8 @@ const mutations = {
   },
 
   setNodeParent(state, {id, newParentId}){
-    state.Ztree.changeParent(id, newParentId);
+    let nodeUpdate = state.Ztree.changeParent(id, newParentId);
+    nodeUpdate.updateGraph();
     state.updateTree = !state.updateTree;
   },
 }
@@ -150,7 +153,8 @@ const mutations = {
 export default createStore({
   modules: {
     treeview,
-    properties
+    properties,
+    canvas,
   },
   state,
   getters,

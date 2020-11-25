@@ -3,48 +3,94 @@
     <h2>Create new {{itemtype}}</h2>
     <div v-if="bWarning">
       Warning: fields that failed validation:
-      <p v-for="f in invalidFields" :key="f">{{f}}</p>
+      <p v-for="f in invalidFields" :key="f">{{f}} needs a
+        {{validSchema[f].type}}</p>
       <p>Please fix them before proceeding.</p>
     </div>
-    <div v-if="selected.id">
-      Adding to selected node: {{selected.assignedName}}<br/>(id: {{selected.id}})
-    </div>
-    <form class="row">
-      <div class="field-list">
-         <label>
-          Name:
+    <form class="field-list">
+      <div class="row">
+         <label class="input-name">
           <input type="text" v-model="wipAssignedName" placeholder="untitled"/>
         </label>
-        <label v-for="(field) in editableProps" :key="`${field}_creation`">
-          {{field}}
-          <input type="text" v-model="wipOptions[field]" :placeholder="optionDefault(field)"/>
-        </label>
       </div>
+      <div class="row between-">
+        <div v-if="!bBlank"
+          class="field-list radio">
+          Append to:
+          <label v-if="selected.id" for="append_selected">
+            <input type="radio" id="append_selected" name="appendto"
+              v-model="appendTo" value="selected"
+            checked>
+              Selected
+              <br/>(id: {{selected.id}})
+          </label>
+          <label for="append_choose">
+            <input type="radio" id="append_choose" name="appendto"
+              v-model="appendTo" value="choose">
+              Choose<br/>
+              <select>
 
-      <div>Color picker component here</div>
-      <div v-if="advEditableProps" class="field-list">
-        <h3>Advanced</h3>
-        <label
-          v-for="(field) in advEditableProps"
-          :key="`${field}_adv`">
-          {{field}}
-          <input type="text" v-model="wipOptions[field]" :placeholder="optionDefault(field)"/>
-        </label>
+              </select>
+          </label>
+          <label for="append_none">
+            <input type="radio" id="append_none" name="appendto"
+              v-model="appendTo" value="nothing">
+              None
+          </label>
+        </div>
+        <div class="field-list col">
+          <label v-for="(field) in textProps"
+            :key="`${field}_creation`"
+            :for="`${field}_creation`">
+          {{capitalize(field)}}
+          <input type="text" v-model="wipOptions[field]"
+            :placeholder="optionDefault(field)"
+            :id="`${field}_creation`"/>
+          </label>
+        </div>
+        <div>Color picker component here</div>
       </div>
-
+      <div class="row">
+        <InputVector v-for="field in vectorProps" :key="`${field}_creation`"
+        :default="optionDefault(field)"
+        :degrees="(field == 'rotate')"
+        :id="`${field}_creation`"
+        >
+        {{capitalize(field)}}
+        </InputVector>
+        <div class="field-list col">
+          <label v-for="(field) in boolProps"
+            :key="`${field}_creation`"
+            :for="`${field}_creation`">
+            {{capitalize(field)}}
+            <input type="checkbox"
+            v-model="wipOptions[field]"
+            :checked="optionDefault(field)"
+            :id="`${field}_creation`"/>
+          </label>
+        </div>
+      </div>
     </form>
     <button @click="submit">Create</button>
   </div>
 </template>
 
 <script>
-import {mapActions, mapState} from 'vuex'// mapActions 
+import {mapActions, mapState, mapGetters} from 'vuex'
 import ZdogJSONSchema from '../zdogobjects.json'
-import {CREATE_PROPS} from '../zdogrigger'
+import {ZDOG_CLASS, ZDOG_CLASS_TYPE} from '../zdogrigger'
+
+import InputVector from './menu/controls/InputVector'
+
+import StringHelper from './StringHelperMixin'
 
 export default {
   name: 'Creation',
   emit:['close'],
+  mixins:[StringHelper],
+  components:{
+    InputVector
+  },
   props: {
     itemtype:String
   },
@@ -90,31 +136,29 @@ export default {
         validationSuccess:state => state.properties.validationSuccess,
         selected:state => state.selected,
     }),
-    isShape(){
-      return (this.itemtype != 'vector') && (this.itemtype != 'anchor') && (this.itemtype != 'group')
-      && (this.itemtype != 'illustration');
+    ...mapGetters('properties',[
+        'BOOL_PROPS',
+        'VECTOR_PROPS',
+        'bBlank'
+    ]),
+    textProps(){
+      let a = [...this.BOOL_PROPS, ...this.VECTOR_PROPS];
+      return this.ALL_PROPS.filter(prop=>{
+        return !a.includes(prop)
+      })
     },
-    isAbstract(){
-      return (this.itemtype == 'vector') || (this.itemtype == 'anchor') || (this.itemtype == 'group')
-      || (this.itemtype == 'illustration');
+    boolProps(){
+      return this.ALL_PROPS.filter(prop=>{
+        return this.BOOL_PROPS.includes(prop)
+      })
     },
-    editableProps(){
-      let iN = this.itemtype;
-      let basic = CREATE_PROPS[iN]
-      if (iN != 'vector' && iN != 'anchor' && iN != 'dragger'){
-        basic = [...CREATE_PROPS['anchor'], ...basic]
-      }
-      return basic.filter(prop=>{
-          return (prop != 'color')
-        });
+    vectorProps(){
+      return this.ALL_PROPS.filter(prop=>{
+        return this.VECTOR_PROPS.includes(prop)
+      })
     },
-    advEditableProps(){
-      if (this.isShape && this.itemtype != 'shape'){
-        return CREATE_PROPS['shape'].filter(prop=>{
-          return (prop != 'color' && prop != 'path')
-        });
-      }
-      return null;
+    validSchema(){
+      return ZdogJSONSchema.optionValidator;
     },
     bWarning:{
       get(){
@@ -125,25 +169,28 @@ export default {
           this.$store.dispatch('properties/validationReset')
         }
       }
+    },
+    ALL_PROPS(){
+      return ZDOG_CLASS_TYPE[ZDOG_CLASS[this.itemtype]].optionKeys.filter(prop=>{
+        return prop != 'addTo'
+      });
     }
   },
   data(){
     return{
-      optionValidator: ZdogJSONSchema.optionValidator,
       wipOptions:{},
-      wipAssignedName: null
+      wipAssignedName: null,
+      appendTo:'selected'
     }
   }
 }
 </script>
 
 <style scoped>
-input{
-  max-width:10ch;
-}
+@import '../assets/fieldinput.css';
 
-.field-list{
-  display:flex;
-  flex-flow:column nowrap;
+.field-list .radio{
+  align-items:flex-start;
+  text-align:left;
 }
 </style>

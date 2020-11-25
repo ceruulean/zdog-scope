@@ -1,17 +1,18 @@
 <template>
-  <form v-if="selectedNode" :key="wipOptions">
+  <form v-if="selectedNode" :key="wipOptions"
+    class="field-list">
     <div class="row info">
       <div class="word-break">id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
-      <label class="nameinput">
-        Name:
+      <label class="input-name">
         <input type="text" autocomplete="off" autocorrect="off"
-           v-model="this.wipOptions['assignedName']"
+           v-model="wipOptions['assignedName']"
           :placeholder="toString(selectedNode['assignedName'])"/>
       </label>
     </div>
     <div class="row">
       <InputVector v-for="prop in vectorProps" :key="prop"
+      :id="`v_${prop}`"
       :default="selectedNode[prop]"
       :degrees="(prop == 'rotate')"
       @send-coords="updateVectorProp(prop, $event)">
@@ -25,7 +26,7 @@
         {{capitalize(prop)}}:
         <input 
           type="text" autocomplete="off"
-          v-model="this.wipOptions[prop]"
+          v-model="wipOptions[prop]"
           :placeholder="toString(selectedNode[prop])"
           :name="prop"/>
       </label>
@@ -37,23 +38,12 @@
         {{capitalize(prop)}}:
         <input 
           type="checkbox" autocomplete="off"
-          v-model="this.wipOptions[prop]"
+          v-model="wipOptions[prop]"
           :checked="selectedNode[prop]"
           :name="prop"/>
       </label>
     </div>
-    <!--
-      <ul>
-        <li v-for="prop in advancedProps" :key="prop">
-          <label>
-            {{prop}}:
-            <input type="text" v-model="this.wipOptions[prop]" :placeholder="toString(selectedNode[prop])"/>
-          </label>
-        </li>
-      </ul>
-      -->
-      <button @click="saveProps">Save Properties</button>
-    <!--Warning-->
+      <button @click="saveProps">Apply Changes</button>
   </form>
 </template>
 
@@ -61,18 +51,20 @@
 import { mapState, mapGetters} from 'vuex'// mapActions  mapGetters,
 import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
-import InputVector from './controls/InputVector.vue'
+import StringHelper from '../StringHelperMixin'
+
+import InputVector from './controls/InputVector'
 
 export default {
   name: 'PropertyPanel',
   components:{
     InputVector,
   },
+  mixins:[StringHelper],
   props: {
   },
   watch:{
     selectedNode(){
-      console.log('afsafsdf')
       this.wipOptions = {};
     }
   },
@@ -106,6 +98,9 @@ export default {
     ...mapGetters('properties',[
       'selectedNode',
       'selectedAllProps',
+      'textProps',
+      'vectorProps',
+      'boolProps'
     ]),
     advancedProps(){
       return ADVANCED_PROPERTIES;
@@ -113,22 +108,6 @@ export default {
     selectedTypeName(){
       return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
     },
-    textProps(){
-      let a = [...this.VECTOR_PROPS, ...this.BOOL_PROPS, 'color']
-      return this.selectedAllProps.filter((prop)=>{
-        return !a.includes(prop);
-      })
-    },
-    vectorProps(){
-      return this.selectedAllProps.filter((prop)=>{
-        return this.VECTOR_PROPS.includes(prop);
-      })
-    },
-    boolProps(){
-      return this.selectedAllProps.filter(prop=>{
-        return this.BOOL_PROPS.includes(prop);
-      })
-    }
   },
   data(){
     return{
@@ -136,18 +115,14 @@ export default {
       READ_ONLY: [
         'assignedType', 'id'
       ],
-      VECTOR_PROPS:[
-        'rotate','translate','scale','front'
-      ],
-      BOOL_PROPS:[
-        'fill','backface','visible','closed'
-      ]
     }
   }
 }
 </script>
 
 <style>
+@import '../../assets/fieldinput.css';
+
 .property-panel{
   border:1px solid black;
   background-color:rgb(255,255,255)
@@ -161,11 +136,6 @@ export default {
   padding:0 0.2rem;
 }
 
-.property-panel form{
-  display:flex;
-  flex-flow:column nowrap
-}
-
 .property-panel ::placeholder
 {
   color:rgba(0,0,0,1);
@@ -174,10 +144,6 @@ export default {
 .property-panel input:placeholder-shown {
   color:rgba(0,0,0,1);
   opacity:1;
-}
-
-.word-break{
-  word-break: break-all;
 }
 
 .property-panel .field{
@@ -190,15 +156,5 @@ export default {
 .property-panel input[type="text"]{
   color:green;
   max-width:6rem;
-}
-
-.nameinput{
-  width:100%;
-}
-.nameinput input{
-  border-top:none;
-  border-left:none;
-  border-right:none;
-  border-bottom:2px solid var(--colorInputPri);
 }
 </style>

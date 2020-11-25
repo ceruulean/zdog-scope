@@ -1,26 +1,29 @@
 <template>
   <div :class="{'input-vector': true, 'degrees':degrees}">
     <slot/>
-    <label for="x">
+    <label :for="`${id}x`">
       x:
     <input type="text" name="x"
+      :id="`${id}z`"
        autocomplete="off"
        v-model="euler.x"
       :placeholder="defaultVal.x"
       @change="sendCoords"/>
         {{degrees? `&#176;`: ''}}
     </label>
-    <label for="y">
+    <label :for="`${id}y`">
       y:
       <input type="text" name="y" v-model="euler.y"
+        :id="`${id}y`"
         autocomplete="off"
         :placeholder="defaultVal.y"
         @change="sendCoords"/>
           {{degrees? `&#176;`: ''}}
     </label>
-    <label for="z">
+    <label :for="`${id}z`">
       z:
       <input type="text" name="z" v-model="euler.z"
+        :id="`${id}z`"
         autocomplete="off"
         :placeholder="defaultVal.z"
         @change="sendCoords"/>
@@ -34,6 +37,7 @@ export default {
   name: 'InputVector',
   emits:['send-coords'],
   props: {
+    id:String,
     default:Object,
     degrees:{
       type:Boolean,
@@ -70,15 +74,18 @@ export default {
   },
   computed:{
     defaultVal(){
-      //console.log(JSON.parse(this.default))
+      let d = this.default
+      if (typeof d == 'string') {
+        d = JSON.parse(d)
+      }
       if (this.degrees){
-        let temp = Object.assign({}, this.default);
+        let temp = Object.assign({}, d);
         Object.keys(temp).map(coord=>{
           temp[coord] = this.toDeg(temp[coord]);
         })
         return temp
       }
-      return this.default
+      return d
     }
   },
   data(){

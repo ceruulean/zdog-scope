@@ -99,15 +99,15 @@
       },
       "translate":{
         "type":"object",
-        "default":null
+        "default":{"x":0, "y":0, "z":0}
       },
       "rotate":{
         "type":"object",
-        "default":null
+        "default":{"x":0, "y":0, "z":0}
       },
       "scale":{
         "type":"object",
-        "default":null
+        "default":{"x":1, "y":1, "z":1}
       },
       "centered":{
         "type":"boolean",
@@ -131,7 +131,7 @@
       },
       "front":{
         "type":"object",
-        "default":"{ \"y\": 1 }"     
+        "default":{"y":1}  
       },
       "backface":{
         "type":"boolean",

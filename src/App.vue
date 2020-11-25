@@ -113,10 +113,6 @@ html,body{
   font-family: Avenir, Helvetica, Arial, sans-serif;
 }
 
-input,p,label{
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-}
-
 *{
   box-sizing:border-box;
 }
@@ -185,25 +181,27 @@ ul{
   list-style-type:none;
 }
 
-input[type="text"], textarea{
-  border-radius:3px;
-  border:1px solid var(--colorMain);
-  padding: 1px 5px;
-}
-
 .row{
   display:flex;
   flex-direction:row;
   flex-wrap:wrap;
   justify-content:center;
 }
+
+.col{
+  display:flex;
+  flex-direction:column;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
 [class*="between-"]{
   justify-content:space-between;
 }
 
 .text-display-type{
   font-variant: small-caps;
-  color: rgba(0,0,0,0.6);
+  color: var(--colorMain);
   font-size: 0.9em;
 }
 

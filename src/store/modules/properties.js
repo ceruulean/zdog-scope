@@ -5,6 +5,13 @@ const CYCLIC_PROPS = [
   'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
   'onDragEnd','onResize'
 ]
+
+const VECTOR_PROPS = [
+  'rotate','translate','scale','front'
+]
+const BOOL_PROPS = [
+  'fill','backface','visible','closed','updateSort'
+]
 /**
  * Checks the proposed options and returns an array of invalid fields (empty if fields are valid)
  * @param {Object} incomingOptions 
@@ -61,6 +68,31 @@ const getters = {
   },
   validationFailed(state){
     return (state.validationSuccess == false && state.invalidFields);
+  },
+  bBlank(state, getters, rootState){
+    return (!rootState.Ztree.illustration || rootState.Ztree.illustration.children.length == 0)
+  },
+  textProps(state, getters){
+    let a = [...VECTOR_PROPS, ...BOOL_PROPS, 'color']
+    return getters.selectedAllProps.filter((prop)=>{
+      return !a.includes(prop);
+    })
+  },
+  vectorProps(state, getters){
+    return getters.selectedAllProps.filter((prop)=>{
+      return VECTOR_PROPS.includes(prop);
+    })
+  },
+  boolProps(state, getters){
+    return getters.selectedAllProps.filter(prop=>{
+      return BOOL_PROPS.includes(prop);
+    })
+  },
+  BOOL_PROPS(){
+    return BOOL_PROPS;
+  },
+  VECTOR_PROPS(){
+    return VECTOR_PROPS;
   }
 }
 // Actions 
@@ -104,10 +136,6 @@ const mutations = {
 
   log(state, payload){
     console.log(payload);
-  },
-
-  setWipOptions(state, payload){
-    state.wipOptions = payload;
   },
 
   VALIDATION_FAIL(state, invalids){

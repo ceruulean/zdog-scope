@@ -100,7 +100,7 @@ export default {
 }
 
 .tree-view ul ul {
-  padding-left:1rem;
+  padding-left:1.1rem;
 }
 
 .pink{

@@ -64,12 +64,10 @@
 <script>
 //import {ref} from 'vue' // onUpdated, onUnmounted
 import { mapState, mapActions} from 'vuex'// mapGetters
-//import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
   name: 'TreeItem',
   emits:['drag-started', 'drag-stop'],
- // components:{draggable: VueDraggableNext},
   props: {
     node:Object,
     depth:Number,
@@ -200,7 +198,7 @@ export default {
 }
 
 .tree-item .highlight{
-  background-color:rgba(31, 79, 255, 0.4);
+  background-color:var(--colorLight);
 }
 
 .tree-item .editing{
@@ -233,6 +231,7 @@ export default {
   padding:0;
   width:3ch;
   font-size:0.9rem;
+  color:var(--colorMain);
 }
 
 .tree-item li:before{
@@ -240,8 +239,14 @@ export default {
   top:0;
   content:'';
   width:1px;
-  background-color:#343040;
+  background-color:var(--colorMain);
   height:100%;
+}
+
+.tree-item .name{
+  width:99%;
+  text-align:left;
+  max-width:initial;
 }
 
 .collapsed{
@@ -253,8 +258,9 @@ export default {
 }
 
 .drag-over-ghost{
-  border:1px dashed grey;
-  background-color:rgba(0,255,255,0.3);
+  border:1px dashed var(--colorPri);
+  background-color:var(--colorLight);
+  opacity:0.5;
   height:1rem;
   margin-left:1rem;
   /*needs arrow to indicate child*/

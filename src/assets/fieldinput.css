@@ -1,0 +1,46 @@
+input,label{
+  font-family: Tahoma, Helvetica, Arial, sans-serif;
+}
+
+input[type="text"], textarea{
+  border-radius:3px;
+  border:1px solid var(--colorMain);
+  padding: 1px 5px;
+  max-width:10ch;
+}
+
+.input-name{
+  width:100%;
+  position:relative;
+  margin:0.5rem 1rem;
+}
+.input-name input{
+  width:95%;
+  border:none;
+  max-width:initial;
+  min-width:10ch;
+  font-size: 1.2rem;
+}
+.input-name:after
+{ 
+  content:'';
+  height:2px;
+  width:100%;
+  position:absolute;
+  bottom:0;
+  left:0;
+  background-color:var(--colorInputPri);
+}
+
+.word-break{
+  word-break: break-all;
+}
+
+.field-list{
+  display:flex;
+  flex-flow:column nowrap;
+}
+
+.field-list.col{
+  align-items:end;
+}
