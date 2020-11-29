@@ -451,7 +451,6 @@ class Ztree{
   constructor(illustration){
     this.nodeMap = new Map();
     this.relationMap = new Map(); //{key: id, value: Set() of child ids}
-    console.log(illustration)
     if (!illustration){
       this.illustration = null;
       return;
@@ -594,7 +593,6 @@ class Ztree{
   }
 //id of the node to be adopted
   changeParent(id, newParentId){
-    console.log(`CHILDid: ${id}`)
     let childnode = this.nodeMap.get(id)
     let oldParentNode = childnode.addTo
     let pnode = this.nodeMap.get(newParentId);

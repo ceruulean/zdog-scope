@@ -154,7 +154,7 @@ export default {
 }
 
 .property-panel input[type="text"]{
-  color:green;
+  /* color:green; */
   max-width:6rem;
 }
 </style>

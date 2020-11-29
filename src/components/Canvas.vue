@@ -43,9 +43,10 @@ export default {
     // }
   },
   computed:{
-    ...mapState('canvas',[
-      'settings',
-    ]),
+    ...mapState({
+      settings:state=>state.canvas.settings,
+      selected:state=>state.selected,
+    }),
     width(){
       return window.innerWidth;
     },

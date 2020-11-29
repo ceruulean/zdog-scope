@@ -1,6 +1,6 @@
 <template>
-<div :class="{'roq':true}" v-if="node">
-  <li class="tree-item"
+<li :class="{'roq':true}" v-if="node">
+  <div class="tree-item"
     @dragover="dragOver"
     @dragleave="dragOverIndicate = false"
     @drop="drop"
@@ -57,8 +57,8 @@
     :parentId="node.id"
     />
     </ul>
-  </li>
-</div>
+  </div>
+</li>
 </template>
 
 <script>
@@ -194,7 +194,7 @@ export default {
 
 
 .tree-item .row{
-  border-bottom: 1px solid rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.3);
 }
 
 .tree-item .highlight{
@@ -207,6 +207,7 @@ export default {
 
 .tree-item .data-set{
   width: 100%;
+  height:1.3rem;
 }
 .tree-item ul{
   position:relative;
@@ -237,6 +238,7 @@ export default {
 .tree-item li:before{
   position:absolute;
   top:0;
+  left:0.6rem;
   content:'';
   width:1px;
   background-color:var(--colorMain);
@@ -261,7 +263,7 @@ export default {
   border:1px dashed var(--colorPri);
   background-color:var(--colorLight);
   opacity:0.5;
-  height:1rem;
+  height:1.3rem;
   margin-left:1rem;
   /*needs arrow to indicate child*/
 }

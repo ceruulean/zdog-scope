@@ -2,7 +2,7 @@
 <div class="min-10">
   <h2>Tree View</h2>
 TODO: filter anchors, add icon, searchbar
-  <header class="row between">
+  <header class="row between text-display-type">
     <div class="col index">
       Index
     </div>
@@ -10,6 +10,7 @@ TODO: filter anchors, add icon, searchbar
     <div class="col type">Type</div>
   </header>
   <ul v-if="Ztree"
+    class="tree-bg"
     >
     <TreeItem v-for="(node) in treeView" :key="node.id"
       :node="node"
@@ -103,9 +104,15 @@ export default {
   padding-left:1.1rem;
 }
 
-.pink{
-  background-color:pink
+.tree-bg{
+  background-image: linear-gradient(0deg,
+    var(--colorShade) 25%,
+  transparent 25%, transparent 50%,
+  var(--colorShade) 50%, var(--colorShade) 75%,
+   transparent 75%, transparent 100%);
+background-size: 5.2rem 5.2rem;
 }
+
 
 .min-10{
   min-width:10rem;

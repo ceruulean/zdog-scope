@@ -9,5 +9,8 @@
   --colorMain:#546A7B;
   --colorPri:#9EA3B0;
   --colorSec:#E4C3AD;
+  --colorShade:rgba(0,0,0,0.1);
   --colorInputPri: var(--colorMain);
+
+  --borderRadius: 3px;
 }
