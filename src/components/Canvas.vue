@@ -1,14 +1,23 @@
 <template>
+<section>
   <canvas ref="workingCanvas" class="zdog-canvas"
   :width="width"
   :height="height"
   :style="{backgroundColor:settings.backgroundColor}"
   @click="clickHandler"></canvas>
+
+  <canvas class="ghost-canvas"
+  :width="width"
+  :height="height"></canvas>
+
+  <div class="axes-controls"></div>
+</section>
 </template>
 
 <script>
-//import {ref, onMounted} from 'vue' // onUpdated, onUnmounted
-import {mapState} from 'vuex'// mapGetters
+//import {onMounted} from 'vue' // onUpdated, onUnmounted
+import {mapState, mapActions} from 'vuex'// mapGetters
+//import Zdogger from '../zdogrigger'
 
 
 //import {Zdogger} from '../zdogrigger'
@@ -26,9 +35,25 @@ export default {
   name: 'Canvas',
   props: {
   },
-  setup(){
+  watch:{
+    selectedNode(nVal, oVal){
+      if (nVal && nVal != oVal){
+        this.showSelectedAxes()
+      } else {
+        this.clearSelectedAxes()
+      }
+    },
+    illustration(){
+      this.showCanvasAxes();
+    }
   },
   methods:{
+    ...mapActions('canvas',[
+      'showCanvasAxes',
+      'showSelectedAxes',
+      'clearSelectedAxes',
+      'clearCanvasAxes'
+    ]),
     clickHandler(event){
       console.log(this.getMousePos(event));
     },
@@ -47,6 +72,12 @@ export default {
       settings:state=>state.canvas.settings,
       selected:state=>state.selected,
     }),
+    selectedNode(){
+      return this.$store.getters['selectedNode'];
+    },
+    illustration(){
+      return this.$store.getters['illustration'];
+    },
     width(){
       return window.innerWidth;
     },
@@ -58,12 +89,19 @@ export default {
 </script>
 
 <style scoped>
-.zdog-canvas{
+[class$="-canvas"]{
   position:absolute;
   top:0;
   left:0;
   width:100%;
   height:100%;
+}
+.zdog-canvas{
   z-index:0;
+}
+
+.ghost-canvas{
+  z-index:1;
+  display:none;
 }
 </style>

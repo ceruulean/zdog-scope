@@ -459,7 +459,8 @@ class Ztree{
         element: '.zdog-canvas',
         width: window.innerWidth,
         height: window.innerHeight,
-        zoom: 10,
+        zoom: 1,
+       // rotate: {x:-.5+Math.PI, z: 0, y:.5+Math.PI}, //default Zdog rotation is weird
         dragRotate:true
         }
 

@@ -10,7 +10,6 @@ const debug = process.env.NODE_ENV !== 'production'
 import {Zdogger} from '../zdogrigger'
 
 
-
 /**
  *  GLOBALS
  */
@@ -21,17 +20,22 @@ const state = () => ({
     element:null
   },
   updateTree:false,
+  animate:null,
 })
 
 // getters
 const getters = {
-  illustration:(state) => {
+  illustration(state){
     if (!state.Ztree) return null;
     return state.Ztree.illustration;
   },
-  Zrelations:(state) => {
+  Zrelations(state){
     if (!state.Ztree) return null;
     return state.Ztree.relationSet;
+  },
+  selectedNode(state){
+    if (!state.Ztree) return null;
+    return state.Ztree.find(state.selected.id)
   },
 }
 
@@ -97,13 +101,12 @@ const mutations = {
     }
     state.updateTree = !state.updateTree;
 
-    let animate = () => {
-      state.Ztree.illustration.updateRenderGraph()
-      requestAnimationFrame(animate);
+    state.animate = () => {
+      state.Ztree.illustration.updateRenderGraph();
+      requestAnimationFrame(state.animate);
     }
 
-    animate()
-
+    state.animate();
   },
 
   addZtreeNode(state, node){

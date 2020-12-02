@@ -56,9 +56,10 @@ const state = {
 }
 // Getter functions
 const getters = {
-  selectedNode(state, getters, rootState){
-    if (!rootState.Ztree) return null;
-    return rootState.Ztree.find(rootState.selected.id)
+  selectedNode(state, getters, rootState, rootGetters){
+    return rootGetters.selectedNode;
+    // if (!rootState.Ztree) return null;
+    // return rootState.Ztree.find(rootState.selected.id)
   },
   selectedAllProps(state, getters){
     let noCyclic = getters.selectedNode.constructor.optionKeys.filter(option=>{

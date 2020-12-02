@@ -5,6 +5,7 @@ Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor
 
 
 [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid) for panel resizing
+[Zdog 3D Helpers](https://observablehq.com/@mootari/zdog-helpers)
 
 Built with [Vue 3](https://v3.vuejs.org/)
 
@@ -13,21 +14,22 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Import/Export JSON
 - Tree view of objects w/ draggable sort
 - Assign name (double click on treeview)
-- Edit properties window
+- Edit properties window, sliders for rotation
+- Axes Visibility
 
 ## Todo
 - Color picker
-- Sliders for adjusting coordinates/stroke
-- Better creation of objects
-- Selecting a node outlines it on canvas
+- Slider for stroke? (like Photoshop)
+- Canvas node selection
 - Toggle visbility (eye icon?)
-- Advanced Path maker
-- Sort by groups/anchors...
+- Advanced Path maker, Path2D API integration?
+- rquestAnimFrame optimization
+- Sort by groups/anchors
 - Search by name
 - Wireframe view
 - Resize canvas on viewport change
 - Zoom and pan controls
-- Quaternions...
+- Quaternion rotation
 
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/Capture.PNG)

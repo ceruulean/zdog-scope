@@ -14,7 +14,7 @@
  * {
  * size: Number, length of the axes; default 100
  * 
- * head: Number, length of the arrow
+ * head: Number, length of the arrow; default 10
  * 
  * stroke: Number
  * 
@@ -27,18 +27,21 @@
  * }
  * @param {*} options
  */
-function axesHelper({size = 100, head = 10, stroke = 1, x = 'red', y = 'green', z = 'blue', ...options} = {}) {
+function axesHelper({size = 100, head = 10, stroke = 1, x = 'hsl(0, 100%, 50%)', y = 'hsl(120, 100%, 50%)', z = 'hsl(240, 100%, 50%)', ...options} = {}) {
   const PIH = Math.PI / 2;
   const line = (color, rotate) => {
     const l = new Zdog.Shape({color, path: [{}, {x: size}], fill: false, stroke, rotate});
-    if(head) new Zdog.Cone({
-      addTo: l,
-      color, stroke: false, fill: true, length: head,
-      backface: 'black',
-      diameter: head * .66,
-      rotate: {y: -PIH},
-      translate: {x: size},
-    });
+    if(head) {
+      let colorHSL = parseHSL(color);
+      new Zdog.Cone({
+        addTo: l,
+        color, stroke: false, fill: true, length: head,
+        backface: `hsl(${colorHSL[0]},${colorHSL[1]}%,${colorHSL[2] - 15}%)`,
+        diameter: head * .66,
+        rotate: {y: -PIH},
+        translate: {x: size},
+      });
+    }
     return l;
   }
   
@@ -48,6 +51,20 @@ function axesHelper({size = 100, head = 10, stroke = 1, x = 'red', y = 'green', 
   if(z) a.addChild(line(z, {y: PIH}));
   return a;
 }
+
+/**
+ * Takes an HSL string and returns an array of the HSL values.
+ * @param {*} color hsl string in the format hsl(162, 11.984633448805383%, 81.17647058823529%)';
+ */
+function parseHSL(color){
+  let regexp = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g;
+  return regexp.exec(color).slice(1).map(val=>{
+    return Number(val);
+  });
+  //array of [0]: Hue, [1]: Saturation, [2]:Lightness
+}
+
+
 
 /**
  * Creates a grid with even lines and returns an Anchor
