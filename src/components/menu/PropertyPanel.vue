@@ -5,7 +5,8 @@
       <div class="word-break">id: {{selectedNode.id}}</div>
       <div class="text-display-type">{{selectedTypeName}}</div>
       <label class="input-name">
-        <input type="text" autocomplete="off" autocorrect="off"
+        <input class="input-name"
+          type="text" autocomplete="off" autocorrect="off"
            v-model="wipOptions['assignedName']"
           :placeholder="toString(selectedNode['assignedName'])"/>
       </label>
@@ -156,5 +157,9 @@ export default {
 .property-panel input[type="text"]{
   /* color:green; */
   max-width:6rem;
+}
+
+.property-panel input.input-name{
+  max-width:100%;
 }
 </style>

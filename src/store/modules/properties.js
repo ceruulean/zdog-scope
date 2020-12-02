@@ -36,8 +36,7 @@ function invalidFields(incomingOptions){
         }
       } else if (validType == 'number'){
         let toNum = Number(value);
-        if (isNaN(toNum)){
-          incorrectFields.push(field);
+        if (!isNaN(toNum)){
           continue;
         }
       }

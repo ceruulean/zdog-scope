@@ -10,8 +10,8 @@
         "default":0
       },
       "stroke":{
-        "type":"string",
-        "default":"#000"
+        "type":"number",
+        "default":1
       },
       "depth":{
         "type":"number",
