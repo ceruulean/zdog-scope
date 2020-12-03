@@ -54,7 +54,8 @@ function axesHelper({size = 100, head = 10, stroke = 1, x = 'hsl(0, 100%, 50%)',
 
 /**
  * Takes an HSL string and returns an array of the HSL values.
- * @param {*} color hsl string in the format hsl(162, 11.984633448805383%, 81.17647058823529%)';
+ * https://stackoverflow.com/questions/19289537/javascript-match-and-parse-hsl-color-string-with-regex
+ * @param {*} color hsl string in the format hsl(x, x%, x%)';
  */
 function parseHSL(color){
   let regexp = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g;

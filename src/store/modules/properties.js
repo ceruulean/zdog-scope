@@ -51,7 +51,8 @@ function invalidFields(incomingOptions){
 // State object
 const state = {
   invalidFields:null,
-  validationSuccess:false
+  validationSuccess:false,
+  tooltip:null
 }
 // Getter functions
 const getters = {
@@ -109,6 +110,15 @@ const actions = {
     commit('setNodeProps', payload, {root:true})
   },
 
+  update({commit, getters}, incomingOptions){
+    let payload = {
+      node: getters.selectedNode,
+      options: incomingOptions
+    }
+    console.log(payload)
+    commit('setNodeProps', payload, {root:true})
+  },
+
   changeList({commit}, payload){
     let invalids = invalidFields(payload);
     if (invalids.length > 0) {
@@ -131,7 +141,7 @@ const actions = {
 
   validationReset({commit}){
     commit('VALIDATION_RESET');
-  }
+  },
   
 }
 
@@ -155,6 +165,10 @@ const mutations = {
     state.validationSuccess = false;
     state.invalidFields = null;
   },
+
+  setTooltip(state, payload){
+    state.tooltip = payload;
+  }
 
 }
 

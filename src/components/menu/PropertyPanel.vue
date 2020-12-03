@@ -1,51 +1,98 @@
 <template>
-  <form v-if="selectedNode" :key="wipOptions"
-    class="field-list">
-    <div class="row info">
-      <div class="word-break">id: {{selectedNode.id}}</div>
-      <div class="text-display-type">{{selectedTypeName}}</div>
-      <label class="input-name">
-        <input class="input-name"
-          type="text" autocomplete="off" autocorrect="off"
-           v-model="wipOptions['assignedName']"
-          :placeholder="toString(selectedNode['assignedName'])"/>
-      </label>
-    </div>
-    <div class="row">
-      <InputVector v-for="prop in vectorProps" :key="prop"
-      :id="`v_${prop}`"
-      :default="selectedNode[prop]"
-      :degrees="(prop == 'rotate')"
-      @send-coords="updateVectorProp(prop, $event)">
-      {{capitalize(prop)}}
-      </InputVector>
-    </div>
-    <div class="row">
-      <label v-for="prop in textProps" :key="prop"
-        class="field"
-        :for="prop">
-        {{capitalize(prop)}}:
-        <input 
-          type="text" autocomplete="off"
-          v-model="wipOptions[prop]"
-          :placeholder="toString(selectedNode[prop])"
-          :name="prop"/>
-      </label>
-    </div>
-    <div class="row">
-      <label v-for="prop in boolProps" :key="prop"
-        class="field"
-        :for="prop">
-        {{capitalize(prop)}}:
-        <input 
-          type="checkbox" autocomplete="off"
-          v-model="wipOptions[prop]"
-          :checked="selectedNode[prop]"
-          :name="prop"/>
-      </label>
-    </div>
-      <button @click="saveProps">Apply Changes</button>
-  </form>
+  <div class="property-panel"
+    @click="closeTooltip">
+    <h2>Properties</h2>
+    <form
+      v-if="selectedNode"
+      :key="wipOptions"
+      class="field-list"
+    >
+      <div class="row info">
+        <div class="word-break">
+          id: {{ selectedNode.id }}
+        </div>
+        <div class="text-display-type">
+          {{ selectedTypeName }}
+        </div>
+        <label class="input-name">
+          <input
+            v-model="wipOptions['assignedName']"
+            class="input-name"
+            type="text"
+            autocomplete="off"
+            autocorrect="off"
+            :placeholder="selectedNode['assignedName']"
+          >
+        </label>
+      </div>
+      <div class="row">
+        <InputVector
+          v-for="prop in vectorProps"
+          :id="`v_${prop}`"
+          :key="prop"
+          :default="selectedNode[prop]"
+          :degrees="(prop == 'rotate')"
+          @send-coords="updateVectorProp(prop, $event)"
+        >
+          {{ capitalize(prop) }}
+        </InputVector>
+      </div>
+      <div class="row">
+        <label
+          v-for="prop in textProps"
+          :key="prop"
+          class="field"
+          :for="prop"
+        >
+          {{ capitalize(prop) }}:
+          <input 
+            v-model="wipOptions[prop]"
+            type="text"
+            autocomplete="off"
+            :placeholder="toString(selectedNode[prop])"
+            :name="prop"
+          >
+        </label>
+        <label v-if="hasColor"
+          class="field"
+          for="color"
+        >
+          Color:
+          <ColorPicker
+          :color="selectedNode['color']"
+          @update="update"
+          />
+          <!-- <input 
+            v-model="wipOptions['color']"
+            type="text"
+            autocomplete="off"
+            :placeholder="toString(selectedNode['color'])"
+            name="color"
+          > -->
+        </label>
+      </div>
+      <div class="row">
+        <label
+          v-for="prop in boolProps"
+          :key="prop"
+          class="field"
+          :for="prop"
+        >
+          {{ capitalize(prop) }}:
+          <input 
+            v-model="wipOptions[prop]"
+            type="checkbox"
+            autocomplete="off"
+            :checked="selectedNode[prop]"
+            :name="prop"
+          >
+        </label>
+      </div>
+      <button @click="saveProps">
+        Apply Changes
+      </button>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -55,41 +102,23 @@ import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 import StringHelper from '../StringHelperMixin'
 
 import InputVector from './controls/InputVector'
+import ColorPicker from './controls/ColorPicker'
 
 export default {
   name: 'PropertyPanel',
   components:{
     InputVector,
+    ColorPicker,
   },
   mixins:[StringHelper],
-  props: {
-  },
-  watch:{
-    selectedNode(){
-      this.wipOptions = {};
-    }
-  },
-  methods:{
-    toString(object){
-      return JSON.stringify(object);
-    },
-    capitalize(string){
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    },
-    saveProps(e){
-      e.preventDefault();
-      this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
-      this.wipOptions = {};
-    },
-    updateVectorProp(prop, data){
-      let temp = Object.assign({}, this.selectedNode[prop]);
-      Object.assign(temp, data);
-      this.wipOptions[prop] = temp;
-    },
-    log(){
-      //console.table(this.selected);
-      //console.table(this.selected);
-      console.table(this.Ztree.find(this.selected.id));
+
+  data(){
+    return{
+      wipOptions:{},
+      READ_ONLY: [
+        'assignedType', 'id'
+      ],
+      wipTooltip:null,
     }
   },
   computed:{
@@ -109,25 +138,49 @@ export default {
     selectedTypeName(){
       return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
     },
-  },
-  data(){
-    return{
-      wipOptions:{},
-      READ_ONLY: [
-        'assignedType', 'id'
-      ],
+    hasColor(){
+      return this.selectedAllProps.includes('color');
     }
-  }
+  },
+  watch:{
+    selectedNode(){
+      this.wipOptions = {};
+    }
+  },
+  methods:{
+    toString(object){
+      return JSON.stringify(object);
+    },
+    capitalize(string){
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    },
+    saveProps(e){
+      e.preventDefault();
+      this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
+      this.wipOptions = {};
+    },
+    update(options){
+      this.$store.dispatch('properties/update', options)
+    },
+    updateVectorProp(prop, data){
+      let temp = Object.assign({}, this.selectedNode[prop]);
+      Object.assign(temp, data);
+      this.wipOptions[prop] = temp;
+    },
+    closeTooltip(){
+      //this.$emit('close-tooltip');
+    },
+    log(){
+      //console.table(this.selected);
+      //console.table(this.selected);
+      console.table(this.Ztree.find(this.selected.id));
+    }
+  },
 }
 </script>
 
 <style>
 @import '../../assets/fieldinput.css';
-
-.property-panel{
-  border:1px solid black;
-  background-color:rgb(255,255,255)
-}
 
 .property-panel .info{
   justify-content:space-between;
@@ -152,11 +205,6 @@ export default {
   margin:3px 2px;
   text-transform:capitalize;
   user-select:none;
-}
-
-.property-panel input[type="text"]{
-  /* color:green; */
-  max-width:6rem;
 }
 
 .property-panel input.input-name{

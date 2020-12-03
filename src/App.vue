@@ -2,21 +2,31 @@
   <main @click="deselect">
     <TopBar
       ref="menuTopbar"
-      />
-    <div class="split-grid overlay" style="">
-      <div class="split-column tree-view
+    />
+    <div
+      class="split-grid overlay"
+      style=""
+    >
+      <div
+        ref="treeview"
+        class="split-column tree-view
           user-select-none"
-       ref="treeview">
-        <TreeView/>
+      >
+        <TreeView />
       </div>
-      <div ref="gutter1" class="gutter-column-1"></div>
+      <div
+        ref="gutter1"
+        class="gutter-column-1"
+      />
       <div class="split-column">
-        <Canvas ref="refCanvas"/>
+        <Canvas ref="refCanvas" />
       </div>
-      <div ref="gutter2" class="gutter-column-2"></div>
-      <div class="split-column property-panel">
-        <h2>Properties</h2>
-        <PropertyPanel ref="menuPropertyPanel"/>
+      <div
+        ref="gutter2"
+        class="gutter-column-2"
+      />
+      <div class="split-column properties">
+        <PropertyPanel ref="menuPropertyPanel" />
       </div>
     </div>
   </main>
@@ -49,6 +59,7 @@ export default {
     const gutter2 = ref(null);
 
     onMounted(()=>{
+      console.log(gutter1)
         window.split = Split({
         columnGutters: [{
           track: 1,//index of element to resize
@@ -70,7 +81,16 @@ export default {
         gutter2,
       }
   },
-  watch:{
+  data(){
+    return {
+      bWarning:false,
+      isClickInsideEvent:null,
+    }
+  },
+  computed:{
+    ...mapState([
+      'selected'
+    ]),
   },
   methods:{
     ...mapActions([
@@ -89,19 +109,6 @@ export default {
         }
     },
   },
-
-  data(){
-    return {
-      bWarning:false,
-      isClickInsideEvent:null,
-    }
-  },
-  computed:{
-    ...mapState([
-      'selected'
-    ]),
-  }
-  
 }
 </script>
 
@@ -119,6 +126,11 @@ html,body{
 
 h1,h2,h3,h4,h5{
   margin:0.5rem 0.5rem 0.7rem 0.5rem
+}
+
+
+a, button{
+  cursor:pointer;
 }
 
 #app {
@@ -143,7 +155,9 @@ h1,h2,h3,h4,h5{
 .split-column {
   overflow: auto;
   width: 100%;
-}.split-column.tree-view, .split-column.property-panel{
+}.split-column.tree-view, .split-column.properties{
+  background-color:rgb(255,255,255);
+  position:relative;
   z-index:19
 }
 
@@ -211,4 +225,5 @@ ul{
   -webkit-user-select: none;
   -ms-user-select: none;
 }
+
 </style>

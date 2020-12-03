@@ -1,77 +1,117 @@
 <template>
   <div v-if="itemtype">
-    <h2>Create new {{itemtype}}</h2>
+    <h2>Create new {{ itemtype }}</h2>
     <div v-if="bWarning">
       Warning: fields that failed validation:
-      <p v-for="f in invalidFields" :key="f">{{f}} needs a
-        {{validSchema[f].type}}</p>
+      <p
+        v-for="f in invalidFields"
+        :key="f"
+      >
+        {{ f }} needs a
+        {{ validSchema[f].type }}
+      </p>
       <p>Please fix them before proceeding.</p>
     </div>
     <form class="field-list">
       <div class="row">
-         <label class="input-name">
-          <input type="text" v-model="wipAssignedName" placeholder="untitled"/>
+        <label class="input-name">
+          <input
+            v-model="wipAssignedName"
+            type="text"
+            placeholder="untitled"
+          >
         </label>
       </div>
       <div class="row between-">
-        <div v-if="!bBlank"
-          class="field-list radio">
+        <div
+          v-if="!bBlank"
+          class="field-list radio"
+        >
           Append to:
-          <label v-if="selected.id" for="append_selected">
-            <input type="radio" id="append_selected" name="appendto"
-              v-model="appendTo" value="selected"
-            checked>
-              Selected
-              <br/>(id: {{selected.id}})
+          <label
+            v-if="selected.id"
+            for="append_selected"
+          >
+            <input
+              id="append_selected"
+              v-model="appendTo"
+              type="radio"
+              name="appendto"
+              value="selected"
+              checked
+            >
+            Selected
+            <br>(id: {{ selected.id }})
           </label>
           <label for="append_choose">
-            <input type="radio" id="append_choose" name="appendto"
-              v-model="appendTo" value="choose">
-              Choose<br/>
-              <select>
-
-              </select>
+            <input
+              id="append_choose"
+              v-model="appendTo"
+              type="radio"
+              name="appendto"
+              value="choose"
+            >
+            Choose<br>
+            <select />
           </label>
           <label for="append_none">
-            <input type="radio" id="append_none" name="appendto"
-              v-model="appendTo" value="nothing">
-              None
+            <input
+              id="append_none"
+              v-model="appendTo"
+              type="radio"
+              name="appendto"
+              value="nothing"
+            >
+            None
           </label>
         </div>
         <div class="field-list col">
-          <label v-for="(field) in textProps"
+          <label
+            v-for="(field) in textProps"
             :key="`${field}_creation`"
-            :for="`${field}_creation`">
-          {{capitalize(field)}}
-          <input type="text" v-model="wipOptions[field]"
-            :placeholder="optionDefault(field)"
-            :id="`${field}_creation`"/>
+            :for="`${field}_creation`"
+          >
+            {{ capitalize(field) }}
+            <input
+              :id="`${field}_creation`"
+              v-model="wipOptions[field]"
+              type="text"
+              :placeholder="optionDefault(field)"
+            >
           </label>
         </div>
         <div>Color picker component here</div>
       </div>
       <div class="row">
-        <InputVector v-for="field in vectorProps" :key="`${field}_creation`"
-        :default="optionDefault(field)"
-        :degrees="(field == 'rotate')"
-        :id="`${field}_creation`"
+        <InputVector
+          v-for="field in vectorProps"
+          :id="`${field}_creation`"
+          :key="`${field}_creation`"
+          :default="optionDefault(field)"
+          :degrees="(field == 'rotate')"
         >
-        {{capitalize(field)}}
+          {{ capitalize(field) }}
         </InputVector>
         <div class="field-list col">
-          <label v-for="(field) in boolProps"
+          <label
+            v-for="(field) in boolProps"
             :key="`${field}_creation`"
-            :for="`${field}_creation`">
-            {{capitalize(field)}}
-            <input type="checkbox"
-            v-model="wipOptions[field]"
-            :checked="optionDefault(field)"
-            :id="`${field}_creation`"/>
+            :for="`${field}_creation`"
+          >
+            {{ capitalize(field) }}
+            <input
+              :id="`${field}_creation`"
+              v-model="wipOptions[field]"
+              type="checkbox"
+              :checked="optionDefault(field)"
+            >
           </label>
         </div>
       </div>
     </form>
-    <button @click="submit">Create</button>
+    <button @click="submit">
+      Create
+    </button>
   </div>
 </template>
 
@@ -86,17 +126,23 @@ import StringHelper from './StringHelperMixin'
 
 export default {
   name: 'Creation',
-  emits:['close-prompt'],
-  mixins:[StringHelper],
   components:{
     InputVector
   },
+  mixins:[StringHelper],
   props: {
-    itemtype:String
+    itemtype:{
+      type:String,
+      default:null
+    }
   },
-  watch:{
-    itemtype(){
-      this.wipOptions = {};
+  emits:['close-prompt'],
+
+  data(){
+    return{
+      wipOptions:{},
+      wipAssignedName: null,
+      appendTo:'selected'
     }
   },
   methods:{
@@ -183,13 +229,11 @@ export default {
       });
     }
   },
-  data(){
-    return{
-      wipOptions:{},
-      wipAssignedName: null,
-      appendTo:'selected'
+  watch:{
+    itemtype(){
+      this.wipOptions = {};
     }
-  }
+  },
 }
 </script>
 

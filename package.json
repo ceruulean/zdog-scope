@@ -5,11 +5,12 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lintfix": "eslint --fix --ext .js,.vue src"
   },
   "dependencies": {
+    "@jaames/iro": "^5.3.1",
     "core-js": "^3.6.5",
-    "flexboxgrid": "^6.3.1",
     "split-grid": "^1.0.9",
     "vue": "^3.0.0",
     "vuex": "^4.0.0-rc.1",

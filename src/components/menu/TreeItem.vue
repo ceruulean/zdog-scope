@@ -1,64 +1,79 @@
 <template>
-<li :class="{'roq':true}" v-if="node">
-  <div class="tree-item"
-    @dragover="dragOver"
-    @dragleave="dragOverIndicate = false"
-    @drop="drop"
+  <li
+    v-if="node"
+    :class="{'roq':true}"
   >
-    <div @click.stop="highlight"
+    <div
+      class="tree-item"
+      @dragover="dragOver"
+      @dragleave="dragOverIndicate = false"
+      @drop="drop"
+    >
+      <div
         ref="selectitem"
         :class="{
           'data-set':true,
           'row':true,
           'highlight': isSelected}"
-      draggable="true"
-      @dragstart="dragStart"
-      @dragend="dragEnd">
-      <div class="index">
-        <button v-if="hasChildren"
-        @click="toggleCollapse"
+        draggable="true"
+        @click.stop="highlight"
+        @dragstart="dragStart"
+        @dragend="dragEnd"
+      >
+        <div class="index">
+          <button
+            v-if="hasChildren"
+            @click="toggleCollapse"
+          >
+            {{ collapsed? '+' : '-' }}
+          </button>
+          <p>{{ node.index }}</p>
+        </div>
+
+        <input
+          v-if="editingName && isSelected"
+          ref="textbox"
+          v-model="wipName"
+          autofocus
+          class="name"
+          type="text"
+          :placeholder="node.assignedName"
+          @keydown="keydownHandler"
+          @blur="finishEditAssignedName"
         >
-          {{collapsed? '+' : '-'}}
-        </button>
-        <p>{{node.index}}</p>
-      </div>
+        <label
+          v-else
+          class="name"
+          @dblclick="editAssignedName"
+        >
+          {{ node.assignedName }}
+        </label>
 
-      <input v-if="editingName && isSelected"
-        autofocus
-        ref="textbox"
-        class="name" type="text" v-model="wipName"
-        :placeholder="node.assignedName"
-        @keydown="keydownHandler"
-        @blur="finishEditAssignedName"/>
-      <label v-else
-        class="name"
-        @dblclick="editAssignedName">
-          {{node.assignedName}}
-      </label>
-
-      <div class="text-display-type type">
-        {{node.assignedType}}
+        <div class="text-display-type type">
+          {{ node.assignedType }}
+        </div>
       </div>
-    </div>
-    <div v-if="dragOverIndicate"
-      class="drag-over-ghost">
-    </div>
-    <!--
+      <div
+        v-if="dragOverIndicate"
+        class="drag-over-ghost"
+      />
+      <!--
     <teleport to="[data-teleport]">
       <div v-if="editingName" class="editing-blocker"
         @click="editBlocker"
         ></div>
     </teleport>-->
-    <ul v-if="hasChildren">
-    <TreeItem v-for="(child) in node.children" :key="child.id"
-    :class="{'collapsed':collapsed}"
-    :node="child"
-    :depth="depth + 1"
-    :parentId="node.id"
-    />
-    </ul>
-  </div>
-</li>
+      <ul v-if="hasChildren">
+        <TreeItem
+          v-for="(child) in node.children"
+          :key="child.id"
+          :class="{'collapsed':collapsed}"
+          :node="child"
+          :parent-id="node.id"
+        />
+      </ul>
+    </div>
+  </li>
 </template>
 
 <script>
@@ -67,11 +82,49 @@ import { mapState, mapActions} from 'vuex'// mapGetters
 
 export default {
   name: 'TreeItem',
-  emits:['drag-started', 'drag-stop'],
   props: {
-    node:Object,
-    depth:Number,
-    parentId:String
+    node:{
+      type:Object,
+      default:null
+    },
+    parentId:{
+      type:String,
+      default:null
+    }
+  },
+  emits:['drag-started', 'drag-stop'],
+
+  data(){
+    return{
+      dragOverIndicate:false,
+      editingName:false,
+      wipName:null,
+      collapsed:true,
+    }
+  },
+  computed:{
+    ...mapState({
+      selectedid:state => state.selected.id,
+      Ztree: 'Ztree',
+      updateTree:'updateTree'
+    }),
+    selectItem(){
+      return this.$refs.selectitem;
+    },
+    isSelected(){
+      return (this.selectedid && this.selectedid == this.node.id)
+    },
+    ZdogObject(){
+      return this.Ztree.find(this.node.id);
+    },
+    hasChildren(){
+      return (this.node.children && this.node.children.length > 0)
+    },
+    validDropzone(){
+      let nid = this.node.id;
+      if (this.$store.state.treeview.blockIds.includes(nid)) return false 
+      return true
+    }
   },
   watch:{
     selectedid(){
@@ -144,38 +197,6 @@ export default {
       console.log(event)
     },
   },
-  computed:{
-    ...mapState({
-      selectedid:state => state.selected.id,
-      Ztree: 'Ztree',
-      updateTree:'updateTree'
-    }),
-    selectItem(){
-      return this.$refs.selectitem;
-    },
-    isSelected(){
-      return (this.selectedid && this.selectedid == this.node.id)
-    },
-    ZdogObject(){
-      return this.Ztree.find(this.node.id);
-    },
-    hasChildren(){
-      return (this.node.children && this.node.children.length > 0)
-    },
-    validDropzone(){
-      let nid = this.node.id;
-      if (this.$store.state.treeview.blockIds.includes(nid)) return false 
-      return true
-    }
-  },
-  data(){
-    return{
-      dragOverIndicate:false,
-      editingName:false,
-      wipName:null,
-      collapsed:true,
-    }
-  }
 }
 </script>
 

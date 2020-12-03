@@ -13,4 +13,6 @@
   --colorInputPri: var(--colorMain);
 
   --borderRadius: 3px;
+
+  --paddingElement:0.1rem 0.2rem
 }

@@ -32,7 +32,7 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Quaternion rotation
 
 
-![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.JPG)
+![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.jpg)
 
 ## Project setup
 ```

@@ -1,33 +1,52 @@
 <template>
   <div class="toolbar row">
-    <button @click="exportTree">Export</button>
-    <button @click="importing">Import</button>
-    <button @click="demo">Demo</button>
-    <div :aria-label="`Create new`" tabIndex="0">
-      <button v-for="(item,index) in creatables" :key="`${item}_${index}`"
+    <button @click="exportTree">
+      Export
+    </button>
+    <button @click="importing">
+      Import
+    </button>
+    <button @click="demo">
+      Demo
+    </button>
+    <div
+      :aria-label="`Create new`"
+      tabIndex="0"
+    >
+      <button
+        v-for="(item,index) in creatables"
+        :key="`${item}_${index}`"
         :aria-label="item"
-        @click="promptCreate"
         :class="{
           'hide': (item != 'illustration' && !hasIllustration)
         }"
-        >
-        +{{item}}
+        @click="promptCreate"
+      >
+        +{{ item }}
       </button>
     </div>
-
-    <Modal v-if="!bWarning && hasIllustration && creationItemType"
-      @close="cancelPrompt">
-      <Creation
-        :itemtype="creationItemType"
-        @close-prompt="cancelPrompt"/>
-    </Modal>
-    <Modal v-if="bWarning && hasIllustration"
-      @close="cancelPrompt">
-      <p>WARNING: Are you sure you want to replace the current illustration?</p>
-      <button @click="closeWarning">Yes</button>
-      <button @click="cancelPrompt">Cancel</button>
-    </Modal>
   </div>
+  <Modal
+    v-if="!bWarning && hasIllustration && creationItemType"
+    @close="cancelPrompt"
+  >
+    <Creation
+      :itemtype="creationItemType"
+      @close-prompt="cancelPrompt"
+    />
+  </Modal>
+  <Modal
+    v-if="bWarning && hasIllustration"
+    @close="cancelPrompt"
+  >
+    <p>WARNING: Are you sure you want to replace the current illustration?</p>
+    <button @click="closeWarning">
+      Yes
+    </button>
+    <button @click="cancelPrompt">
+      Cancel
+    </button>
+  </Modal>
 </template>
 
 <script>
@@ -46,9 +65,34 @@ export default {
   Creation,
   },
   emits: ['create-new'],
-  props: {
-  },
 
+  data(){
+    return {
+      bImporting:false,
+      creationItemType: null,
+      bWarning:false,
+      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
+    }
+  },
+  computed:{
+    // ...mapState({
+    //   selectedid(state){
+    //     return (state.selected.id)
+    //   }
+    // }),
+    illustration(){
+      return this.$store.getters.illustration;
+    },
+    hasIllustration() {
+    return (this.illustration !== null && this.illustration !== undefined)
+    },
+    creatables(){
+      let c = [...ZDOG_CLASS_NAME];
+      return c.filter(name=>{
+        return name != "dragger"
+      })
+    }
+  },
   methods:{
     ...mapActions([
       'newIllustration',
@@ -94,33 +138,6 @@ export default {
     this.demoJSON(testmodel);
     }
   },
-  computed:{
-    // ...mapState({
-    //   selectedid(state){
-    //     return (state.selected.id)
-    //   }
-    // }),
-    illustration(){
-      return this.$store.getters.illustration;
-    },
-    hasIllustration() {
-    return (this.illustration !== null && this.illustration !== undefined)
-    },
-    creatables(){
-      let c = [...ZDOG_CLASS_NAME];
-      return c.filter(name=>{
-        return name != "dragger"
-      })
-    }
-  },
-  data(){
-    return {
-      bImporting:false,
-      creationItemType: null,
-      bWarning:false,
-      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
-    }
-  }
 }
 </script>
 

@@ -1,25 +1,34 @@
 <template>
-<div class="min-10">
-  <h2>Tree View</h2>
-TODO: filter anchors, add icon, searchbar
-  <header class="row between text-display-type">
-    <div class="col index">
-      Index
-    </div>
-    <div class="col name">Name</div>
-    <div class="col type">Type</div>
-  </header>
-  <ul v-if="Ztree"
-    class="tree-bg"
+  <div class="min-10">
+    <h2>Tree View</h2>
+    TODO: filter anchors, add icon, searchbar
+    <header class="row between text-display-type">
+      <div class="col index">
+        Index
+      </div>
+      <div class="col name">
+        Name
+      </div>
+      <div class="col type">
+        Type
+      </div>
+    </header>
+    <ul
+      v-if="Ztree"
+      class="tree-bg"
     >
-    <TreeItem v-for="(node) in treeView" :key="node.id"
-      :node="node"
-      :depth="0"
+      <TreeItem
+        v-for="(node) in treeView"
+        :key="node.id"
+        :node="node"
+        :depth="0"
       />
-    <button @click="log">Console Log</button>
-    <br/>
-  </ul>
-</div>
+      <button @click="log">
+        Console Log
+      </button>
+      <br>
+    </ul>
+  </div>
 </template>
 
 <script>
@@ -27,25 +36,21 @@ TODO: filter anchors, add icon, searchbar
 import { mapState} from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
-//import { VueDraggableNext } from 'vue-draggable-next'
+
 
 export default {
   name: 'TreeView',
   components:{
     TreeItem,
- //   draggable: VueDraggableNext
     },
-  props: {
-  },
-  watch:{
-    updateTree(){
-      this.treeView = this.$store.getters['treeview/view']
+
+  data(){
+    return{
+      ghost:false,
+      rerender:false,
+      draggingObject:null,
+      dragId:null
     }
-  },
-  methods:{
-    log(){
-      console.log(this.Ztree.nodes)
-    },
   },
   computed:{
     ...mapState({
@@ -61,21 +66,20 @@ export default {
       }
     }
   },
-  data(){
-    return{
-      ghost:false,
-      rerender:false,
-      draggingObject:null,
-      dragId:null
+  watch:{
+    updateTree(){
+      this.treeView = this.$store.getters['treeview/view']
     }
-  }
+  },
+  methods:{
+    log(){
+      console.log(this.Ztree.nodes)
+    },
+  },
 }
 </script>
 
 <style >
-.tree-view{
-  background-color: rgb(255,255,255);
-}
 
 .tree-view header{
   background-color:rgba(0,0,0,0.7);

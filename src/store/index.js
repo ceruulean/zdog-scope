@@ -8,6 +8,7 @@ import canvas from './modules/canvas'
 const debug = process.env.NODE_ENV !== 'production'
 
 import {Zdogger} from '../zdogrigger'
+import{zoomable} from '../canvasHelpers'
 
 
 /**
@@ -99,6 +100,8 @@ const mutations = {
     } else {
       state.Ztree = new Zdogger.Tree({});
     }
+
+    zoomable(state.Ztree.illustration, {zoomSpeed:0.01});
     state.updateTree = !state.updateTree;
 
     state.animate = () => {
@@ -133,7 +136,7 @@ const mutations = {
       console.log(o)
       node[o] = options[o]
     }
-    state.updateTree = !state.updateTree;
+   // state.updateTree = !state.updateTree;
   },
 
   setNodeParent(state, {id, newParentId}){

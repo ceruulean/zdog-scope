@@ -1,32 +1,31 @@
 <template>
-  <div class="modal">
-    <div class="dimmer" @click="close">
-    </div>
-    <button class="close" @click="close">X</button>
-    <figure>
-      <slot/>
+  <div class="modal"
+    @keydown="keydownHandler">
+    <div
+      class="dimmer"
+      @click="close"
+    />
+    <button
+      class="close"
+      @click="close"
+    >
+      X
+    </button>
+    <figure ref="figure" tabIndex="0">
+      <slot />
     </figure>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'TreeItem',
-  emits:['close'],
-  props: {
-    zdogtype:String,
-    label:String
-  },
+import ClickOutsideTrigger from './ClickOutsideTriggerMixin'
 
-  methods:{
-    close(){
-      this.$emit('close')
-    }
-  },
-  data(){
-    return{
-      isActive:false
-    }
+export default {
+  name: 'Modal',
+  mixins:[ClickOutsideTrigger],
+
+  mounted(){
+    this.$refs.figure.focus();
   }
 }
 </script>
