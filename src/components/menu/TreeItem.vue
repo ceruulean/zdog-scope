@@ -30,24 +30,17 @@
           <p>{{ node.index }}</p>
         </div>
 
-        <input
-          v-if="editingName && isSelected"
-          ref="textbox"
-          v-model="wipName"
-          autofocus
-          class="name"
-          type="text"
-          :placeholder="node.assignedName"
-          @keydown="keydownHandler"
-          @blur="finishEditAssignedName"
-        >
-        <label
-          v-else
-          class="name"
-          @dblclick="editAssignedName"
-        >
-          {{ node.assignedName }}
-        </label>
+        <div class="name">
+          <ClickToEdit element="input"
+            :dbl="true"
+            autofocus
+            type="text"
+            :placeholder="node.assignedName"
+            :label="node.assignedName"
+            @edit-finish="finishEditAssignedName"
+            />
+        </div>
+
 
         <div class="text-display-type type">
           {{ node.assignedType }}
@@ -80,8 +73,11 @@
 //import {ref} from 'vue' // onUpdated, onUnmounted
 import { mapState, mapActions} from 'vuex'// mapGetters
 
+import ClickToEdit from './controls/ClickToEdit'
+
 export default {
   name: 'TreeItem',
+  components:{ClickToEdit},
   props: {
     node:{
       type:Object,
@@ -98,7 +94,6 @@ export default {
     return{
       dragOverIndicate:false,
       editingName:false,
-      wipName:null,
       collapsed:true,
     }
   },
@@ -167,19 +162,9 @@ export default {
       //this.$emit('sort-tree', payload)
       this.dragEnd();
     },
-    editAssignedName(){
-      this.editingName = true;
-    },
-    finishEditAssignedName(){
-      this.editingName = false;
-      if (!this.wipName) return
-      this.changeSelectedName(this.wipName)
-      this.wipName = null;
-    },
-    keydownHandler(event){
-      if (event.keyCode == 13) { //'Enter' pressed
-        this.finishEditAssignedName();
-      }
+    finishEditAssignedName(newVal){
+      if (!newVal) return
+      this.changeSelectedName(newVal)
     },
     highlight(){
       let payload = {id: this.node.id,
@@ -200,7 +185,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .tree-item{
  /* background-color:rgba(100, 97, 97, 1);*/
   display:flex;
@@ -270,6 +255,10 @@ export default {
   width:99%;
   text-align:left;
   max-width:initial;
+}
+
+.tree-item .name input{
+  width:100%;
 }
 
 .collapsed{

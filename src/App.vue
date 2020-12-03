@@ -59,7 +59,6 @@ export default {
     const gutter2 = ref(null);
 
     onMounted(()=>{
-      console.log(gutter1)
         window.split = Split({
         columnGutters: [{
           track: 1,//index of element to resize

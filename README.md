@@ -14,11 +14,13 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Import/Export JSON
 - Tree view of objects w/ draggable sort
 - Assign name (double click on treeview)
-- Edit properties window, sliders for rotation
+- Edit properties window, sliders for rotation, colorpicker
 - Axes Visibility
 
 ## Todo
-- Color picker
+- Undo/redo
+- Better creation prompt
+- Transform widgets
 - Slider for stroke? (like Photoshop)
 - Canvas node selection
 - Toggle visbility (eye icon?)

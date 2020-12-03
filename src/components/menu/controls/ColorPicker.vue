@@ -1,10 +1,12 @@
 <template>
   <div class="picker-wrapper">
     <a class="picker-button"
-      @click="toggle">
+      @click="open">
       <div class="patch" :style="{'backgroundColor': wipColor}">
       </div>
-      <input type="text" v-model="wipColor"/>
+      <input type="text" v-model="wipColor"
+        @change="colorEnter"
+        @blur="close"/>
     </a>
     <figure v-if="isActive" class="picker" ref="picker" />
   </div>
@@ -38,16 +40,30 @@ export default {
     }
   },
   methods:{
-    toggle(e){
-      e.preventDefault();
-      this.isActive = !this.isActive;
-      if (!this.isActive){
-        this.$emit('update')
-      } else {
-        this.$nextTick(()=>{
-          this.mountPicker();
-        })
-      }
+    // toggle(e){
+    //   e.preventDefault();
+    //   this.isActive = !this.isActive;
+    //   if (!this.isActive){
+    //     this.$emit('update')
+    //   } else {
+
+    //   }
+    // },
+    open(){
+      if (this.isActive) return;
+      this.isActive = true;
+      this.$nextTick(()=>{
+        this.mountPicker();
+      })
+    },
+    close(){
+      this.isActive = false;
+    },
+    colorEnter(e){
+      this.colorPicker.color.set(e.target.value);
+      this.wipColor = this.colorPicker.color.rgbaString;
+      this.$emit('update', {color:this.wipColor});
+      this.selectedNode.color = this.wipColor;
     },
     mountPicker(){
       let cxt = this;

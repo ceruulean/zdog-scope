@@ -6,7 +6,6 @@ input[type="text"], textarea{
   border-radius:3px;
   border:1px solid var(--colorMain);
   padding: 1px 5px;
-  max-width:10ch;
 }
 
 .input-name{
