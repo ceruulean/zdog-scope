@@ -2,9 +2,11 @@
   <div class="picker-wrapper">
     <a class="picker-button"
       @click="open">
-      <div class="patch" :style="{'backgroundColor': wipColor}">
+      <div class="patch" :style="{'backgroundColor': wipColor}"
+        @click="toggle">
       </div>
       <input type="text" v-model="wipColor"
+        aria-label="colorpicker"
         @change="colorEnter"
         @blur="close"/>
     </a>
@@ -34,21 +36,7 @@ export default {
       wipColor:this.color,
     }
   },
-  computed:{
-    selectedNode(){
-      return this.$store.getters['selectedNode'];
-    }
-  },
   methods:{
-    // toggle(e){
-    //   e.preventDefault();
-    //   this.isActive = !this.isActive;
-    //   if (!this.isActive){
-    //     this.$emit('update')
-    //   } else {
-
-    //   }
-    // },
     open(){
       if (this.isActive) return;
       this.isActive = true;
@@ -59,11 +47,19 @@ export default {
     close(){
       this.isActive = false;
     },
+    toggle(e){
+      e.stopPropagation();
+      e.preventDefault()
+      if (!this.isActive) {
+        this.open()
+      } else {
+        this.close();
+      }
+    },
     colorEnter(e){
       this.colorPicker.color.set(e.target.value);
       this.wipColor = this.colorPicker.color.rgbaString;
-      this.$emit('update', {color:this.wipColor});
-      this.selectedNode.color = this.wipColor;
+      this.$emit('update', this.wipColor);
     },
     mountPicker(){
       let cxt = this;
@@ -97,10 +93,8 @@ export default {
         });
 
       cxt.colorPicker.on('input:end', function(color){
-        cxt.$emit('update', {color:color.rgbaString})
+        cxt.$emit('update', color.rgbaString)
       })
-
-       this.selectedNode.color = this.wipColor;
     },
   },
   // watch:{
@@ -133,11 +127,17 @@ export default {
   line-height:1rem;
   background-color:transparent;
   border:none;
+  align-items:center;
+}
+
+.picker-wrapper input{
+  height:1.3rem;
 }
 
 .patch{
   border-radius:50% 50%;
-  width:1rem;
-  height:1rem;
+  width:1.5rem;
+  height:1.5rem;
+  margin:0.1rem 0.3rem;
 }
 </style>

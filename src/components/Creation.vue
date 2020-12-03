@@ -80,7 +80,9 @@
             >
           </label>
         </div>
-        <div>Color picker component here</div>
+        <ColorPicker
+          @update="updateColor"
+          />
       </div>
       <div class="row">
         <InputVector
@@ -121,13 +123,15 @@ import ZdogJSONSchema from '../zdogobjects.json'
 import {ZDOG_CLASS, ZDOG_CLASS_TYPE} from '../zdogrigger'
 
 import InputVector from './menu/controls/InputVector'
+import ColorPicker from './menu/controls/ColorPicker'
 
 import StringHelper from './StringHelperMixin'
 
 export default {
   name: 'Creation',
   components:{
-    InputVector
+    InputVector,
+    ColorPicker
   },
   mixins:[StringHelper],
   props: {
@@ -179,6 +183,9 @@ export default {
     optionDefault(field){
       return ZdogJSONSchema.optionValidator[field].default;
     },
+    updateColor(newColor){
+      this.wipOptions['color'] = newColor;
+    }
   },
   computed:{
     ...mapState({
@@ -193,7 +200,7 @@ export default {
         'bBlank'
     ]),
     textProps(){
-      let a = [...this.BOOL_PROPS, ...this.VECTOR_PROPS];
+      let a = [...this.BOOL_PROPS, ...this.VECTOR_PROPS, 'color'];
       let u = this.ALL_PROPS.filter(prop=>{
         return !a.includes(prop)
       })

@@ -57,10 +57,9 @@
           class="field"
           for="color"
         >
-          Color:
           <ColorPicker
           :color="selectedNode['color']"
-          @update="update"
+          @update="updateColor"
           />
           <!-- <input 
             v-model="wipOptions['color']"
@@ -159,8 +158,11 @@ export default {
       this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
       this.wipOptions = {};
     },
-    update(options){
-      this.$store.dispatch('properties/update', options)
+    updateColor(newColor){
+      let p = {
+        color: newColor
+      }
+      this.$store.dispatch('properties/update', p)
     },
     updateVectorProp(prop, data){
       let temp = Object.assign({}, this.selectedNode[prop]);
