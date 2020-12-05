@@ -39,7 +39,7 @@
       </div>
       <div class="row">
         <label
-          v-for="prop in textProps"
+          v-for="prop in numProps"
           :key="prop"
           class="field"
           :for="prop"
@@ -53,21 +53,16 @@
             :name="prop"
           >
         </label>
-        <label v-if="hasColor"
+        <label v-for="prop in colorProps"
           class="field"
-          for="color"
+          :for="prop"
+          :key="prop"
         >
+          {{capitalize(prop)}}:
           <ColorPicker
-          :color="selectedNode['color']"
-          @update="updateColor"
+          :color="selectedNode[prop]"
+          @update="updateColor(prop, $event)"
           />
-          <!-- <input 
-            v-model="wipOptions['color']"
-            type="text"
-            autocomplete="off"
-            :placeholder="toString(selectedNode['color'])"
-            name="color"
-          > -->
         </label>
       </div>
       <div class="row">
@@ -127,7 +122,8 @@ export default {
     ...mapGetters('properties',[
       'selectedNode',
       'selectedAllProps',
-      'textProps',
+      'numProps',
+      'colorProps',
       'vectorProps',
       'boolProps'
     ]),
@@ -158,16 +154,17 @@ export default {
       this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
       this.wipOptions = {};
     },
-    updateColor(newColor){
-      let p = {
-        color: newColor
-      }
-      this.$store.dispatch('properties/update', p)
+    updateColor(prop, newColor){
+      this.wipOptions[prop] = newColor;
+      this.$store.dispatch('properties/update', this.wipOptions)
     },
     updateVectorProp(prop, data){
       let temp = Object.assign({}, this.selectedNode[prop]);
       Object.assign(temp, data);
       this.wipOptions[prop] = temp;
+      let o = {}
+      o[prop] = temp;
+      this.$store.dispatch('properties/update', o)
     },
     closeTooltip(){
       //this.$emit('close-tooltip');

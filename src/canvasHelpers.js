@@ -2,28 +2,236 @@
  * https://observablehq.com/@mootari/zdog-helpers
  */
 
- import Zdog from 'zdog'
+import Zdog from 'zdog'
+//import versor from 'versor'
+//import geoAiry from './geo/geoAiry'
+// import d3 from 'd3'
+
+class Camera{
+  constructor(illustration){
+    let illoe = illustration.element;
+    this.illustration = illustration;
+    
+    //this.rho = this.defaultRho;
+    this.phi = this.illustration.rotate.x
+    //this.phi = 90;
+    this.theta = this.illustration.rotate.y
+    this.zoom = this.illustration.zoom
+
+    this.illustration.translate.x = this.x;
+    //phi is polar (xy plane)
+    //theta is azimuthal (zx plane)
+    /**
+            | -y
+            |
+            | __________ +x
+           /|
+          / |
+      +z /  | +y
+        /
+     */
+
+
+
+    this.zoomSpeed = 3
+    this.panInverse = false
+    this.panSpeed = 30
+
+    /**
+     * EVENTS
+     */
+    this.isPanning = false;
+    this.isMouseDown = 0;
+
+    let ctx = this;
+    illoe.addEventListener('wheel', this.onwheel.bind(this))
+
+    illoe.addEventListener('keydown', this.onkeydown.bind(this))
+    illoe.addEventListener('keyup', this.onkeyup.bind(this))
+
+    this.dragger = new Zdog.Dragger({
+      startElement: illoe,
+      onDragStart: function(pointer, event) {
+        ctx.onmousedown(event);
+        ctx.dragstarted(pointer.pageX, pointer.pageY)
+      },
+      onDragMove: function( pointer, dX, dY ) {
+        if (ctx.isPanning){
+          ctx.pan(pointer)
+        } else {
+          ctx.dragged(pointer, dX,dY)
+        }
+      },
+      onDragEnd: function(event) {
+        ctx.onmouseup(event);
+      },
+    });
+  }
+
+  get x(){
+    return this.rho * Math.cos(this.phi) * Math.sin(this.theta)
+  }
+
+  get y(){
+    return this.rho * Math.sin(this.phi)
+  }
+
+  get z(){
+    return this.rho * Math.cos(this.phi) * Math.cos(this.theta)
+  }
+
+  get defaultRho(){
+    return (this.illustration.canvasHeight / 2)
+  }
+
+  get zoom(){
+    return 1 / (this.rho  / this.defaultRho)
+    //return this.rho / this.defaultRho
+  }
+
+  set zoom(newZoom){
+    this.rho = this.defaultRho / newZoom;
+    this.illustration.zoom = newZoom
+  }
+
+  pan(pointer){
+    let [dx, dy] = this.screendelta(pointer)
+
+    if (!this.panInverse){
+      dx = dx * -1
+      dy = dy * -1
+    }
+
+    let r = this.rho * Math.cos(this.phi)
+
+    let speed = (this.panSpeed / 100)
+    let y2 = this.y + (dy*speed)
+    let x2 = this.x + (dx*speed)
+
+    let phi2 = Math.atan2(y2, r);
+    let theta2 = Math.atan2(x2 , r);
+    let r2 = Math.sqrt(Math.pow(r,2) + Math.pow(dx, 2))
+    let rho2 = r2 / Math.cos(phi2);
+
+    this.theta = theta2
+    this.phi = phi2
+    this.rho = rho2
+
+    let o = {x:this.x, y:this.y, z:this.z}
+    this.illustration.translate = o;
+  }
+
+  dragstarted(x0,y0) {
+    this.x0 = x0;
+    this.y0 = y0;
+  }
+
+  dragged(pointer) {
+    let [dx, dy] = this.screendelta(pointer)
+    this.theta = (this.theta + this.radRatio( dx));
+    this.phi = (this.phi + this.radRatio( dy ));
+
+    let o = {x:this.phi, y:this.theta}
+    this.illustration.rotate = o;
+  }
+
+  dragend(){
+
+  }
+
+  screendelta(pointer){
+    let deltaX = this.x0 - pointer.pageX;
+    let deltaY = this.y0 - pointer.pageY;
+
+    this.x0 = pointer.pageX;
+    this.y0 = pointer.pageY;
+
+    return [deltaX, deltaY]
+  }
+
+  onwheel(event){
+    event.preventDefault();
+    const z0 = this.rho, z = z0 + event.deltaY * this.zoomSpeed;
+    this.rho = Math.max(0.1, z);
+    this.illustration.zoom = this.zoom;
+  }
+
+  onkeydown(event){
+
+    let kc = event.keyCode;
+    console.log(`down ${kc}`);
+    //Shift -> pan
+    if (kc == 59 || kc == 60){
+      this.isPanning = true;
+    }
+  }
+
+  onkeyup(event){
+    let kc = event.keyCode;
+    console.log(`up ${kc}`);
+    //Shift -> pan
+    if (kc == 59 || kc == 60 && this.isMouseDown < 4){
+      this.isPanning = false;
+    }
+  }
+
+  onmousedown(event){
+    //MMB pressed
+    console.log(`mousedown`)
+    this.isMouseDown = event.buttons;
+
+    if (event.button == 1){
+      this.isPanning = true;
+    }
+  }
+
+  onmouseup(event){
+    //MMB pressed
+    console.log(`mouseup`)
+    this.isMouseDown = event.buttons
+
+    if (event.button == 1){
+      this.isPanning = false;
+    }
+  }
+
+  /**
+   * Returns a radian value to correlate rotation with screen pixel projection
+   * @param {Number} delta in screen pixels
+   */
+  radRatio(delta){
+    return delta * (Math.PI * 2) / this.illustration.canvasWidth;
+  }
+
+  polarlog(){
+    console.log(`ρ:${this.rho},θ:${this.theta},φ:${this.phi}`)
+  }
+  
+
+}
+
+
 
 /**
  * Creates axes and returns an Anchor
- * 
+ *
  * ---
- * 
+ *
  * Options:
- * 
+ *
  * {
  * size: Number, length of the axes; default 100
- * 
+ *
  * head: Number, length of the arrow; default 10
- * 
+ *
  * stroke: Number
- * 
+ *
  * x: String, color of the x axis, null for insivible; default 'red'
- * 
+ *
  * y: String, color of the y axis, null for insivible; default 'green'
- * 
+ *
  * z: String, color of the z axis; default 'blue'
- * 
+ *
  * }
  * @param {*} options
  */
@@ -44,7 +252,7 @@ function axesHelper({size = 100, head = 10, stroke = 1, x = 'hsl(0, 100%, 50%)',
     }
     return l;
   }
-  
+
   const a = new Zdog.Anchor(options);
   if(x) a.addChild(line(x, {}));
   if(y) a.addChild(line(y, {z: PIH}));
@@ -69,19 +277,19 @@ function parseHSL(color){
 
 /**
  * Creates a grid with even lines and returns an Anchor
- * 
+ *
  * ---
- * 
+ *
  * Options:{
- * 
+ *
  * size: Number, default 100
- * 
+ *
  * divisions: Number, default 10
- * 
+ *
  * color: String, default '#888'
- * 
+ *
  * stroke: Number, default 1
- * 
+ *
  * front: Object, define the front plane, same as Zdog; default {z:1}
  * }
  * @param {Object} options
@@ -105,19 +313,19 @@ function gridHelper({size = 100, divisions = 10, color = '#888', stroke = 1, fro
 
 /**
  * Returns a grid Anchor object
- * 
+ *
  * ---
- * 
+ *
  * Options:{
- * 
+ *
  * size: Number, default 100
- * 
+ *
  * divisions: default 10
- * 
+ *
  * color: String, default '#888'
- * 
+ *
  * stroke: Number, default 1
- * 
+ *
  * ...native Zdog options as needed (front is default z)
  * }
  * @param {*} options
@@ -125,7 +333,7 @@ function gridHelper({size = 100, divisions = 10, color = '#888', stroke = 1, fro
 function gridRectHelper({size = 100, divisions = 10, color = '#888', stroke = 1, front = {z:1}, ...options} = {}) {
   const sh = size/2, s = size/divisions;
   const addTo = new Zdog.Anchor(options);
-  
+
   for(let z = 0; z < divisions; z++) {
     const oz = s*z - sh;
     for(let x = 0; x < divisions; x++) {
@@ -138,28 +346,28 @@ function gridRectHelper({size = 100, divisions = 10, color = '#888', stroke = 1,
         ]});
     }
   }
-  
+
   return addTo;
 }
 
 /**
  * Adds rotation guidemarks to an object's axes
- * 
+ *
  * ---
- * 
+ *
  * Options:
- * 
+ *
  * {
  * size: Number, radius of the marker
- * 
+ *
  * hole: Number from 0-1, radius of the inner hole as decimal percent, default: 0.5
- * 
+ *
  * range: Number, ratio of trail tapering; 0 for no tapering. A number larger than 1 will go outside the original perimeter
- * 
+ *
  * x: String, color of the x axis, null for insivible
- * 
+ *
  * y: String, color of the y axis, null for insivible
- * 
+ *
  * z: String, color of the z axis
  * }
  * @param {Object} options
@@ -167,14 +375,14 @@ function gridRectHelper({size = 100, divisions = 10, color = '#888', stroke = 1,
 function rotationHelper({size: r = 1, hole = .5, range = 1, x = 'red', y = 'green', z = 'blue', ...options} = {}) {
   const mix = (a, b, t) => a + t * (b - a);
   const root = new Zdog.Anchor(options), Q = Zdog.TAU*.25;
-  const r1 = r * hole, r2 = mix(r1, r, range); 
+  const r1 = r * hole, r2 = mix(r1, r, range);
   const path = (r, r1, r2) => [
     {move: {x: r, y: 0}},
     {arc: [ {x: r, y: r}, {x: 0, y: r} ]},
     {line: {x: 0, y: r1}},
     {arc: [ {x: mix(r1,r2,.5), y: mix(r1,r2,.5)}, {x: r2, y: 0} ]},
   ];
-  
+
  // for(let {color, colorTop = color, rotate} of [
   for(let {color, rotate} of [
     x && {color: x, rotate: {y:Q}},
@@ -194,7 +402,7 @@ function rotationHelper({size: r = 1, hole = .5, range = 1, x = 'red', y = 'gree
       });
     }
   }
-  
+
   return root;
 }
 
@@ -213,13 +421,13 @@ function drawRaw(illo, draw) {
   ctx.save();
   ctx.resetTransform();
   draw(ctx);
-  ctx.restore();  
+  ctx.restore();
 }
 
 /**
  * Attaches zoom event to the illustration, returns the illustration
- * @param {Zdog.Illustration} illo 
- * @param {Object} options 
+ * @param {Zdog.Illustration} illo
+ * @param {Object} options
  */
 function zoomable(illo, options = {}) {
   Object.assign(illo, {
@@ -243,12 +451,12 @@ function zoomable(illo, options = {}) {
 }
 
 /**
- * Creates an object that can add functionality to new Illustration instance 
- * 
+ * Creates an object that can add functionality to new Illustration instance
+ *
  * e.g.
- * 
+ *
  *  const perspective = perspectiveHelper({fov: 300});
- * 
+ *
  *  const illo = new Zdog.Illustration({
     element...
 *
@@ -259,43 +467,43 @@ function zoomable(illo, options = {}) {
  *
  * ---
  * Options: {
- * 
+ *
  * fov: Number, field of view, default 100
- * 
+ *
  * zOffset: Number, height of camera, default 0,
- * 
+ *
  * scaleStroke: Boolean; default true}
  *
- * @param {Object} options 
+ * @param {Object} options
  */
 function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
-  
+
   function walk(illo, callback) {
     const top = new Set(illo.flatGraph);
     for(const g of top) _walk(g);
-    
+
     function _walk(item) {
       callback(item);
       for(const c of item.children)
         if(!top.has(c)) _walk(c);
     }
   }
-  
+
   return {
     fov,
     zOffset,
     scaleStroke,
-    
+
     getScale(p) {
       return this.fov / (this.fov - p.z + this.zOffset);
     },
-    
+
     scalePoint(p) {
       const s = this.getScale(p);
       p.x *= s;
       p.y *= s;
     },
-    
+
     onPrerender(illo) {
       walk(illo, e => {
         this.scalePoint(e.renderOrigin);
@@ -305,15 +513,15 @@ function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
             if(e._stroke == null) e._stroke = e.stroke;
             e.stroke = e._stroke * this.getScale(e.pathCommands[0].endRenderPoint);
           }
-          
+
           for(const c of e.pathCommands)
             for(const p of c.renderPoints)
               this.scalePoint(p);
         }
-          
+
       });
     },
-    
+
     resetStroke(illo) {
       walk(illo, e => {
         if(e._stroke !== undefined) {
@@ -323,13 +531,19 @@ function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
       });
     }
   };
-  
+
 }
+
+
+//https://www.sitepoint.com/building-3d-engine-javascript/
+
+
 
 export {
   axesHelper,
   rotationHelper,
   perspectiveHelper,
   gridHelper,gridRectHelper,
-  
+  Camera,
+
   clearColor,drawRaw,zoomable}

@@ -13,7 +13,7 @@ const eggplant = '#636';
 const illo = new Zdog.Illustration({
   element: '.zdog-canvas',
   zoom: 5,
-  rotate: { y: -TAU/8 },
+ // rotate: { y: -TAU/8 },
   dragRotate: true,
 });
 

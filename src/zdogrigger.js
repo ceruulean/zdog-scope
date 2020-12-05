@@ -45,6 +45,12 @@ const ZDOG_CLASS = {
  */
 const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS);
 
+
+const CYCLIC_PROPS = [
+  'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
+  'onDragEnd','onResize'
+]
+
 /**
  * Creates Zdog objects with assignedName, uid and assignedType (see ZDOG_CLASS, an 'enum')
  * @param {Number} int 
@@ -182,58 +188,6 @@ function importExisting(illustration){
   return copy;
 }
 
-/**
- * User settable props for when calling 'new Zdog.Item', taken from documentation @ https://zzz.dog/api
- */
-const CREATE_PROPS = {
-  anchor:[
-    'rotate',
-    'translate',
-    'scale',
-  ],
-  ellipse: [
-    "diameter",
-    "width","height","quarters"
-  ],
-  box:[
-    'depth',
-    'frontFace',
-    'rearFace',
-    'leftFace',
-    'rightFace',
-    'topFace',
-    'bottomFace',
-  ],
-  polygon:[
-    "sides",
-    "radius"
-  ],
-  illustration:[
-  "centered","zoom","dragRotate","resize"
-    // onPrerender: noop,
-    // onDragStart: noop,
-    // onDragMove: noop,
-    // onDragEnd: noop,
-    // onResize: noop,
-  ],
-  vector:[
-    "x","y","z"
-  ],
-  rect:[
-    "width","height"
-  ],
-  roundedrect:[
-    "width","height","cornerRadius"
-  ],
-  shape:[
-    "path","stroke","fill","color","closed","visible","path","front","backface"
-  ],
-  hemisphere:["diameter","backface"],
-  group:["updateSort","visible"],
-  cylinder:["diameter","length","backface","frontFace"],
-  cone:["diameter","length","backface"]
-}
-
   /**
    * Zdog properties that are derived, or do esoteric things
    */
@@ -249,8 +203,10 @@ function ZdogFilterProps(ZdogItem){
   if(!ZdogItem || (isNaN(ZdogItem.assignedType)) ) return;
   let type = ZdogItem.assignedType;
   if (type == 4) return //we're not serializing dragger type
-  let classN = ZDOG_CLASS_NAME[type];
-  let recordProps = CREATE_PROPS[classN]
+  let classType = ZDOG_CLASS_TYPE[type];
+  let recordProps = classType.optionKeys.filter(option=>{
+    return !CYCLIC_PROPS.includes(option)
+  });
   if (!recordProps) return
 
   let result = {
@@ -264,6 +220,8 @@ function ZdogFilterProps(ZdogItem){
       if (typeof ZdogItem[prop] != 'boolean'){
         return true;
       }
+    } else if(prop == 'element') {
+      return '.zdog-canvas'
     }
     return ZdogItem[prop]
   }
@@ -273,25 +231,25 @@ function ZdogFilterProps(ZdogItem){
     result[prop] = strin(prop);
   })
 
-  //Assign anchor props
-  if (type != 0 && type != 13 && type != 4) {
-    recordProps = CREATE_PROPS['anchor']
-    recordProps.forEach(prop=>{
-      result[prop] = strin(prop);
-    })
+  // //Assign anchor props
+  // if (type != 0 && type != 13 && type != 4) {
+  //   recordProps = CREATE_PROPS['anchor']
+  //   recordProps.forEach(prop=>{
+  //     result[prop] = strin(prop);
+  //   })
 
-    //Assign Shape props
-    if (type != 6 && type != 8 ) {
-      recordProps = CREATE_PROPS['shape']
-      recordProps.forEach(prop=>{
-        result[prop] = strin(prop);
-      })
-    } else if (type == 8 ) {
-      //illustration element prop set to a selector
-      result.element = '.zdog-canvas';
-    }
+  //   //Assign Shape props
+  //   if (type != 6 && type != 8 ) {
+  //     recordProps = CREATE_PROPS['shape']
+  //     recordProps.forEach(prop=>{
+  //       result[prop] = strin(prop);
+  //     })
+  //   } else if (type == 8 ) {
+  //     //illustration element prop set to a selector
+  //     result.element = '.zdog-canvas';
+  //   }
     
-  }
+  // }
 
   return result;
 }
@@ -459,9 +417,8 @@ class Ztree{
         element: '.zdog-canvas',
         width: window.innerWidth,
         height: window.innerHeight,
-        zoom: 1,
        // rotate: {x:-.5+Math.PI, z: 0, y:.5+Math.PI}, //default Zdog rotation is weird
-        dragRotate:true
+        //dragRotate:true
         }
 
       let options = Object.assign({}, optionsDefault)
@@ -748,7 +705,7 @@ export {
   Zdogger, Ztree, ZtreeReader,
   isClass, ZdogFilterProps,
   ZDOG_CLASS_TYPE, ZDOG_CLASS, ZDOG_CLASS_NAME,
-  CREATE_PROPS, ADVANCED_PROPERTIES
+  ADVANCED_PROPERTIES
   }
 
 

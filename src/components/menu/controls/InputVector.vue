@@ -43,7 +43,7 @@
       <input
         :id="`${id}z`"
         v-model="euler.x"
-        type="text"
+        type="number"
         name="x"
         autocomplete="off"
         :placeholder="defaultVal.x"
@@ -57,7 +57,7 @@
       <input
         :id="`${id}y`"
         v-model="euler.y"
-        type="text"
+        type="number"
         name="y"
         autocomplete="off"
         :placeholder="defaultVal.y"
@@ -70,7 +70,7 @@
       <input
         :id="`${id}z`"
         v-model="euler.z"
-        type="text"
+        type="number"
         name="z"
         autocomplete="off"
         :placeholder="defaultVal.z"
@@ -124,6 +124,7 @@ export default {
       if (this.degrees){
         let temp = Object.assign({}, d);
         Object.keys(temp).map(coord=>{
+          Math.trun
           temp[coord] = this.toDeg(temp[coord]);
           this.euler[coord] = temp[coord];
         })
@@ -144,7 +145,10 @@ export default {
       return (Math.PI * degrees) / 180;
     },
     toDeg(radians){
-      return (180 * radians) / Math.PI;
+      let raw = (180 * radians) / Math.PI;
+       // round to 3 decimal places
+       //let d = Math.round(raw * 1000) / 1000;
+      return Math.round(raw)
     },
     emitCoords(){
       let temp = Object.assign({}, this.euler);

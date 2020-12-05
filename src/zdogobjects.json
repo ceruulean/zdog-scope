@@ -139,7 +139,7 @@
       },
       "backface":{
         "type":"boolean",
-        "default":true      
+        "default":true     
       },
       "updateSort":{
         "type":"boolean",

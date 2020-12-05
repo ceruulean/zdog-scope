@@ -5,6 +5,7 @@ Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor
 
 
 [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid) for panel resizing
+
 [Zdog 3D Helpers](https://observablehq.com/@mootari/zdog-helpers)
 
 Built with [Vue 3](https://v3.vuejs.org/)
@@ -19,6 +20,7 @@ Built with [Vue 3](https://v3.vuejs.org/)
 
 ## Todo
 - Undo/redo
+- Zoom and pan controls
 - Better creation prompt
 - Transform widgets
 - Slider for stroke? (like Photoshop)
@@ -30,8 +32,6 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Search by name
 - Wireframe view
 - Resize canvas on viewport change
-- Zoom and pan controls
-- Quaternion rotation
 
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.jpg)

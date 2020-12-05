@@ -2,14 +2,14 @@
   <div class="input-coord">
    <label
       :for="`${id}${label}`"
-      class="input-coord"
+      :class="{'z100':editing}"
     >
       {{label}}:
       <input
         :id="`${id}${label}`"
         class="input-degrees"
         v-model="wipValue"
-        type="text"
+        type="number"
         :name="label"
         autocomplete="off"
         :placeholder="placeholder"
@@ -23,15 +23,15 @@
         <div
           class="degree-range"
         >
-          <label>{{ `-360&#176;` }}</label>
+          <label>{{ `${min}&#176;` }}</label>
           <input
             v-model="wipValue"
             type="range"
-            min="-360"
-            max="360"
+            :min="min"
+            :max="max"
             @change="changeV"
           >
-          <label>{{ `360&#176;` }}</label>
+          <label>{{ `${max}&#176;` }}</label>
         </div>
       </Tooltip>
   </div>
@@ -59,6 +59,14 @@ export default {
       editing:false
     }
   },
+  computed:{
+    min(){
+      return Math.round(this.value) - 180;
+    },
+    max(){
+      return Math.round(this.value) + 180;
+    }
+  },
 
   methods:{
     changeV(){
@@ -77,6 +85,10 @@ export default {
 <style>
 .input-coord{
   position:relative;
+}
+
+.z100{
+  z-index:100;
 }
 
 .degree-range{

@@ -10,8 +10,18 @@ const VECTOR_PROPS = [
   'rotate','translate','scale','front'
 ]
 const BOOL_PROPS = [
-  'fill','backface','visible','closed','updateSort','dragRotate', 'centered', 'resize'
+  'fill','visible','closed','updateSort','dragRotate', 'centered', 'resize', 'backface'
 ]
+
+const COLOR_PROPS = [
+  'color', 'rearFace', 'frontFace', 'leftFace', 'rightFace', 'topFace', 'bottomFace'
+]
+
+const NUM_PROPS = Object.keys(ZdogJSONSchema.optionValidator)
+  .filter(prop=>{
+    return ZdogJSONSchema.optionValidator[prop].type == 'number'
+  })
+
 /**
  * Checks the proposed options and returns an array of invalid fields (empty if fields are valid)
  * @param {Object} incomingOptions 
@@ -24,6 +34,11 @@ function invalidFields(incomingOptions){
     let field = k[index];
     let value = v[index];
     let validType = ZdogJSONSchema.optionValidator[field].type;
+
+    //backface can be a string
+    if (field == 'backface' && typeof value == 'string'){
+      continue;
+    }
     if (typeof value != validType){
       if (validType == 'Array') { // needs to be array
         if (Array.isArray(value)){
@@ -73,10 +88,15 @@ const getters = {
   bBlank(state, getters, rootState){
     return (!rootState.Ztree.illustration || rootState.Ztree.illustration.children.length == 0)
   },
-  textProps(state, getters){
-    let a = [...VECTOR_PROPS, ...BOOL_PROPS, 'color']
+  // textProps(state, getters){
+  //   let a = [...VECTOR_PROPS, ...BOOL_PROPS, 'color', 'element']
+  //   return getters.selectedAllProps.filter((prop)=>{
+  //     return !a.includes(prop);
+  //   })
+  // },
+  colorProps(state, getters){
     return getters.selectedAllProps.filter((prop)=>{
-      return !a.includes(prop);
+      return COLOR_PROPS.includes(prop);
     })
   },
   vectorProps(state, getters){
@@ -87,6 +107,11 @@ const getters = {
   boolProps(state, getters){
     return getters.selectedAllProps.filter(prop=>{
       return BOOL_PROPS.includes(prop);
+    })
+  },
+  numProps(state, getters){
+    return getters.selectedAllProps.filter(prop=>{
+      return NUM_PROPS.includes(prop);
     })
   },
   BOOL_PROPS(){
@@ -115,7 +140,6 @@ const actions = {
       node: getters.selectedNode,
       options: incomingOptions
     }
-    console.log(payload)
     commit('setNodeProps', payload, {root:true})
   },
 

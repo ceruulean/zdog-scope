@@ -3,16 +3,19 @@ import {
   // rotationHelper,
   // perspectiveHelper,
   // gridHelper,gridRectHelper,
+  Camera
   
   // clearColor,drawRaw,zoomable
 } from '../../canvasHelpers'
+
 
 const state = {
   settings:{
     backgroundColor: "#808080"
   },
   selectedAxes:null,
-  canvasAxes:null
+  canvasAxes:null,
+  camera:null
 }
 // Getter functions
 const getters = {
@@ -81,6 +84,7 @@ const mutations = {
       state.canvasAxes = null
       return
     }
+    state.camera = new Camera(payload);
     state.canvasAxes = payload;
   },
 
