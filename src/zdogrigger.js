@@ -705,7 +705,8 @@ export {
   Zdogger, Ztree, ZtreeReader,
   isClass, ZdogFilterProps,
   ZDOG_CLASS_TYPE, ZDOG_CLASS, ZDOG_CLASS_NAME,
-  ADVANCED_PROPERTIES
+  ADVANCED_PROPERTIES,
+  CYCLIC_PROPS
   }
 
 

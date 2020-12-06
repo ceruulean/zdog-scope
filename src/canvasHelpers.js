@@ -12,13 +12,10 @@ class Camera{
     let illoe = illustration.element;
     this.illustration = illustration;
     
-    //this.rho = this.defaultRho;
     this.phi = this.illustration.rotate.x
-    //this.phi = 90;
     this.theta = this.illustration.rotate.y
     this.zoom = this.illustration.zoom
 
-    this.illustration.translate.x = this.x;
     //phi is polar (xy plane)
     //theta is azimuthal (zx plane)
     /**
@@ -46,8 +43,8 @@ class Camera{
     let ctx = this;
     illoe.addEventListener('wheel', this.onwheel.bind(this))
 
-    illoe.addEventListener('keydown', this.onkeydown.bind(this))
-    illoe.addEventListener('keyup', this.onkeyup.bind(this))
+    window.addEventListener('keydown', this.onkeydown.bind(this))
+    window.addEventListener('keyup', this.onkeyup.bind(this))
 
     this.dragger = new Zdog.Dragger({
       startElement: illoe,
@@ -63,6 +60,7 @@ class Camera{
         }
       },
       onDragEnd: function(event) {
+        ctx.dragend();
         ctx.onmouseup(event);
       },
     });
@@ -94,6 +92,34 @@ class Camera{
     this.illustration.zoom = newZoom
   }
 
+  // pan(pointer){
+  //   let [dx, dy] = this.screendelta(pointer)
+
+  //   if (!this.panInverse){
+  //     dx = dx * -1
+  //     dy = dy * -1
+  //   }
+
+  //   let r = this.rho * Math.cos(this.phi)
+
+  //   let speed = (this.panSpeed / 100)
+  //   let y2 = this.illustration.translate.y + (dy*speed)
+  //   let x2 = this.illustration.translate.x + (dx*speed)
+
+  //   let phi2 = Math.atan2(y2, r);
+  //   let theta2 = Math.atan2(x2 , r);
+  //   let r2 = Math.sqrt(Math.pow(r,2) + Math.pow(dx, 2))
+  //   let rho2 = r2 / Math.cos(phi2);
+
+  //   this.theta = theta2
+  //   this.phi = phi2
+  //   this.rho = rho2
+
+  //   let o = {x:this.x, y:this.y, z:this.z}
+  //   this.illustration.translate = o;
+  //   this.illustration.rotate =  {x:this.phi, y:this.theta, z:this.illustration.rotate.z}
+  // }
+
   pan(pointer){
     let [dx, dy] = this.screendelta(pointer)
 
@@ -102,41 +128,28 @@ class Camera{
       dy = dy * -1
     }
 
-    let r = this.rho * Math.cos(this.phi)
-
     let speed = (this.panSpeed / 100)
-    let y2 = this.y + (dy*speed)
-    let x2 = this.x + (dx*speed)
-
-    let phi2 = Math.atan2(y2, r);
-    let theta2 = Math.atan2(x2 , r);
-    let r2 = Math.sqrt(Math.pow(r,2) + Math.pow(dx, 2))
-    let rho2 = r2 / Math.cos(phi2);
-
-    this.theta = theta2
-    this.phi = phi2
-    this.rho = rho2
-
-    let o = {x:this.x, y:this.y, z:this.z}
+    let y2 = this.illustration.translate.y + (dy*speed)
+    let x2 = this.illustration.translate.x + (dx*speed)
+    let o = {x:x2, y:y2, z:this.z}
     this.illustration.translate = o;
+
   }
 
   dragstarted(x0,y0) {
     this.x0 = x0;
     this.y0 = y0;
-  }
+    }
 
   dragged(pointer) {
     let [dx, dy] = this.screendelta(pointer)
     this.theta = (this.theta + this.radRatio( dx));
     this.phi = (this.phi + this.radRatio( dy ));
-
-    let o = {x:this.phi, y:this.theta}
+    let o = {x:this.phi, y:this.theta, z:this.illustration.rotate.z}
     this.illustration.rotate = o;
   }
 
   dragend(){
-
   }
 
   screendelta(pointer){
@@ -157,39 +170,32 @@ class Camera{
   }
 
   onkeydown(event){
-
     let kc = event.keyCode;
-    console.log(`down ${kc}`);
     //Shift -> pan
-    if (kc == 59 || kc == 60){
+    if (kc == 16){
       this.isPanning = true;
     }
   }
 
   onkeyup(event){
     let kc = event.keyCode;
-    console.log(`up ${kc}`);
     //Shift -> pan
-    if (kc == 59 || kc == 60 && this.isMouseDown < 4){
+    if (kc == 16 && this.isMouseDown < 4){
       this.isPanning = false;
     }
   }
 
   onmousedown(event){
-    //MMB pressed
-    console.log(`mousedown`)
     this.isMouseDown = event.buttons;
-
+    //MMB pressed
     if (event.button == 1){
       this.isPanning = true;
     }
   }
 
   onmouseup(event){
-    //MMB pressed
-    console.log(`mouseup`)
     this.isMouseDown = event.buttons
-
+    //MMB pressed
     if (event.button == 1){
       this.isPanning = false;
     }
@@ -207,7 +213,18 @@ class Camera{
     console.log(`ρ:${this.rho},θ:${this.theta},φ:${this.phi}`)
   }
   
+  cartlog(){
+    console.log(`(${this.x},${this.y},${this.z})`)
+  }
+  
+  rotlog(){
+    console.log(`${toDeg(this.illustration.rotate.x)},${toDeg(this.illustration.rotate.y)},${toDeg(this.illustration.rotate.z)}`)
+  }
 
+}
+
+function toDeg(rads){
+  return Math.round(rads * 180 /  Math.PI);
 }
 
 

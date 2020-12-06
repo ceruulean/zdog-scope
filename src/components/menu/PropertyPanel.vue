@@ -81,6 +81,17 @@
             :name="prop"
           >
         </label>
+        <Backface v-if="hasBackfaceColor"
+            :color="selectedNode.backface"
+            :threeD="isThreeD"
+            :checked="true"
+            @update="updateColor('backface', $event)"
+            />
+        <Backface v-else
+            :threeD="isThreeD"
+            :checked="selectedNode.backface"
+            @update="updateColor('backface', $event)"
+            />
       </div>
       <button @click="saveProps">
         Apply Changes
@@ -97,12 +108,14 @@ import StringHelper from '../StringHelperMixin'
 
 import InputVector from './controls/InputVector'
 import ColorPicker from './controls/ColorPicker'
+import Backface from './controls/Backface'
 
 export default {
   name: 'PropertyPanel',
   components:{
     InputVector,
     ColorPicker,
+    Backface
   },
   mixins:[StringHelper],
 
@@ -135,6 +148,14 @@ export default {
     },
     hasColor(){
       return this.selectedAllProps.includes('color');
+    },
+    hasBackfaceColor(){
+      let bf = this.selectedNode.backface;
+      return (typeof bf == 'string')
+    },
+    isThreeD(){
+      return this.selectedTypeName == 'cylinder' || this.selectedTypeName == 'box' || this.selectedTypeName == 'hemisphere'
+      || this.selectedTypeName == 'cone'
     }
   },
   watch:{

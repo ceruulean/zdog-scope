@@ -24,7 +24,7 @@ export default {
   props: {
     color:{
       type:String,
-      default:'#f00'
+      default:'#333'
     }
   },
   emits:['close', 'update'],
@@ -119,6 +119,7 @@ export default {
   transform:translateX(-50%);
   background-color:rgba(255,255,255,0.9);
   padding:0.5rem;
+    z-index:20;
 }
 
 .picker-button{

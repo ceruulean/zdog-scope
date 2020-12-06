@@ -135,6 +135,7 @@ const mutations = {
     for (let o in options){
       node[o] = options[o]
     }
+    node.updateGraph();
    // state.updateTree = !state.updateTree;
   },
 

@@ -65,9 +65,12 @@
             None
           </label>
         </div>
-        <div class="field-list col">
+
+
+
+        <div class="field-list col" v-if="numProps(mainProps).length > 0">
           <label
-            v-for="(field) in textProps"
+            v-for="(field) in numProps(mainProps)"
             :key="`${field}_creation`"
             :for="`${field}_creation`"
           >
@@ -80,13 +83,17 @@
             >
           </label>
         </div>
-        <ColorPicker
-          @update="updateColor"
-          />
-      </div>
-      <div class="row">
+        <div class="col" v-if="colorProps(mainProps).length > 0">
+          <span v-for="field in colorProps(mainProps)" :key="field">
+            {{ capitalize(field) }}
+            <ColorPicker 
+            @update="updateColor(field, $event)"
+            />
+          </span>
+        </div>
+      <div class="row" v-if="vectorProps(mainProps).length > 0">
         <InputVector
-          v-for="field in vectorProps"
+          v-for="field in vectorProps(mainProps)"
           :id="`${field}_creation`"
           :key="`${field}_creation`"
           :default="optionDefault(field)"
@@ -96,7 +103,7 @@
         </InputVector>
         <div class="field-list col">
           <label
-            v-for="(field) in boolProps"
+            v-for="(field) in boolProps(mainProps)"
             :key="`${field}_creation`"
             :for="`${field}_creation`"
           >
@@ -110,6 +117,71 @@
           </label>
         </div>
       </div>
+
+
+        <div class="field-list col" v-if="numProps(miscProps).length > 0">
+          <label
+            v-for="(field) in numProps(miscProps)"
+            :key="`${field}_creation`"
+            :for="`${field}_creation`"
+          >
+            {{ capitalize(field) }}
+            <input
+              :id="`${field}_creation`"
+              v-model="wipOptions[field]"
+              type="text"
+              :placeholder="optionDefault(field)"
+            >
+          </label>
+        </div>
+        <div class="col" v-if="colorProps(miscProps).length > 0">
+          <span v-for="field in colorProps(miscProps)" :key="field">
+            {{ capitalize(field) }}
+            <ColorPicker 
+            @update="updateColor(field, $event)"
+            />
+          </span>
+        </div>
+      <div class="row" v-if="vectorProps(miscProps).length > 0">
+        <InputVector
+          v-for="field in vectorProps(miscProps)"
+          :id="`${field}_creation`"
+          :key="`${field}_creation`"
+          :default="optionDefault(field)"
+          :degrees="(field == 'rotate')"
+        >
+          {{ capitalize(field) }}
+        </InputVector>
+        <div class="field-list col" v-if="boolProps(miscProps).length > 0">
+          <label
+            v-for="(field) in boolProps(miscProps)"
+            :key="`${field}_creation`"
+            :for="`${field}_creation`"
+          >
+            {{ capitalize(field) }}
+            <input
+              :id="`${field}_creation`"
+              v-model="wipOptions[field]"
+              type="checkbox"
+              :checked="optionDefault(field)"
+            >
+          </label>
+
+          <Backface
+            id="backface_create"
+            :threeD="isThreeD"
+            :checked="optionDefault('backface')"
+            @update="updateColor('backface', $event)"
+            />
+        </div>
+      </div>
+
+
+
+
+      </div>
+
+
     </form>
     <button @click="submit">
       Create
@@ -124,6 +196,7 @@ import {ZDOG_CLASS, ZDOG_CLASS_TYPE} from '../zdogrigger'
 
 import InputVector from './menu/controls/InputVector'
 import ColorPicker from './menu/controls/ColorPicker'
+import Backface from './menu/controls/Backface'
 
 import StringHelper from './StringHelperMixin'
 
@@ -131,7 +204,8 @@ export default {
   name: 'Creation',
   components:{
     InputVector,
-    ColorPicker
+    ColorPicker,
+    Backface
   },
   mixins:[StringHelper],
   props: {
@@ -146,8 +220,15 @@ export default {
     return{
       wipOptions:{},
       wipAssignedName: null,
-      appendTo:'selected'
+      appendTo:'selected',
+      miscProps: []
     }
+  },
+  mounted(){
+    this.miscProps = this.ALL_PROPS.filter(option=>{
+        return !this.mainProps.includes(option)
+      })
+      console.log(this.miscProps);
   },
   methods:{
     ...mapActions({
@@ -183,9 +264,30 @@ export default {
     optionDefault(field){
       return ZdogJSONSchema.optionValidator[field].default;
     },
-    updateColor(newColor){
-      this.wipOptions['color'] = newColor;
-    }
+    updateColor(field, newColor){
+      this.wipOptions[field] = newColor;
+    },
+    numProps(arr){
+      let u = arr.filter(prop=>{
+        return this.NUM_PROPS.includes(prop)
+      })
+      return u
+    },
+    boolProps(arr){
+      return arr.filter(prop=>{
+        return (this.BOOL_PROPS.includes(prop) && prop != 'backface')
+      })
+    },
+    vectorProps(arr){
+      return arr.filter(prop=>{
+        return this.VECTOR_PROPS.includes(prop)
+      })
+    },
+    colorProps(arr){
+      return arr.filter(prop=>{
+        return this.COLOR_PROPS.includes(prop)
+      })
+    },
   },
   computed:{
     ...mapState({
@@ -197,24 +299,14 @@ export default {
         'BOOL_PROPS',
         'VECTOR_PROPS',
         'CYCLIC_PROPS',
+        'COLOR_PROPS',
+        'NUM_PROPS',
+        'CREATE_PROPS',
         'bBlank'
     ]),
-    textProps(){
-      let a = [...this.BOOL_PROPS, ...this.VECTOR_PROPS, 'color'];
-      let u = this.ALL_PROPS.filter(prop=>{
-        return !a.includes(prop)
-      })
-      return u
-    },
-    boolProps(){
-      return this.ALL_PROPS.filter(prop=>{
-        return this.BOOL_PROPS.includes(prop)
-      })
-    },
-    vectorProps(){
-      return this.ALL_PROPS.filter(prop=>{
-        return this.VECTOR_PROPS.includes(prop)
-      })
+    mainProps(){
+      let m = this.CREATE_PROPS[this.itemtype];
+      return m
     },
     validSchema(){
       return ZdogJSONSchema.optionValidator;
@@ -234,6 +326,10 @@ export default {
         return (prop != 'addTo' && prop != 'onPrerender' && prop != 'onDragStart'
         && prop != 'onDragMove' && prop != 'onDragEnd' && prop != 'onResize')
       });
+    },
+    isThreeD(){
+      return this.itemtype == 'cylinder' || this.itemtype == 'box' || this.itemtype == 'hemisphere'
+      || this.itemtype == 'cone'
     }
   },
   watch:{

@@ -1,10 +1,6 @@
-//import {ZdogFilterProps, ZDOG_CLASS_NAME, SET_PROPS} from '../../zdogrigger'
+import {CYCLIC_PROPS} from '../../zdogrigger'
 import ZdogJSONSchema from '../../zdogobjects.json'
 
-const CYCLIC_PROPS = [
-  'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
-  'onDragEnd','onResize'
-]
 
 const VECTOR_PROPS = [
   'rotate','translate','scale','front'
@@ -21,6 +17,58 @@ const NUM_PROPS = Object.keys(ZdogJSONSchema.optionValidator)
   .filter(prop=>{
     return ZdogJSONSchema.optionValidator[prop].type == 'number'
   })
+
+/**
+ * User settable props for when calling 'new Zdog.Item', taken from documentation @ https://zzz.dog/api
+ */
+const CREATE_PROPS = {
+  anchor:[
+    'rotate',
+    'translate',
+    'scale',
+  ],
+  ellipse: [
+    "diameter",
+    "width","height","quarters"
+  ],
+  box:[
+    'depth',
+    'frontFace',
+    'rearFace',
+    'leftFace',
+    'rightFace',
+    'topFace',
+    'bottomFace',
+  ],
+  polygon:[
+    "sides",
+    "radius"
+  ],
+  illustration:[
+  "centered","zoom","dragRotate","resize"
+    // onPrerender: noop,
+    // onDragStart: noop,
+    // onDragMove: noop,
+    // onDragEnd: noop,
+    // onResize: noop,
+  ],
+  vector:[
+    "x","y","z"
+  ],
+  rect:[
+    "width","height"
+  ],
+  roundedrect:[
+    "width","height","cornerRadius"
+  ],
+  shape:[
+    "path","stroke","fill","color","closed","visible","path","front","backface"
+  ],
+  hemisphere:["diameter","backface"],
+  group:["updateSort","visible"],
+  cylinder:["diameter","length","backface","frontFace"],
+  cone:["diameter","length","backface"]
+}
 
 /**
  * Checks the proposed options and returns an array of invalid fields (empty if fields are valid)
@@ -88,12 +136,6 @@ const getters = {
   bBlank(state, getters, rootState){
     return (!rootState.Ztree.illustration || rootState.Ztree.illustration.children.length == 0)
   },
-  // textProps(state, getters){
-  //   let a = [...VECTOR_PROPS, ...BOOL_PROPS, 'color', 'element']
-  //   return getters.selectedAllProps.filter((prop)=>{
-  //     return !a.includes(prop);
-  //   })
-  // },
   colorProps(state, getters){
     return getters.selectedAllProps.filter((prop)=>{
       return COLOR_PROPS.includes(prop);
@@ -106,7 +148,7 @@ const getters = {
   },
   boolProps(state, getters){
     return getters.selectedAllProps.filter(prop=>{
-      return BOOL_PROPS.includes(prop);
+      return BOOL_PROPS.includes(prop) && prop != 'backface'
     })
   },
   numProps(state, getters){
@@ -115,13 +157,22 @@ const getters = {
     })
   },
   BOOL_PROPS(){
-    return BOOL_PROPS;
+    return BOOL_PROPS
   },
   VECTOR_PROPS(){
-    return VECTOR_PROPS;
+    return VECTOR_PROPS
   },
   CYCLIC_PROPS(){
-    return CYCLIC_PROPS;
+    return CYCLIC_PROPS
+  },
+  COLOR_PROPS(){
+    return COLOR_PROPS
+  },
+  CREATE_PROPS(){
+    return CREATE_PROPS
+  },
+  NUM_PROPS(){
+    return NUM_PROPS
   }
 }
 // Actions 
@@ -132,6 +183,16 @@ const actions = {
       node: getters.selectedNode,
       options: Object.assign({}, incomingOptions)
     }
+
+    let props = Object.keys(incomingOptions)
+    for(let prop of props) {
+      
+      if (NUM_PROPS.includes(prop)){
+        console.log(prop);
+        payload.options[prop] = Number(payload.options[prop]);
+      }
+    }
+
     commit('setNodeProps', payload, {root:true})
   },
 
