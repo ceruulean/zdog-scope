@@ -1,14 +1,18 @@
-/** SAUCE by Mootari:
- * https://observablehq.com/@mootari/zdog-helpers
- */
 
 import Zdog from 'zdog'
 //import versor from 'versor'
-//import geoAiry from './geo/geoAiry'
-// import d3 from 'd3'
 
+//Reference reading: https://www.sitepoint.com/building-3d-engine-javascript/
+
+/**
+ * Zdog camera
+ */
 class Camera{
-  constructor(illustration){
+  /**
+   * Creates a camera object that allows panning/zooming
+   * @param {Zdog.Illustration} illustration 
+   */
+  constructor(illustration, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
     let illoe = illustration.element;
     this.illustration = illustration;
     
@@ -29,10 +33,9 @@ class Camera{
      */
 
 
-
-    this.zoomSpeed = 3
-    this.panInverse = false
-    this.panSpeed = 30
+    this.zoomSpeed = options.zoomSpeed
+    this.panInverse = options.panInverse
+    this.panSpeed = options.panSpeed
 
     /**
      * EVENTS
@@ -56,7 +59,7 @@ class Camera{
         if (ctx.isPanning){
           ctx.pan(pointer)
         } else {
-          ctx.dragged(pointer, dX,dY)
+          ctx.dragRotate(pointer, dX,dY)
         }
       },
       onDragEnd: function(event) {
@@ -141,7 +144,7 @@ class Camera{
     this.y0 = y0;
     }
 
-  dragged(pointer) {
+  dragRotate(pointer) {
     let [dx, dy] = this.screendelta(pointer)
     this.theta = (this.theta + this.radRatio( dx));
     this.phi = (this.phi + this.radRatio( dy ));
@@ -227,6 +230,9 @@ function toDeg(rads){
   return Math.round(rads * 180 /  Math.PI);
 }
 
+/** ZDOG HELPERS SAUCE by Mootari:
+ * https://observablehq.com/@mootari/zdog-helpers
+ */
 
 
 /**
@@ -550,11 +556,6 @@ function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
   };
 
 }
-
-
-//https://www.sitepoint.com/building-3d-engine-javascript/
-
-
 
 export {
   axesHelper,

@@ -11,8 +11,6 @@
   "dependencies": {
     "@jaames/iro": "^5.3.1",
     "core-js": "^3.6.5",
-    "d3": "^6.3.0",
-    "d3-geo": "^2.0.1",
     "split-grid": "^1.0.9",
     "versor": "^0.1.2",
     "vue": "^3.0.0",

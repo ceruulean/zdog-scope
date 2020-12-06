@@ -16,11 +16,12 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Tree view of objects w/ draggable sort
 - Assign name (double click on treeview)
 - Edit properties window, sliders for rotation, colorpicker
-- Axes Visibility
+- Zoom and pan controls
 
 ## Todo
 - Undo/redo
-- Zoom and pan controls
+- Delete objects
+- Axes toggling
 - Better creation prompt
 - Transform widgets
 - Slider for stroke? (like Photoshop)
