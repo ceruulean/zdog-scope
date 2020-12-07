@@ -3,7 +3,7 @@
     @click="closeTooltip">
     <h2>Properties</h2>
     <form
-      v-if="selected.id"
+      v-if="selected.id && treeLoaded"
       :key="wipOptions"
       class="field-list"
     >
@@ -26,7 +26,7 @@
         </label>
       </div>
       <div class="row">
-        <label
+        <!-- <label
           v-for="(val, prop) in selectedOptions"
           :key="prop"
           class="field"
@@ -40,13 +40,13 @@
             :placeholder="toString(val)"
             :name="prop"
           >
-        </label>
+        </label> -->
         <InputVector
           v-for="prop in vectorProps"
           :id="`v_${prop}`"
           :key="prop"
           :default="selectedOptions[prop]"
-          :degrees="(prop == 'rotate')"
+          :type="prop"
           @send-coords="updateVectorProp(prop, $event)"
         >
           {{ capitalize(prop) }}
@@ -129,7 +129,7 @@ import Backface from './controls/Backface'
 export default {
   name: 'PropertyPanel',
   components:{
-     InputVector,
+    InputVector,
     ColorPicker,
     Backface,
     // Input
@@ -147,7 +147,8 @@ export default {
   },
   computed:{
     ...mapState([
-      'selected'
+      'selected',
+      'treeLoaded'
     ]),
     ...mapGetters('properties',[
       'selectedOptions',
@@ -180,7 +181,7 @@ export default {
   },
   watch:{
     selectedNode(){
-      this.wipOptions = this.selectedAllProps
+      this.wipOptions = this.selectedOptions
     }
   },
   methods:{
@@ -192,12 +193,13 @@ export default {
     },
     saveProps(e){
       e.preventDefault();
-      this.$store.dispatch('properties/changeSelectedProps', this.wipOptions)
+      this.$store.dispatch('properties/updateProps', this.wipOptions)
       this.wipOptions = {};
     },
     updateColor(prop, newColor){
-      this.wipOptions[prop] = newColor;
-      this.$store.dispatch('properties/update', this.wipOptions)
+      let o = {}
+      o[prop] = newColor
+      this.$store.dispatch('properties/updateProps', o)
     },
     updateVectorProp(prop, data){
       let temp = Object.assign({}, this.selectedNode[prop]);
@@ -205,7 +207,7 @@ export default {
       this.wipOptions[prop] = temp;
       let o = {}
       o[prop] = temp;
-      this.$store.dispatch('properties/update', o)
+      this.$store.dispatch('properties/updateProps', o)
     },
     closeTooltip(){
       //this.$emit('close-tooltip');

@@ -46,9 +46,9 @@
         name="x"
         autocomplete="off"
         :placeholder="defaultVal.x"
+        :step="step"
         @change="sendCoords"
       >
-      {{ degrees? `&#176;`: '' }}
     </label>
 
     <label :for="`${id}y`">
@@ -60,9 +60,9 @@
         name="y"
         autocomplete="off"
         :placeholder="defaultVal.y"
+        :step="step"
         @change="sendCoords"
       >
-      {{ degrees? `&#176;`: '' }}
     </label>
     <label :for="`${id}z`">
       z:
@@ -73,9 +73,9 @@
         name="z"
         autocomplete="off"
         :placeholder="defaultVal.z"
+        :step="step"
         @change="sendCoords"
       >
-      {{ degrees? `&#176;`: '' }}
     </label>
   </div>
 </template>
@@ -95,13 +95,15 @@ export default {
       type:Object,
       default:null
     },
-    degrees:{
-      type:Boolean,
-      default:false
+    type:{
+      type:String,
+      default:'translate'
     },
   },
   emits:['send-coords', 'open-tooltip'],
-
+  mounted(){
+    this.euler = this.defaultVal;
+  },
   data(){
     return{
       euler:{
@@ -131,6 +133,15 @@ export default {
         return temp
       }
       return d
+    },
+    degrees(){
+      return this.type == 'rotate'
+    },
+    step(){
+      if (this.type == 'scale') {
+        return 0.01
+      }
+      return 0.1
     }
   },
 

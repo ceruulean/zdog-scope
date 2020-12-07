@@ -19,8 +19,8 @@ class Camera{
    * @param {Zdog.Illustration} illustration 
    */
   constructor(illustration, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
-    let illoe = illustration.element;
     this.illustration = illustration;
+    let illoe = illustration.element;
     
     this.phi = this.illustration.rotate.x
     this.theta = this.illustration.rotate.y
@@ -50,10 +50,16 @@ class Camera{
     this.isMouseDown = 0;
 
     let ctx = this;
-    illoe.addEventListener('wheel', this.onwheel.bind(this))
 
-    window.addEventListener('keydown', this.onkeydown.bind(this))
-    window.addEventListener('keyup', this.onkeyup.bind(this))
+    let listeners = {
+      wheel:this.onwheel.bind(this),
+      keydown:this.onkeydown.bind(this),
+      keyup:this.onkeyup.bind(this)
+    }
+    this.listeners = listeners;
+    illoe.addEventListener('wheel', listeners['wheel'] )
+    window.addEventListener('keydown', listeners['keydown'])
+    window.addEventListener('keyup', listeners['keyup'])
 
     this.animReq = null
     this.dragger = new Zdog.Dragger({
@@ -96,7 +102,6 @@ class Camera{
 
   get zoom(){
     return 1 / (this.rho  / this.defaultRho)
-    //return this.rho / this.defaultRho
   }
 
   set zoom(newZoom){
@@ -224,6 +229,14 @@ class Camera{
   animate = () => {
     this.illustration.updateRenderGraph();
     this.animReq = requestAnimationFrame(this.animate);
+  }
+
+  destroy(){
+    let listener = this.listeners;
+    this.illustration.element.removeEventListener('wheel',  listener['wheel'])
+
+    window.removeEventListener('keydown',  listener['keydown'])
+    window.removeEventListener('keyup',  listener['keyup'])
   }
   
 

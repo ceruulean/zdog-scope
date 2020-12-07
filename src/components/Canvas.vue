@@ -16,12 +16,12 @@
 
   <div class="axes-controls" />
   <div class="zoom-control" v-if="illustration">
-    <figure>{{ zoom }}</figure>
+    <figure>{{ zoom }}%</figure>
   </div>
 </template>
 
 <script>
-//import {onMounted} from 'vue' // onUpdated, onUnmounted
+//import {setup} from 'vue' // onUpdated, onUnmounted
 import {mapState, mapActions, mapGetters} from 'vuex'
 
 /**
@@ -34,12 +34,17 @@ import {mapState, mapActions, mapGetters} from 'vuex'
 
 export default {
   name: 'Canvas',
-
+  data(){
+    return{
+      zoomDisplay:null
+    }
+  },
   computed:{
     ...mapState({
       settings:state=>state.canvas.settings,
       selected:state=>state.selected,
-      illustration:state=>state.illustration
+      illustration:state=>state.illustration,
+      camera:state=>state.canvas.camera
     }),
     ...mapGetters({
         selectedNode: 'selectedNode',
@@ -50,13 +55,6 @@ export default {
     height(){
       return window.innerHeight;
     },
-    zoom(){
-      let i = this.$store.getters['Ztree']
-      if (i){
-        return `${Math.round(i.illustration.zoom * 100)}%`
-      }
-      return null;
-    }
   },
   watch:{
     selectedNode(nVal, oVal){
@@ -77,6 +75,7 @@ export default {
       console.log(this.getMousePos(event));
     },
     getMousePos(event){
+      console.log(this.camera.zoom);
       return {
         x: event.clientX,
         y: event.clientY

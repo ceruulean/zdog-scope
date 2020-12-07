@@ -121,6 +121,9 @@ const state = {
 }
 // Getter functions
 const getters = {
+  show(state, getters, rootState){
+    return (rootState.selected.id != null)
+  },
   selectedAllProps(state, getters, rootState, rootGetters){
     return rootGetters.selectedNode.constructor.optionKeys
   },
@@ -179,7 +182,7 @@ const getters = {
 // Actions 
 const actions = {
 
-  changeSelectedProps({rootGetters}, incomingOptions){
+  updateProps({rootGetters}, incomingOptions){
     let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
 
     let props = Object.keys(incomingOptions)
@@ -196,14 +199,6 @@ const actions = {
       node.updateGraph();
   
      // dispatch('setNodeProps', payload, {root:true})
-  },
-
-  update({commit, rootGetters}, incomingOptions){
-    let payload = {
-      node: rootGetters.selectedNode,
-      options: incomingOptions
-    }
-    commit('setNodeProps', payload, {root:true})
   },
 
   changeList({commit}, payload){

@@ -18,13 +18,10 @@ const state = {
   settings:{
     backgroundColor: "#808080"
   },
+  camera:null
 }
 // Getter functions
 const getters = {
-  zoom(state){
-    if (!state.camera) return
-    return state.camera.zoom
-  }
 }
 // Actions 
 const actions = {
@@ -33,15 +30,16 @@ const actions = {
     commit('setSetting', payload)
   },
 
-  showCanvasAxes(){
+  showCanvasAxes({commit}){
     let illo = Ztree.illustration;
     camera = new Camera(illo);
     canvasAxes = axesHelper({addTo: illo, size:999, stroke:1, head:null})
     illo.updateRenderGraph()
+    commit('setCamera')
   },
 
   showSelectedAxes({rootState, rootGetters}){
-    if (state.selectedAxes) {
+    if (selectedAxes) {
       selectedAxes.remove();
     }
 
@@ -76,6 +74,10 @@ const mutations = {
   setSetting(state, {name, value}){
     state.setting[name] = value;
   },
+
+  setCamera(state){
+    state.camera = camera
+  }
 
 }
 

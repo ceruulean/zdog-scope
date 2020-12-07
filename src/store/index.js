@@ -77,10 +77,6 @@ const actions = {
     commit('addZtreeNode', newO);
   },
 
-  changeSelectedName({commit}, newName){
-    commit('setAssignedName', newName);
-  },
-
   changeSelected({commit, state}, {id, element}){
     //click handler here?
     if (state.selected.id == id) return;
@@ -98,6 +94,8 @@ const actions = {
   async importTree({commit, dispatch}){
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
+    dispatch('changeSelected', {id:null, element: null})
+    dispatch('treeview/resetView')
     commit('resetState');
     commit('setZtree', newTree);
     dispatch('canvas/showCanvasAxes')
@@ -112,6 +110,7 @@ const mutations = {
     newZtree(arg)
     state.illustration = Ztree.illustration.id
     state.updateTree = !state.updateTree;
+    state.treeLoaded = true;
   },
 
   addZtreeNode(state, node){
@@ -124,13 +123,6 @@ const mutations = {
   setSelected(state, {id, element}){
     state.selected.id = id;
     state.selected.element = element;
-  },
-
-  setAssignedName(state, newName){
-    if (!state.selected) throw new Error('Cannot assign name to null selected node');
-    Ztree.find(state.selected.id)
-      .assignedName = newName;
-      state.updateTree = !state.updateTree;
   },
 
   setNodeProps(state, {node, options}){

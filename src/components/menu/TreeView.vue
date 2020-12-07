@@ -14,7 +14,7 @@
       </div>
     </header>
     <ul
-      v-if="treeView"
+      v-if="treeView && treeLoaded"
       class="tree-bg"
     >
       <TreeItem
@@ -55,6 +55,7 @@ export default {
   computed:{
     ...mapState({
       illustration:'illustration',
+      treeLoaded:'treeLoaded'
     }),
     treeView: {
       get() {

@@ -2,10 +2,12 @@ import {Ztree} from '../index'
 
 /* Module1.store.js */
 // State object
-const state = {
+const getDefaultState = () => ({
   list: [],
   blockIds:[]
-}
+})
+
+const state = getDefaultState();
 // Getter functions
 const getters = {
 
@@ -38,6 +40,10 @@ const actions = {
       
         treeNode.assignedName = newName
   },
+
+  resetView({commit}){
+    commit('resetState')
+  }
   
 }
 
@@ -49,6 +55,10 @@ const mutations = {
 
   setDragging(state, blockIds){
     state.blockIds = blockIds;
+  },
+
+  resetState(state) {
+    Object.assign(state, getDefaultState())
   }
 
 }
