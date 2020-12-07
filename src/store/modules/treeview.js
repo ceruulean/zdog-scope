@@ -1,3 +1,5 @@
+import {Ztree} from '../index'
+
 /* Module1.store.js */
 // State object
 const state = {
@@ -11,8 +13,8 @@ const getters = {
 // Actions 
 const actions = {
 
-  changeList({commit}, payload){
-    commit('setList', payload)
+  changeList({commit}){
+    commit('setList', Ztree.trimmedView())
   },
 
   sortItem({commit}, payload){
@@ -28,8 +30,6 @@ const actions = {
   }
   
 }
-
-
 
 // Mutations  
 const mutations = {

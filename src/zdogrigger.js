@@ -48,7 +48,7 @@ const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS);
 
 const CYCLIC_PROPS = [
   'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
-  'onDragEnd','onResize'
+  'onDragEnd','onResize', 'element'
 ]
 
 /**
@@ -183,7 +183,6 @@ function assignExisting(ZdogItem){
  * @param {Zdog.Illustration} illustration
  */
 function importExisting(illustration){
-  console.log('existing')
   let copy = illustration.copyGraph();
   assignExisting(copy);
   return copy;
@@ -513,6 +512,17 @@ class Ztree{
    */
   trimmedView(){
     return [this.trimNode(this.illustration)]
+  }
+
+  nodeProps(node){
+    let props = node.constructor.optionKeys.filter(option=>{
+      return !CYCLIC_PROPS.includes(option)
+    })
+    let o = {}
+    for (let p of props){
+      o[p] = node[p]
+    }
+    return o;
   }
 
   /**

@@ -54,20 +54,22 @@ export default {
   },
   computed:{
     ...mapState({
-      updateTree:'updateTree',
+      illustration:'illustration',
     }),
     treeView: {
       get() {
         return this.$store.state.treeview.list
       },
-      set(value) {
-        this.$store.dispatch('treeview/changeList', value)
-      }
+      // set(value) {
+      //   this.$store.dispatch('treeview/changeList')
+      // }
     },
   },
   watch:{
-    updateTree(){
-      this.treeView = this.$store.getters['Ztree'].trimmedView()
+    illustration(nVal){
+      if (nVal){
+        this.$store.dispatch('treeview/changeList')
+      }
     }
   },
   methods:{

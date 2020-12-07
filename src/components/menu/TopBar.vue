@@ -134,9 +134,8 @@ export default {
       }
     },
     demo(){
-   // let testmodel = require('../../testmodel2').default;
-    // JSON.stringify(hauntedhouse)
-    // this.demoJSON(hauntedhouse);
+    let testmodel = require('../../testmodel').default;
+    this.demoJSON(testmodel);
     }
   },
 }

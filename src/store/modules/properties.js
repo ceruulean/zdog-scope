@@ -1,3 +1,5 @@
+import {Ztree} from '../index'
+
 import {CYCLIC_PROPS} from '../../zdogrigger'
 import ZdogJSONSchema from '../../zdogobjects.json'
 
@@ -119,11 +121,14 @@ const state = {
 }
 // Getter functions
 const getters = {
+
   selectedAllProps(state, getters, rootState){
-    let noCyclic = rootState.selected.node.constructor.optionKeys.filter(option=>{
-      return !CYCLIC_PROPS.includes(option)
-    })
-    return noCyclic;
+
+    if (rootState.selected.node) {
+      let o = Ztree.nodeProps(rootState.selected.node);
+      return o
+    }
+    return
   },
   validationFailed(state){
     return (state.validationSuccess == false && state.invalidFields);

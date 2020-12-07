@@ -10,7 +10,7 @@ const debug = process.env.NODE_ENV !== 'production'
 import {Zdogger} from '../zdogrigger'
 
 
-var Ztree = null;
+var Ztree = new Zdogger.Tree();
 
 function newZtree(arg){
   if (arg instanceof Zdogger.Tree) {
@@ -27,7 +27,7 @@ function newZtree(arg){
 /**
  *  GLOBALS
  */
-const state = () => ({
+const getDefaultState = () => ({
   selected:{
     id:null,
     element:null,
@@ -38,6 +38,9 @@ const state = () => ({
   selectedNode:null
 })
 
+const state = getDefaultState()
+
+
 // getters
 const getters = {
   Zrelations(){
@@ -47,9 +50,6 @@ const getters = {
   selectedNode(state){
     if (!state.selected.id) return null;
     return state.selected.node
-  },
-  Ztree(){
-    return Ztree;
   },
 }
 
@@ -86,6 +86,9 @@ const actions = {
   changeSelected({commit, state}, {id, element}){
     //click handler here?
     if (state.selected.id == id) return;
+    let existing = state.selected.element;
+    if (existing) existing.classList.remove('highlight')
+    if (id) element.classList.add('highlight')
     commit('setSelected', {id, element});
   },
 
@@ -97,6 +100,7 @@ const actions = {
   async importTree({commit, dispatch}){
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
+    commit('resetState');
     commit('setZtree', newTree);
     dispatch('canvas/showCanvasAxes')
   },
@@ -145,7 +149,15 @@ const mutations = {
     nodeUpdate.updateGraph();
     state.updateTree = !state.updateTree;
   },
+
+  resetState(state) {
+    // Merge rather than replace so we don't lose observers
+    // https://github.com/vuejs/vuex/issues/1118
+    Object.assign(state, getDefaultState())
+  }
 }
+
+export{Ztree}
 
 export default createStore({
   modules: {

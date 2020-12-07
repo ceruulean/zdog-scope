@@ -21,12 +21,27 @@
             type="text"
             autocomplete="off"
             autocorrect="off"
-            :placeholder="selectedNode['assignedName']"
+            :placeholder="selectedAllProps['assignedName']"
           >
         </label>
       </div>
       <div class="row">
-        <InputVector
+        <label
+          v-for="(val, prop) in selectedAllProps"
+          :key="prop"
+          class="field"
+          :for="prop"
+        >
+          {{ capitalize(prop) }}:
+          <input 
+            v-model="wipOptions[prop]"
+            type="text"
+            autocomplete="off"
+            :placeholder="toString(val)"
+            :name="prop"
+          >
+        </label>
+        <!-- <InputVector
           v-for="prop in vectorProps"
           :id="`v_${prop}`"
           :key="prop"
@@ -35,10 +50,10 @@
           @send-coords="updateVectorProp(prop, $event)"
         >
           {{ capitalize(prop) }}
-        </InputVector>
+        </InputVector> -->
       </div>
       <div class="row">
-        <label
+        <!-- <label
           v-for="prop in numProps"
           :key="prop"
           class="field"
@@ -63,10 +78,10 @@
           :color="selectedNode[prop]"
           @update="updateColor(prop, $event)"
           />
-        </label>
+        </label> -->
       </div>
       <div class="row">
-        <label
+        <!-- <label
           v-for="prop in boolProps"
           :key="prop"
           class="field"
@@ -91,7 +106,7 @@
             :threeD="isThreeD"
             :checked="selectedNode.backface"
             @update="updateColor('backface', $event)"
-            />
+            /> -->
       </div>
       <button @click="saveProps">
         Apply Changes
@@ -106,16 +121,18 @@ import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
 import StringHelper from '../StringHelperMixin'
 
-import InputVector from './controls/InputVector'
-import ColorPicker from './controls/ColorPicker'
-import Backface from './controls/Backface'
+// import InputVector from './controls/InputVector'
+// import ColorPicker from './controls/ColorPicker'
+// import Backface from './controls/Backface'
+// import Input from './controls/input'
 
 export default {
   name: 'PropertyPanel',
   components:{
-    InputVector,
-    ColorPicker,
-    Backface
+    // InputVector,
+    // ColorPicker,
+    // Backface,
+    // Input
   },
   mixins:[StringHelper],
 
@@ -127,6 +144,9 @@ export default {
       ],
       wipTooltip:null,
     }
+  },
+  mounted(){
+    this.wipOptions = this.selectedAllProps;
   },
   computed:{
     ...mapState([

@@ -1,3 +1,5 @@
+import {Ztree} from '../index'
+
 import {
   axesHelper,
   // rotationHelper,
@@ -8,13 +10,14 @@ import {
   // clearColor,drawRaw,zoomable
 } from '../../canvasHelpers'
 
+/* eslint-disable no-unused-vars */
+
+var selectedAxes, canvasAxes, camera
+
 const state = {
   settings:{
     backgroundColor: "#808080"
   },
-  selectedAxes:null,
-  canvasAxes:null,
-  camera:null
 }
 // Getter functions
 const getters = {
@@ -30,18 +33,16 @@ const actions = {
     commit('setSetting', payload)
   },
 
-  showCanvasAxes({commit, rootGetters}){
-    let illo = rootGetters.Ztree.illustration;
-
-    let c = new Camera(illo);
-
-    commit('setCanvasAxes', {axes: axesHelper({addTo: illo, size:999, stroke:1, head:null}), camera: c});
+  showCanvasAxes(){
+    let illo = Ztree.illustration;
+    camera = new Camera(illo);
+    canvasAxes = axesHelper({addTo: illo, size:999, stroke:1, head:null})
     illo.updateRenderGraph()
   },
 
-  showSelectedAxes({commit, rootState}){
+  showSelectedAxes({rootState}){
     if (state.selectedAxes) {
-      state.selectedAxes.remove();
+      selectedAxes.remove();
     }
 
     let n = rootState.selected.node;
@@ -53,20 +54,20 @@ const actions = {
       size: si,
       head: he
     })
-    n.addChild(a);
-    commit('setSelectedAxes', a)
+    n.addChild(a)
+    selectedAxes = a
   },
 
-  clearSelectedAxes({commit, state}){
-    if (state.selectedAxes) {
-      state.selectedAxes.remove();
+  clearSelectedAxes(){
+    if (selectedAxes) {
+      selectedAxes.remove();
     }
-    commit('setSelectedAxes', null)
+    selectedAxes = null;
   },
 
-  clearCanvasAxes({commit, state}){
-    state.canvasAxes.remove();
-    commit('setCanvasAxes', null)
+  clearCanvasAxes(){
+    canvasAxes.remove();
+    canvasAxes = null;
   }
 }
 
@@ -74,19 +75,6 @@ const actions = {
 const mutations = {
   setSetting(state, {name, value}){
     state.setting[name] = value;
-  },
-
-  setSelectedAxes(state, payload){
-    state.selectedAxes = payload;
-  },
-
-  setCanvasAxes(state, {axes, camera}){
-    if (!axes) {
-      state.canvasAxes = null
-      return
-    }
-    state.camera = camera;
-    state.canvasAxes = axes;
   },
 
 }
