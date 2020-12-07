@@ -40,12 +40,12 @@ const actions = {
     illo.updateRenderGraph()
   },
 
-  showSelectedAxes({rootState}){
+  showSelectedAxes({rootState, rootGetters}){
     if (state.selectedAxes) {
       selectedAxes.remove();
     }
 
-    let n = rootState.selected.node;
+    let n = rootGetters.selectedNode;
     if (rootState.selected.id == rootState.illustration) return;
 
     let si = (n.stroke && n.stroke > 5)? n.stroke * 2 : 10; // minimum size length 10

@@ -74,11 +74,6 @@ export default {
     }
   },
   computed:{
-    // ...mapState({
-    //   selectedid(state){
-    //     return (state.selected.id)
-    //   }
-    // }),
     illustration(){
       return this.$store.state.illustration
     },

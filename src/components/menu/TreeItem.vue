@@ -121,7 +121,7 @@ export default {
   },
   methods:{
     ...mapActions({
-      changeSelectedName:'changeSelectedName', //newName
+      changeSelectedName:'treeview/changeSelectedName', //newName
       changeSelected:'changeSelected', //{node: obj, element: element}
       startDrag:'treeview/startDrag',
       stopDrag:'treeview/stopDrag'
@@ -157,7 +157,8 @@ export default {
     },
     finishEditAssignedName(newVal){
       if (!newVal) return
-      this.changeSelectedName(newVal)
+      let p = {newName:newVal, treeNode:this.node}
+      this.changeSelectedName(p)
     },
     highlight(){
       let payload = {id: this.node.id,

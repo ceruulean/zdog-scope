@@ -31,8 +31,7 @@
       @changev="tooltipChange('z', $event)"
       />
   </div>
-  <div
-    v-else
+  <div v-else
     class="input-vector"
   >
     <div class="title">
@@ -117,6 +116,7 @@ export default {
   },
   computed:{
     defaultVal(){
+
       let d = this.default
       if (typeof d == 'string') {
         d = JSON.parse(d)

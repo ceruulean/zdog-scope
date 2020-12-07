@@ -121,11 +121,12 @@ const state = {
 }
 // Getter functions
 const getters = {
-
-  selectedAllProps(state, getters, rootState){
-
-    if (rootState.selected.node) {
-      let o = Ztree.nodeProps(rootState.selected.node);
+  selectedAllProps(state, getters, rootState, rootGetters){
+    return rootGetters.selectedNode.constructor.optionKeys
+  },
+  selectedOptions(state, getters, rootState, rootGetters){
+    if (rootState.selected.id) {
+      let o = Ztree.constructor.getProps(rootGetters.selectedNode);
       return o
     }
     return
@@ -141,8 +142,8 @@ const getters = {
       return COLOR_PROPS.includes(prop);
     })
   },
-  vectorProps(state, getters){
-    return getters.selectedAllProps.filter((prop)=>{
+  vectorProps(state, getters, rootState, rootGetters){
+    return rootGetters.selectedNode.constructor.optionKeys.filter((prop)=>{
       return VECTOR_PROPS.includes(prop);
     })
   },
@@ -178,26 +179,28 @@ const getters = {
 // Actions 
 const actions = {
 
-  changeSelectedProps({commit, rootState}, incomingOptions){
-    let payload = {
-      node: rootState.selected.node,
-      options: Object.assign({}, incomingOptions)
-    }
+  changeSelectedProps({rootGetters}, incomingOptions){
+    let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
 
     let props = Object.keys(incomingOptions)
     for(let prop of props) {
       
       if (NUM_PROPS.includes(prop)){
-        payload.options[prop] = Number(payload.options[prop]);
+        options[prop] = Number(options[prop]);
       }
     }
 
-    commit('setNodeProps', payload, {root:true})
+      for (let o in options){
+        node[o] = options[o]
+      }
+      node.updateGraph();
+  
+     // dispatch('setNodeProps', payload, {root:true})
   },
 
-  update({commit, rootState}, incomingOptions){
+  update({commit, rootGetters}, incomingOptions){
     let payload = {
-      node: rootState.selected.node,
+      node: rootGetters.selectedNode,
       options: incomingOptions
     }
     commit('setNodeProps', payload, {root:true})

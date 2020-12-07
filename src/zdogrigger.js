@@ -231,6 +231,11 @@ function ZdogFilterProps(ZdogItem){
     result[prop] = strin(prop);
   })
 
+  if (type == 8){
+      //illustration element prop set to a selector
+     result.element = '.zdog-canvas';
+  }
+
   // //Assign anchor props
   // if (type != 0 && type != 13 && type != 4) {
   //   recordProps = CREATE_PROPS['anchor']
@@ -514,7 +519,7 @@ class Ztree{
     return [this.trimNode(this.illustration)]
   }
 
-  nodeProps(node){
+  static getProps(node){
     let props = node.constructor.optionKeys.filter(option=>{
       return !CYCLIC_PROPS.includes(option)
     })
@@ -522,6 +527,11 @@ class Ztree{
     for (let p of props){
       o[p] = node[p]
     }
+    Object.assign(o, {
+      assignedName: node.assignedName,
+      assignedType: node.assignedType,
+      id: node.id
+    })
     return o;
   }
 

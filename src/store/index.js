@@ -31,11 +31,9 @@ const getDefaultState = () => ({
   selected:{
     id:null,
     element:null,
-    node:null
   },
   illustration:null,
   treeLoaded:false,
-  selectedNode:null
 })
 
 const state = getDefaultState()
@@ -49,7 +47,7 @@ const getters = {
   },
   selectedNode(state){
     if (!state.selected.id) return null;
-    return state.selected.node
+    return Ztree.find(state.selected.id)
   },
 }
 
@@ -126,7 +124,6 @@ const mutations = {
   setSelected(state, {id, element}){
     state.selected.id = id;
     state.selected.element = element;
-    state.selected.node = (id? Ztree.find(id) : null);
   },
 
   setAssignedName(state, newName){
@@ -141,12 +138,6 @@ const mutations = {
       node[o] = options[o]
     }
     node.updateGraph();
-    state.updateTree = !state.updateTree;
-  },
-
-  setNodeParent(state, {id, newParentId}){
-    let nodeUpdate = Ztree.changeParent(id, newParentId);
-    nodeUpdate.updateGraph();
     state.updateTree = !state.updateTree;
   },
 
