@@ -14,8 +14,7 @@ Built with [Vue 3](https://v3.vuejs.org/)
 ## Done
 - Import/Export JSON
 - Tree view of objects w/ draggable sort
-- Assign name (double click on treeview)
-- Edit properties window, sliders for rotation, colorpicker
+- Assign name and edit properties
 - Zoom and pan controls
 
 ## Todo
@@ -36,6 +35,11 @@ Built with [Vue 3](https://v3.vuejs.org/)
 
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.jpg)
+
+## Controls
+Zoom: Mousewheel
+Panning: Shift + drag or MMB + drag
+Rotate: Click + drag
 
 ## Project setup
 ```

@@ -8,56 +8,71 @@ import canvas from './modules/canvas'
 const debug = process.env.NODE_ENV !== 'production'
 
 import {Zdogger} from '../zdogrigger'
-//import{zoomable} from '../canvasHelpers'
 
 
+var Ztree = null;
+
+function newZtree(arg){
+  if (arg instanceof Zdogger.Tree) {
+    Ztree = arg
+  } else if (arg.options) {
+    Ztree = new Zdogger.Tree(arg.options)
+    if (arg.assignedName) {
+      Ztree.illustration.assignedName = arg.assignedName;
+    }
+  } else {
+    Ztree = new Zdogger.Tree({});
+  }
+}
 /**
  *  GLOBALS
  */
 const state = () => ({
-  Ztree:null,
   selected:{
     id:null,
-    element:null
+    element:null,
+    node:null
   },
-  updateTree:false,
-  animate:null,
+  illustration:null,
+  treeLoaded:false,
+  selectedNode:null
 })
 
 // getters
 const getters = {
-  illustration(state){
-    if (!state.Ztree) return null;
-    return state.Ztree.illustration;
-  },
-  Zrelations(state){
-    if (!state.Ztree) return null;
-    return state.Ztree.relationSet;
+  Zrelations(){
+    if (!Ztree) return null;
+    return Ztree.relationSet;
   },
   selectedNode(state){
-    if (!state.Ztree) return null;
-    return state.Ztree.find(state.selected.id)
+    if (!state.selected.id) return null;
+    return state.selected.node
+  },
+  Ztree(){
+    return Ztree;
   },
 }
 
 // actions
 const actions = {
 
-  newIllustration({commit}, payload){
+  newIllustration({commit, dispatch}, payload){
     if (!payload) { payload = {}}
     commit('setZtree', payload)
+    dispatch('canvas/showCanvasAxes')
   },
 
-  demoJSON({commit}, payload){
+  demoJSON({commit, dispatch}, payload){
     let reader = new Zdogger.Reader(payload);
     commit('setZtree', reader.Ztree)
+    dispatch('canvas/showCanvasAxes')
   },
 
-  newZdogObject({commit, state}, {type, options, assignedName}){
+  newZdogObject({commit}, {type, options, assignedName}){
     if(options.addTo){
-      options.addTo = state.Ztree.find(options.addTo);
+      options.addTo = Ztree.find(options.addTo);
     } else {
-      options.addTo = state.Ztree.illustration
+      options.addTo = Ztree.illustration
     }
     let newO = Zdogger(type)(options);
     if (assignedName) {newO.assignedName = assignedName}
@@ -74,15 +89,16 @@ const actions = {
     commit('setSelected', {id, element});
   },
 
-  exportTree({state}){
+  exportTree(){
     //save current ztree TODO
-    state.Ztree.download();
+    Ztree.download();
   },
 
-  async importTree({commit}){
+  async importTree({commit, dispatch}){
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
     commit('setZtree', newTree);
+    dispatch('canvas/showCanvasAxes')
   },
 }
 
@@ -90,43 +106,28 @@ const actions = {
 const mutations = {
 
   setZtree(state, arg){
-    if (arg instanceof Zdogger.Tree) {
-      state.Ztree = arg
-    } else if (arg.options) {
-      state.Ztree = new Zdogger.Tree(arg.options)
-      if (arg.assignedName) {
-        state.Ztree.illustration.assignedName = arg.assignedName;
-      }
-    } else {
-      state.Ztree = new Zdogger.Tree({});
-    }
-
-   // zoomable(state.Ztree.illustration, {zoomSpeed:0.01});
+    if (!arg) state.illustration = null
+    newZtree(arg)
+    state.illustration = Ztree.illustration.id
     state.updateTree = !state.updateTree;
-
-    state.animate = () => {
-      state.Ztree.illustration.updateRenderGraph();
-      requestAnimationFrame(state.animate);
-    }
-
-    state.animate();
   },
 
   addZtreeNode(state, node){
-    if (!state.Ztree) throw new Error('Cannot add node to nonexistent tree');
-    state.Ztree.addNode(node);
-    state.Ztree.illustration.renderGraph(node)
+    if (!Ztree) throw new Error('Cannot add node to nonexistent tree');
+    Ztree.addNode(node);
+    Ztree.illustration.renderGraph(node)
     state.updateTree = !state.updateTree;
   },
   
   setSelected(state, {id, element}){
     state.selected.id = id;
     state.selected.element = element;
+    state.selected.node = (id? Ztree.find(id) : null);
   },
 
   setAssignedName(state, newName){
     if (!state.selected) throw new Error('Cannot assign name to null selected node');
-    state.Ztree.find(state.selected.id)
+    Ztree.find(state.selected.id)
       .assignedName = newName;
       state.updateTree = !state.updateTree;
   },
@@ -136,11 +137,11 @@ const mutations = {
       node[o] = options[o]
     }
     node.updateGraph();
-   // state.updateTree = !state.updateTree;
+    state.updateTree = !state.updateTree;
   },
 
   setNodeParent(state, {id, newParentId}){
-    let nodeUpdate = state.Ztree.changeParent(id, newParentId);
+    let nodeUpdate = Ztree.changeParent(id, newParentId);
     nodeUpdate.updateGraph();
     state.updateTree = !state.updateTree;
   },

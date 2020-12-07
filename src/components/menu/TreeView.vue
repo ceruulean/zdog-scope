@@ -14,7 +14,7 @@
       </div>
     </header>
     <ul
-      v-if="Ztree"
+      v-if="treeView"
       class="tree-bg"
     >
       <TreeItem
@@ -54,7 +54,6 @@ export default {
   },
   computed:{
     ...mapState({
-      Ztree:state => state.Ztree,
       updateTree:'updateTree',
     }),
     treeView: {
@@ -64,16 +63,16 @@ export default {
       set(value) {
         this.$store.dispatch('treeview/changeList', value)
       }
-    }
+    },
   },
   watch:{
     updateTree(){
-      this.treeView = this.$store.getters['treeview/view']
+      this.treeView = this.$store.getters['Ztree'].trimmedView()
     }
   },
   methods:{
     log(){
-      console.log(this.Ztree.nodes)
+      console.log(this.treeView)
     },
   },
 }

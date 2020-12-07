@@ -6,13 +6,7 @@ const state = {
 }
 // Getter functions
 const getters = {
-  getVariable1( state ) {
-     return state.varaible1;
-  },
-  view:(state, getters, rootState) => {
-    if (!rootState.Ztree) return null;
-    return rootState.Ztree.trimmedView();
-  }
+
 }
 // Actions 
 const actions = {

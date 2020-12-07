@@ -119,13 +119,8 @@ const state = {
 }
 // Getter functions
 const getters = {
-  selectedNode(state, getters, rootState, rootGetters){
-    return rootGetters.selectedNode;
-    // if (!rootState.Ztree) return null;
-    // return rootState.Ztree.find(rootState.selected.id)
-  },
-  selectedAllProps(state, getters){
-    let noCyclic = getters.selectedNode.constructor.optionKeys.filter(option=>{
+  selectedAllProps(state, getters, rootState){
+    let noCyclic = rootState.selected.node.constructor.optionKeys.filter(option=>{
       return !CYCLIC_PROPS.includes(option)
     })
     return noCyclic;
@@ -134,7 +129,7 @@ const getters = {
     return (state.validationSuccess == false && state.invalidFields);
   },
   bBlank(state, getters, rootState){
-    return (!rootState.Ztree.illustration || rootState.Ztree.illustration.children.length == 0)
+    return (!rootState.illustration)
   },
   colorProps(state, getters){
     return getters.selectedAllProps.filter((prop)=>{
@@ -178,9 +173,9 @@ const getters = {
 // Actions 
 const actions = {
 
-  changeSelectedProps({commit, getters}, incomingOptions){
+  changeSelectedProps({commit, rootState}, incomingOptions){
     let payload = {
-      node: getters.selectedNode,
+      node: rootState.selected.node,
       options: Object.assign({}, incomingOptions)
     }
 
@@ -188,7 +183,6 @@ const actions = {
     for(let prop of props) {
       
       if (NUM_PROPS.includes(prop)){
-        console.log(prop);
         payload.options[prop] = Number(payload.options[prop]);
       }
     }
@@ -196,9 +190,9 @@ const actions = {
     commit('setNodeProps', payload, {root:true})
   },
 
-  update({commit, getters}, incomingOptions){
+  update({commit, rootState}, incomingOptions){
     let payload = {
-      node: getters.selectedNode,
+      node: rootState.selected.node,
       options: incomingOptions
     }
     commit('setNodeProps', payload, {root:true})

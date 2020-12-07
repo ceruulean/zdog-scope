@@ -228,7 +228,6 @@ export default {
     this.miscProps = this.ALL_PROPS.filter(option=>{
         return !this.mainProps.includes(option)
       })
-      console.log(this.miscProps);
   },
   methods:{
     ...mapActions({
@@ -328,7 +327,7 @@ export default {
       });
     },
     isThreeD(){
-      return this.itemtype == 'cylinder' || this.itemtype == 'box' || this.itemtype == 'hemisphere'
+      return this.itemtype == 'cylinder' || this.itemtype == 'hemisphere'
       || this.itemtype == 'cone'
     }
   },

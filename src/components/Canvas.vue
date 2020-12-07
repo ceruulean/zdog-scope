@@ -15,14 +15,14 @@
   />
 
   <div class="axes-controls" />
-  <div class="zoom-control">
+  <div class="zoom-control" v-if="illustration">
     <figure>{{ zoom }}</figure>
   </div>
 </template>
 
 <script>
 //import {onMounted} from 'vue' // onUpdated, onUnmounted
-import {mapState, mapActions} from 'vuex'
+import {mapState, mapActions, mapGetters} from 'vuex'
 
 /**
  * NOTES
@@ -39,13 +39,11 @@ export default {
     ...mapState({
       settings:state=>state.canvas.settings,
       selected:state=>state.selected,
+      illustration:state=>state.illustration
     }),
-    selectedNode(){
-      return this.$store.getters['selectedNode'];
-    },
-    illustration(){
-      return this.$store.getters['illustration'];
-    },
+    ...mapGetters({
+        selectedNode: 'selectedNode',
+    }),
     width(){
       return window.innerWidth;
     },
@@ -53,9 +51,9 @@ export default {
       return window.innerHeight;
     },
     zoom(){
-      let i = this.$store.getters['illustration'];
+      let i = this.$store.getters['Ztree']
       if (i){
-        return `${Math.round(i.zoom * 100)}%`
+        return `${Math.round(i.illustration.zoom * 100)}%`
       }
       return null;
     }
@@ -68,13 +66,9 @@ export default {
         this.clearSelectedAxes()
       }
     },
-    illustration(){
-      this.showCanvasAxes();
-    }
   },
   methods:{
     ...mapActions('canvas',[
-      'showCanvasAxes',
       'showSelectedAxes',
       'clearSelectedAxes',
       'clearCanvasAxes'

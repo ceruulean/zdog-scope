@@ -130,16 +130,18 @@ export default {
   },
   computed:{
     ...mapState([
-      'selected','Ztree'
+      'selected'
     ]),
     ...mapGetters('properties',[
-      'selectedNode',
       'selectedAllProps',
       'numProps',
       'colorProps',
       'vectorProps',
       'boolProps'
     ]),
+    selectedNode(){
+      return this.$store.getters['selectedNode'];
+    },
     advancedProps(){
       return ADVANCED_PROPERTIES;
     },
@@ -154,7 +156,7 @@ export default {
       return (typeof bf == 'string')
     },
     isThreeD(){
-      return this.selectedTypeName == 'cylinder' || this.selectedTypeName == 'box' || this.selectedTypeName == 'hemisphere'
+      return this.selectedTypeName == 'cylinder' || this.selectedTypeName == 'hemisphere'
       || this.selectedTypeName == 'cone'
     }
   },
@@ -190,11 +192,6 @@ export default {
     closeTooltip(){
       //this.$emit('close-tooltip');
     },
-    log(){
-      //console.table(this.selected);
-      //console.table(this.selected);
-      console.table(this.Ztree.find(this.selected.id));
-    }
   },
 }
 </script>

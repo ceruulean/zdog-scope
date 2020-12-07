@@ -4,6 +4,12 @@ import Zdog from 'zdog'
 
 //Reference reading: https://www.sitepoint.com/building-3d-engine-javascript/
 
+var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                            window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
+
+
 /**
  * Zdog camera
  */
@@ -49,6 +55,7 @@ class Camera{
     window.addEventListener('keydown', this.onkeydown.bind(this))
     window.addEventListener('keyup', this.onkeyup.bind(this))
 
+    this.animReq = null
     this.dragger = new Zdog.Dragger({
       startElement: illoe,
       onDragStart: function(pointer, event) {
@@ -67,6 +74,8 @@ class Camera{
         ctx.onmouseup(event);
       },
     });
+
+    this.animate();
   }
 
   get x(){
@@ -212,22 +221,12 @@ class Camera{
     return delta * (Math.PI * 2) / this.illustration.canvasWidth;
   }
 
-  polarlog(){
-    console.log(`ρ:${this.rho},θ:${this.theta},φ:${this.phi}`)
+  animate = () => {
+    this.illustration.updateRenderGraph();
+    this.animReq = requestAnimationFrame(this.animate);
   }
   
-  cartlog(){
-    console.log(`(${this.x},${this.y},${this.z})`)
-  }
-  
-  rotlog(){
-    console.log(`${toDeg(this.illustration.rotate.x)},${toDeg(this.illustration.rotate.y)},${toDeg(this.illustration.rotate.z)}`)
-  }
 
-}
-
-function toDeg(rads){
-  return Math.round(rads * 180 /  Math.PI);
 }
 
 /** ZDOG HELPERS SAUCE by Mootari:
@@ -563,5 +562,6 @@ export {
   perspectiveHelper,
   gridHelper,gridRectHelper,
   Camera,
+  requestAnimationFrame, cancelAnimationFrame,
 
   clearColor,drawRaw,zoomable}

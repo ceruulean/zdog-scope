@@ -183,6 +183,7 @@ function assignExisting(ZdogItem){
  * @param {Zdog.Illustration} illustration
  */
 function importExisting(illustration){
+  console.log('existing')
   let copy = illustration.copyGraph();
   assignExisting(copy);
   return copy;

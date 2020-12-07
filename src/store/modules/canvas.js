@@ -8,7 +8,6 @@ import {
   // clearColor,drawRaw,zoomable
 } from '../../canvasHelpers'
 
-
 const state = {
   settings:{
     backgroundColor: "#808080"
@@ -19,9 +18,9 @@ const state = {
 }
 // Getter functions
 const getters = {
-  illustration(state, getters, rootState){
-    if (!rootState.Ztree) return null;
-    return rootState.Ztree.illustration;
+  zoom(state){
+    if (!state.camera) return
+    return state.camera.zoom
   }
 }
 // Actions 
@@ -32,19 +31,21 @@ const actions = {
   },
 
   showCanvasAxes({commit, rootGetters}){
-    let illo = rootGetters.illustration;
-    commit('setCanvasAxes', rootGetters.illustration);
-    axesHelper({addTo: illo, size:999, stroke:1, head:null})
-    illo.updateGraph();
+    let illo = rootGetters.Ztree.illustration;
+
+    let c = new Camera(illo);
+
+    commit('setCanvasAxes', {axes: axesHelper({addTo: illo, size:999, stroke:1, head:null}), camera: c});
+    illo.updateRenderGraph()
   },
 
-  showSelectedAxes({commit, rootGetters}){
+  showSelectedAxes({commit, rootState}){
     if (state.selectedAxes) {
       state.selectedAxes.remove();
     }
 
-    let n = rootGetters.selectedNode;
-    if (n == rootGetters.illustration) return;
+    let n = rootState.selected.node;
+    if (rootState.selected.id == rootState.illustration) return;
 
     let si = (n.stroke && n.stroke > 5)? n.stroke * 2 : 10; // minimum size length 10
     let he = (si < 10)? 2 : si / 10; // minimum head 2
@@ -79,13 +80,13 @@ const mutations = {
     state.selectedAxes = payload;
   },
 
-  setCanvasAxes(state, payload){
-    if (!payload) {
+  setCanvasAxes(state, {axes, camera}){
+    if (!axes) {
       state.canvasAxes = null
       return
     }
-    state.camera = new Camera(payload);
-    state.canvasAxes = payload;
+    state.camera = camera;
+    state.canvasAxes = axes;
   },
 
 }

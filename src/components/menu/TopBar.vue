@@ -52,7 +52,6 @@
 <script>
 //import Zdog from 'zdog'
 import {mapActions} from 'vuex'// mapActions 
-
 import {ZDOG_CLASS_NAME} from '../../zdogrigger'
 
 import Modal from '../Modal.vue'
@@ -81,9 +80,10 @@ export default {
     //   }
     // }),
     illustration(){
-      return this.$store.getters.illustration;
+      return this.$store.state.illustration
     },
     hasIllustration() {
+      console.log(this.illustration);
     return (this.illustration !== null && this.illustration !== undefined)
     },
     creatables(){
@@ -134,8 +134,9 @@ export default {
       }
     },
     demo(){
-    let testmodel = require('../../testmodel').default;
-    this.demoJSON(testmodel);
+   // let testmodel = require('../../testmodel2').default;
+    // JSON.stringify(hauntedhouse)
+    // this.demoJSON(hauntedhouse);
     }
   },
 }

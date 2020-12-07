@@ -100,7 +100,6 @@ export default {
   computed:{
     ...mapState({
       selectedid:state => state.selected.id,
-      Ztree: 'Ztree',
       updateTree:'updateTree'
     }),
     selectItem(){
@@ -108,9 +107,6 @@ export default {
     },
     isSelected(){
       return (this.selectedid && this.selectedid == this.node.id)
-    },
-    ZdogObject(){
-      return this.Ztree.find(this.node.id);
     },
     hasChildren(){
       return (this.node.children && this.node.children.length > 0)

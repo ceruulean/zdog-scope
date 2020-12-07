@@ -12,14 +12,14 @@
         class="split-column tree-view
           user-select-none"
       >
-        <TreeView />
+        <TreeView/>
       </div>
       <div
         ref="gutter1"
         class="gutter-column-1"
       />
-      <div class="split-column">
-        <Canvas ref="refCanvas" />
+      <div class="split-column" ref="canvasWrapper">
+        <Canvas />
       </div>
       <div
         ref="gutter2"
@@ -58,6 +58,7 @@ export default {
     const gutter1 = ref(null);
     const gutter2 = ref(null);
 
+
     onMounted(()=>{
         window.split = Split({
         columnGutters: [{
@@ -67,12 +68,17 @@ export default {
           track: 3,
           element: gutter2.value,
         }],
+        // onDragEnd: (/*direction, track*/) => {
+        //   resize.value = true;
+        //   resize.value = false;
+        // }
       /**Horizontal gutters */
         // rowGutters: [{
         //   track: 1,
         //   element: this.$refs.menuPropertyPanel,
         // }]
       })
+
     })
 
     return {
