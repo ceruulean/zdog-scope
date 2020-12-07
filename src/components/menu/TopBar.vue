@@ -1,5 +1,8 @@
 <template>
   <div class="toolbar row">
+    <button @click="settings">
+      Settings
+    </button>
     <button @click="exportTree">
       Export
     </button>
@@ -47,6 +50,14 @@
       Cancel
     </button>
   </Modal>
+  <Modal
+    v-if="bSettings"
+    @close="cancelPrompt"
+  >
+  <Settings
+    @close-prompt="cancelPrompt"
+  />
+  </Modal>
 </template>
 
 <script>
@@ -56,12 +67,14 @@ import {ZDOG_CLASS_NAME} from '../../zdogrigger'
 
 import Modal from '../Modal.vue'
 import Creation from '../Creation.vue'
+import Settings from './Settings.vue'
 
 export default {
   name: 'TopBar',
   components:{
   Modal,
   Creation,
+  Settings
   },
   emits: ['create-new'],
 
@@ -70,7 +83,8 @@ export default {
       bImporting:false,
       creationItemType: null,
       bWarning:false,
-      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME
+      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME,
+      bSettings:false
     }
   },
   computed:{
@@ -86,6 +100,9 @@ export default {
       return c.filter(name=>{
         return name != "dragger"
       })
+    },
+    currentSettings(){
+      return this.$store.state.canvas.settings
     }
   },
   methods:{
@@ -112,6 +129,7 @@ export default {
     cancelPrompt(){
       this.creationItemType = null;
       this.bWarning = false;
+      this.bSettings = false;
     },
     closeWarning(){
       this.bWarning = false;
@@ -131,6 +149,15 @@ export default {
     demo(){
     let testmodel = require('../../testmodel').default;
     this.demoJSON(testmodel);
+    },
+    settings(){
+      this.bSettings = true;
+    },
+    saveSettings(){
+      this.$store.state.canvas
+    },
+    defaultSettings(){
+
     }
   },
 }

@@ -121,9 +121,6 @@ const state = {
 }
 // Getter functions
 const getters = {
-  show(state, getters, rootState){
-    return (rootState.selected.id != null)
-  },
   selectedAllProps(state, getters, rootState, rootGetters){
     return rootGetters.selectedNode.constructor.optionKeys
   },
@@ -184,6 +181,9 @@ const actions = {
 
   updateProps({rootGetters}, incomingOptions){
     let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
+    
+    delete options['assignedType']
+    delete options['id']
 
     let props = Object.keys(incomingOptions)
     for(let prop of props) {

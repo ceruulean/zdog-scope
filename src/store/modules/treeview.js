@@ -4,7 +4,8 @@ import {Ztree} from '../index'
 // State object
 const getDefaultState = () => ({
   list: [],
-  blockIds:[]
+  blockIds:[],
+  selectedListNode:null
 })
 
 const state = getDefaultState();
@@ -41,6 +42,18 @@ const actions = {
         treeNode.assignedName = newName
   },
 
+  saveSelected({commit}, treeNode){
+    commit('setSelectedList', treeNode)
+  },
+
+  clearSelected({commit}){
+    commit('setSelectedList', null)
+  },
+
+  updateSelectedName({state}, newName){
+    state.selectedListNode.assignedName = newName
+  },
+
   resetView({commit}){
     commit('resetState')
   }
@@ -55,6 +68,10 @@ const mutations = {
 
   setDragging(state, blockIds){
     state.blockIds = blockIds;
+  },
+
+  setSelectedList(state, payload){
+    state.selectedListNode = payload
   },
 
   resetState(state) {

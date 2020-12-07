@@ -16,12 +16,20 @@ var selectedAxes, canvasAxes, camera
 
 const state = {
   settings:{
-    backgroundColor: "#808080"
+    backgroundColor: "#808080",
+    camera:{
+      panInverse:false,
+      zoomSpeed:3,
+      panSpeed:30
+    }
   },
-  camera:null
 }
 // Getter functions
 const getters = {
+  label(){
+    if (!camera) return null
+    return camera.label
+  }
 }
 // Actions 
 const actions = {
@@ -30,12 +38,15 @@ const actions = {
     commit('setSetting', payload)
   },
 
-  showCanvasAxes({commit}){
+  async showCanvasAxes({dispatch, state}){
+    await dispatch('clearCanvasAxes')
     let illo = Ztree.illustration;
-    camera = new Camera(illo);
+    camera = new Camera(illo, state.settings.camera);
+
+    //Append zoom % label to dom element
+    document.querySelector('#zoom-control').appendChild(camera.label)
     canvasAxes = axesHelper({addTo: illo, size:999, stroke:1, head:null})
     illo.updateRenderGraph()
-    commit('setCamera')
   },
 
   showSelectedAxes({rootState, rootGetters}){
@@ -64,7 +75,11 @@ const actions = {
   },
 
   clearCanvasAxes(){
-    canvasAxes.remove();
+    if (canvasAxes){
+      canvasAxes.remove();
+      document.querySelector('#zoom-control').removeChild(camera.label)
+      camera.destroy();
+    }
     canvasAxes = null;
   }
 }
@@ -74,10 +89,6 @@ const mutations = {
   setSetting(state, {name, value}){
     state.setting[name] = value;
   },
-
-  setCamera(state){
-    state.camera = camera
-  }
 
 }
 

@@ -66,7 +66,7 @@ const actions = {
     dispatch('canvas/showCanvasAxes')
   },
 
-  newZdogObject({commit}, {type, options, assignedName}){
+  newZdogObject({commit, dispatch}, {type, options, assignedName}){
     if(options.addTo){
       options.addTo = Ztree.find(options.addTo);
     } else {
@@ -75,14 +75,19 @@ const actions = {
     let newO = Zdogger(type)(options);
     if (assignedName) {newO.assignedName = assignedName}
     commit('addZtreeNode', newO);
+    dispatch('treeview/changeList');
   },
 
-  changeSelected({commit, state}, {id, element}){
+  changeSelected({commit, dispatch, state}, {id, element}){
     //click handler here?
     if (state.selected.id == id) return;
     let existing = state.selected.element;
     if (existing) existing.classList.remove('highlight')
-    if (id) element.classList.add('highlight')
+    if (id) {
+      element.classList.add('highlight')
+    } else {
+      dispatch('treeview/clearSelected')
+    }
     commit('setSelected', {id, element});
   },
 

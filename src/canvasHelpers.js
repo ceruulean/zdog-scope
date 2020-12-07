@@ -14,10 +14,12 @@ var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimat
  * Zdog camera
  */
 class Camera{
-  /**
-   * Creates a camera object that allows panning/zooming
-   * @param {Zdog.Illustration} illustration 
-   */
+/**
+ * Creates a camera object that allows panning/zooming
+ * @param {Zdog.Illustration} illustration 
+ * @param {*} options 
+ * @param {} zoomLabelEle HTML query selector to display zoom
+ */
   constructor(illustration, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
     this.illustration = illustration;
     let illoe = illustration.element;
@@ -80,6 +82,21 @@ class Camera{
         ctx.onmouseup(event);
       },
     });
+
+    this.label = document.createElement('span')
+    this.label.innerText = `${Math.round(this.zoom * 100)}%`
+
+    // console.log(illustration)
+    // illustration.onPrerender = function(canvastx){
+    //   let text = `${Math.round(this.zoom * 100)}%`
+    //   //ctx.strokeText(text, x, y [, maxWidth])
+    //  if (illustration.centered){
+    //   let y = ctx.illustration.canvasHeight / -2
+
+    //   canvastx.strokeText(text, 0, y)
+    //  }
+
+    // }
 
     this.animate();
   }
@@ -184,6 +201,7 @@ class Camera{
     const z0 = this.rho, z = z0 + event.deltaY * this.zoomSpeed;
     this.rho = Math.max(0.1, z);
     this.illustration.zoom = this.zoom;
+    this.label.innerText = `${Math.round(this.zoom * 100)}%`
   }
 
   onkeydown(event){

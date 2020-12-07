@@ -21,7 +21,8 @@
             type="text"
             autocomplete="off"
             autocorrect="off"
-            :placeholder="selectedOptions['assignedName']"
+            :placeholder="selectedName"
+            @change="updateName"
           >
         </label>
       </div>
@@ -116,7 +117,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters} from 'vuex'// mapActions  mapGetters,
+import { mapState, mapGetters, mapActions} from 'vuex'// mapActions  mapGetters,
 import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
 import StringHelper from '../StringHelperMixin'
@@ -161,6 +162,10 @@ export default {
     selectedNode(){
       return this.$store.getters['selectedNode'];
     },
+    selectedName(){
+      if (!this.$store.state.treeview.selectedListNode) return;
+      return this.$store.state.treeview.selectedListNode.assignedName
+    },
     advancedProps(){
       return ADVANCED_PROPERTIES;
     },
@@ -182,24 +187,24 @@ export default {
   watch:{
     selectedNode(){
       this.wipOptions = this.selectedOptions
+    },
+    selectedName(newVal){
+      this.wipOptions.assignedName = newVal
     }
   },
   methods:{
-    toString(object){
-      return JSON.stringify(object);
-    },
-    capitalize(string){
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    },
+    ...mapActions('properties',[
+      'updateProps'
+    ]),
     saveProps(e){
       e.preventDefault();
-      this.$store.dispatch('properties/updateProps', this.wipOptions)
+      this.updateProps(this.wipOptions)
       this.wipOptions = {};
     },
     updateColor(prop, newColor){
       let o = {}
       o[prop] = newColor
-      this.$store.dispatch('properties/updateProps', o)
+      this.updateProps(o)
     },
     updateVectorProp(prop, data){
       let temp = Object.assign({}, this.selectedNode[prop]);
@@ -207,7 +212,12 @@ export default {
       this.wipOptions[prop] = temp;
       let o = {}
       o[prop] = temp;
-      this.$store.dispatch('properties/updateProps', o)
+      this.updateProps(o)
+    },
+    updateName(){
+      let newName = this.wipOptions['assignedName'];
+      this.$store.dispatch('treeview/updateSelectedName', newName);
+      this.updateProps({assignedName:newName})
     },
     closeTooltip(){
       //this.$emit('close-tooltip');

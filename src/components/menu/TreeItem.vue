@@ -123,6 +123,7 @@ export default {
     ...mapActions({
       changeSelectedName:'treeview/changeSelectedName', //newName
       changeSelected:'changeSelected', //{node: obj, element: element}
+      saveSelected:'treeview/saveSelected',
       startDrag:'treeview/startDrag',
       stopDrag:'treeview/stopDrag'
     }),
@@ -166,6 +167,7 @@ export default {
        }
       if (this.selectedid == this.node.id) {return}
       this.changeSelected(payload)
+      this.saveSelected(this.node)
     },
     toggleCollapse(e){
       e.preventDefault();
@@ -230,7 +232,8 @@ export default {
 .tree-item .index p{
   margin:0;
   padding:0;
-  width:3ch;
+  padding-left:1ch;
+  max-width:5ch;
   font-size:0.9rem;
   color:var(--colorMain);
 }

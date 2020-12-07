@@ -5,7 +5,6 @@
     :width="width"
     :height="height"
     :style="{backgroundColor:settings.backgroundColor}"
-    @click="clickHandler"
   />
 
   <canvas
@@ -15,8 +14,7 @@
   />
 
   <div class="axes-controls" />
-  <div class="zoom-control" v-if="illustration">
-    <figure>{{ zoom }}%</figure>
+  <div id="zoom-control">
   </div>
 </template>
 
@@ -34,17 +32,16 @@ import {mapState, mapActions, mapGetters} from 'vuex'
 
 export default {
   name: 'Canvas',
-  data(){
-    return{
-      zoomDisplay:null
-    }
-  },
+  // data(){
+  //   return{
+  //     zoomDisplay:null
+  //   }
+  // },
   computed:{
     ...mapState({
       settings:state=>state.canvas.settings,
       selected:state=>state.selected,
       illustration:state=>state.illustration,
-      camera:state=>state.canvas.camera
     }),
     ...mapGetters({
         selectedNode: 'selectedNode',
@@ -111,7 +108,7 @@ export default {
   display:none;
 }
 
-.zoom-control{
+#zoom-control{
   position:absolute;
   bottom:0;
 }
