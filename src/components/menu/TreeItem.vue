@@ -158,8 +158,7 @@ export default {
     },
     finishEditAssignedName(newVal){
       if (!newVal) return
-      let p = {newName:newVal, treeNode:this.node}
-      this.changeSelectedName(p)
+      this.changeSelectedName(newVal)
     },
     highlight(){
       let payload = {id: this.node.id,

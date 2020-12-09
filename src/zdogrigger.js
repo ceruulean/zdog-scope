@@ -312,11 +312,18 @@ class ZtreeReader{
 
   /**
    * Revives a JSON file to a Ztree and returns a new Ztree
-   * @param {String} JSONstring 
+   * @param {*} JSONstring 
    */
   reviveTree(JSONstring){
     //parse arg into a Ztree
-    let objecT = JSON.parse(JSONstring, ZtreeReader.revivePlain);
+    let objecT = JSONstring
+    if (typeof JSONstring == 'string'){
+      objecT = JSON.parse(JSONstring, ZtreeReader.revivePlain);
+    } else {
+      objecT.nodes = objecT.nodes.map(plain=>{
+        return reviveZdog(plain)
+      })
+    }
     let maP = new Map()
     objecT.nodes.forEach(node=>{
       maP.set(node.id, node);
@@ -326,6 +333,7 @@ class ZtreeReader{
     })
     this.Ztree.nodeMap = maP;
     //set relations, each relation is {parent:'parentid', children:[array of childids]}
+    this.Ztree.relationMap = new Map();
     for(var r of objecT.relations){
       let parent = maP.get(r.parent);
       let set = new Set(r.children.map(id=>{
@@ -334,7 +342,6 @@ class ZtreeReader{
         return id;
       }));
       this.Ztree.relationMap.set(r.parent, set);
-      
     }
 
     return this.Ztree;
@@ -536,9 +543,9 @@ class Ztree{
   }
 
   /**
-   * Returns a JSON string of the tree
+   * Returns a clone of the tree object
    */
-  _JSON(){
+  _clone(){
     let {illustration, nodeMap, relationMap} = this;
 
     let result = {
@@ -553,22 +560,51 @@ class Ztree{
       })
     }
 
-    return JSON.stringify(result);
+    return result
+  }
+
+  /**
+   * Returns a JSON string of the tree
+   */
+  _JSON(){
+    return JSON.stringify(this._clone());
   }
 
   addNode(ZdogItem){
     this.flatten(ZdogItem);
   }
+
+  _addRelation(parentId, childIds){
+    let newSet = this.relationMap.get(parentId)
+    if (!newSet) {
+      newSet = new Set()
+    } 
+    for (let id in childIds){
+      newSet.add(id);
+    }
+    this.relationMap.set(parentId, newSet);
+  }
   //can be id string or the object itself
   removeNode(node){
     let id = Ztree._nodeID(node);
-    this.nodeMap.delete(id);
+    if (id == this.illustration.id) throw new Error('Cannot delete root')
+
+    //put children to parent node
+    let parent = node.addTo
+    node.children.map(child=>{
+      child.remove();
+      parent.addChild(child);
+    })
+    //update Map
+    this._addRelation(this.relationMap.get(parent.id), [...this.relationMap.get(id)])
 
     //remove record of relations
     this.relationMap.delete(id);
     this.relationMap.forEach(childSet=>{
       childSet.delete(id);
     })
+    //update Map
+    this.nodeMap.delete(id);
   }
 //id of the node to be adopted
   changeParent(id, newParentId){
@@ -578,13 +614,7 @@ class Ztree{
 
     //remove child from set record
     this.relationMap.get(oldParentNode.id).delete(id)
-    let newSet = this.relationMap.get(newParentId)
-    if (!newSet) {
-      newSet = new Set([id])
-      this.relationMap.set(newParentId, newSet);
-    } else {
-      newSet.add(id);
-    }
+    this._addRelation(newParentId, [id])
 
     if (oldParentNode){
       oldParentNode.removeChild(childnode);
@@ -645,19 +675,6 @@ class Ztree{
     //   throw new Error('Invalid argument, must be string or zdog Object')
     // }
     return ID
-  }
-
-//Parentless nodes
-  get orphans(){
-    return this.nodes.filter((node)=>{
-      return !node.addTo
-    })
-  }
-
-  get orphanNodes(){
-    return this.nodes.filter((node)=>{
-      return !node.addTo
-    })
   }
 
   getChildNodes(node){

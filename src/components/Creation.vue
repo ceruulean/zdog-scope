@@ -231,7 +231,7 @@ export default {
   },
   methods:{
     ...mapActions({
-        newZdogObject:'newZdogObject', //argument should be in format {type:int, options:{}}
+        newZdogObject:'history/newZdog', //argument should be in format {type:int, options:{}}
         validateFields:'properties/validateFields',
         newIllustration:'newIllustration'
     }),

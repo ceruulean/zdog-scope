@@ -5,16 +5,14 @@ import {
   // rotationHelper,
   // perspectiveHelper,
   // gridHelper,gridRectHelper,
-  Camera
-  
   // clearColor,drawRaw,zoomable
 } from '../../canvasHelpers'
 
 /* eslint-disable no-unused-vars */
 
-var selectedAxes, canvasAxes, camera
+var selectedAxes, canvasAxes
 
-const state = {
+const getDefaultState = () => ({
   settings:{
     backgroundColor: "#808080",
     camera:{
@@ -23,13 +21,12 @@ const state = {
       panSpeed:30
     }
   },
-}
+})
+
+const state = getDefaultState()
+
 // Getter functions
 const getters = {
-  label(){
-    if (!camera) return null
-    return camera.label
-  }
 }
 // Actions 
 const actions = {
@@ -41,10 +38,6 @@ const actions = {
   async showCanvasAxes({dispatch, state}){
     await dispatch('clearCanvasAxes')
     let illo = Ztree.illustration;
-    camera = new Camera(illo, state.settings.camera);
-
-    //Append zoom % label to dom element
-    document.querySelector('#zoom-control').appendChild(camera.label)
     canvasAxes = axesHelper({addTo: illo, size:999, stroke:1, head:null})
     illo.updateRenderGraph()
   },
@@ -77,10 +70,16 @@ const actions = {
   clearCanvasAxes(){
     if (canvasAxes){
       canvasAxes.remove();
-      document.querySelector('#zoom-control').removeChild(camera.label)
-      camera.destroy();
+      // document.querySelector('#zoom-control').removeChild(camera.label)
+      // camera.destroy();
     }
     canvasAxes = null;
+  },
+
+  reset({commit,dispatch}){
+    dispatch('clearSelectedAxes')
+    dispatch('clearCanvasAxes')
+    commit('resetState')
   }
 }
 
@@ -90,6 +89,9 @@ const mutations = {
     state.setting[name] = value;
   },
 
+  resetState(){
+    Object.assign(state, getDefaultState())
+  }
 }
 
 export default {

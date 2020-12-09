@@ -179,7 +179,7 @@ const getters = {
 // Actions 
 const actions = {
 
-  updateProps({rootGetters}, incomingOptions){
+  updateProps({dispatch, rootGetters}, incomingOptions){
     let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
     
     delete options['assignedType']
@@ -192,23 +192,7 @@ const actions = {
         options[prop] = Number(options[prop]);
       }
     }
-
-      for (let o in options){
-        node[o] = options[o]
-      }
-      node.updateGraph();
-  
-     // dispatch('setNodeProps', payload, {root:true})
-  },
-
-  changeList({commit}, payload){
-    let invalids = invalidFields(payload);
-    if (invalids.length > 0) {
-      //throw error
-      commit('INVALID_ERROR', invalids);
-    } else {
-      commit('log', payload)
-    }
+    dispatch('history/updateProps', {node:node,options:options}, {root: true})
   },
 
   validateFields({commit}, incomingOptions){

@@ -55,13 +55,9 @@ class Camera{
 
     let listeners = {
       wheel:this.onwheel.bind(this),
-      keydown:this.onkeydown.bind(this),
-      keyup:this.onkeyup.bind(this)
     }
     this.listeners = listeners;
     illoe.addEventListener('wheel', listeners['wheel'] )
-    window.addEventListener('keydown', listeners['keydown'])
-    window.addEventListener('keyup', listeners['keyup'])
 
     this.animReq = null
     this.dragger = new Zdog.Dragger({
@@ -204,7 +200,7 @@ class Camera{
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
   }
 
-  onkeydown(event){
+  keydown(event){
     let kc = event.keyCode;
     //Shift -> pan
     if (kc == 16){
@@ -212,7 +208,7 @@ class Camera{
     }
   }
 
-  onkeyup(event){
+  keyup(event){
     let kc = event.keyCode;
     //Shift -> pan
     if (kc == 16 && this.isMouseDown < 4){
@@ -252,9 +248,6 @@ class Camera{
   destroy(){
     let listener = this.listeners;
     this.illustration.element.removeEventListener('wheel',  listener['wheel'])
-
-    window.removeEventListener('keydown',  listener['keydown'])
-    window.removeEventListener('keyup',  listener['keyup'])
   }
   
 

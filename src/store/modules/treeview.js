@@ -11,19 +11,20 @@ const getDefaultState = () => ({
 const state = getDefaultState();
 // Getter functions
 const getters = {
-
+  trimmedView(){
+    return Ztree.trimmedView()
+  }
 }
 // Actions 
 const actions = {
 
-  changeList({commit}){
-    commit('setList', Ztree.trimmedView())
+  changeList({commit, getters}){
+    commit('setList', getters.trimmedView)
   },
 
-  sortItem({dispatch}, {id, newParentId}){
-      let nodeUpdate = Ztree.changeParent(id, newParentId);
-      nodeUpdate.updateGraph();
-      dispatch('changeList')
+  sortItem({dispatch}, payload){
+    dispatch('history/changeParent', payload, {root: true})
+    dispatch('changeList')
   },
 
   startDrag({commit}, {blockIds}){
@@ -34,12 +35,10 @@ const actions = {
     commit('setDragging', [])
   },
 
-  changeSelectedName({ rootState, rootGetters }, {newName, treeNode}){
-      if (!rootState.selected.id) throw new Error('Cannot assign name to null selected node');
-      rootGetters.selectedNode
-        .assignedName = newName;
-      
-        treeNode.assignedName = newName
+  changeSelectedName({ dispatch, state }, newName){
+    if (!state.selectedListNode) throw new Error('Cannot change name if nothing is selected')
+    state.selectedListNode.assignedName = newName
+    dispatch('history/updateSelectedName', newName, {root: true})
   },
 
   saveSelected({commit}, treeNode){

@@ -92,7 +92,6 @@ export default {
       return this.$store.state.illustration
     },
     hasIllustration() {
-      console.log(this.illustration);
     return (this.illustration !== null && this.illustration !== undefined)
     },
     creatables(){
