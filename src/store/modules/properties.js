@@ -117,7 +117,8 @@ function invalidFields(incomingOptions){
 const state = {
   invalidFields:null,
   validationSuccess:false,
-  tooltip:null
+  tooltip:null,
+  wipOptions:{}
 }
 // Getter functions
 const getters = {
@@ -179,20 +180,35 @@ const getters = {
 // Actions 
 const actions = {
 
+  initializeWip({commit, getters}){
+    commit('setWipOPTIONS', getters.selectedOptions)
+  },
+
+  clearWip({commit}){
+    commit('setWipOPTIONS', null)
+  },
+
+  saveWip({dispatch, state}){
+    dispatch('updateProps', state.wipOptions)
+  },
+
   updateProps({dispatch, rootGetters}, incomingOptions){
     let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
     
     delete options['assignedType']
     delete options['id']
 
-    let props = Object.keys(incomingOptions)
+    let props = Object.keys(options)
     for(let prop of props) {
-      
       if (NUM_PROPS.includes(prop)){
         options[prop] = Number(options[prop]);
       }
     }
     dispatch('history/updateProps', {node:node,options:options}, {root: true})
+  },
+
+  editOption({commit}, payload){
+    commit('setWipOption', payload)
   },
 
   validateFields({commit}, incomingOptions){
@@ -234,6 +250,14 @@ const mutations = {
 
   setTooltip(state, payload){
     state.tooltip = payload;
+  },
+
+  setWipOption(state, {option, value}){
+    state.wipOptions[option] = value
+  },
+
+  setWipOPTIONS(state, payload){
+    state.wipOptions = payload
   }
 
 }

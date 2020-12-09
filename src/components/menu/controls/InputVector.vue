@@ -41,7 +41,7 @@
       x:
       <input
         :id="`${id}z`"
-        v-model="euler.x"
+        :value="defaultVal.z"
         type="number"
         name="x"
         autocomplete="off"
@@ -55,7 +55,7 @@
       y:
       <input
         :id="`${id}y`"
-        v-model="euler.y"
+        :value="defaultVal.y"
         type="number"
         name="y"
         autocomplete="off"
@@ -68,7 +68,7 @@
       z:
       <input
         :id="`${id}z`"
-        v-model="euler.z"
+        :value="defaultVal.z"
         type="number"
         name="z"
         autocomplete="off"
@@ -89,10 +89,6 @@ export default {
   props: {
     id:{
       type:String,
-      default:null
-    },
-    default:{
-      type:Object,
       default:null
     },
     type:{
@@ -118,8 +114,7 @@ export default {
   },
   computed:{
     defaultVal(){
-
-      let d = this.default
+      let d = this.$store.state.properties.wipOptions[this.type]
       if (typeof d == 'string') {
         d = JSON.parse(d)
       }
@@ -150,18 +145,6 @@ export default {
       let newVal = e.target.value;
       if (newVal == e.target.placeholder || newVal == "") return;
 
-      this.emitCoords();
-    },
-    toRad(degrees){
-      return (Math.PI * degrees) / 180;
-    },
-    toDeg(radians){
-      let raw = (180 * radians) / Math.PI;
-       // round to 3 decimal places
-       //let d = Math.round(raw * 1000) / 1000;
-      return Math.round(raw)
-    },
-    emitCoords(){
       let temp = Object.assign({}, this.euler);
       Object.keys(temp).forEach((key) => {
         if (temp[key] == null) {
@@ -175,7 +158,17 @@ export default {
           }
         }
       });
-      this.$emit('send-coords', temp);
+     // this.$emit('send-coords', temp);
+      this.$store.dispatch('properties/editOption', {option: this.type, value: temp})
+    },
+    toRad(degrees){
+      return (Math.PI * degrees) / 180;
+    },
+    toDeg(radians){
+      let raw = (180 * radians) / Math.PI;
+       // round to 3 decimal places
+       //let d = Math.round(raw * 1000) / 1000;
+      return Math.round(raw)
     },
     editDegrees(coord){
       this.stopEditDegrees();
@@ -198,7 +191,6 @@ export default {
     },
     tooltipChange(p, e){
       this.euler[p] = e;
-      this.emitCoords();
     }
   }
 }

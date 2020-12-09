@@ -200,18 +200,16 @@ class Camera{
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
   }
 
-  keydown(event){
-    let kc = event.keyCode;
+  keydown(e){
     //Shift -> pan
-    if (kc == 16){
+    if (e.keyCode == 16){
       this.isPanning = true;
     }
   }
 
-  keyup(event){
-    let kc = event.keyCode;
+  keyup(e){
     //Shift -> pan
-    if (kc == 16 && this.isMouseDown < 4){
+    if (e.keyCode == 16 && this.isMouseDown < 4){
       this.isPanning = false;
     }
   }

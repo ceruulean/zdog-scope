@@ -8,7 +8,7 @@
       <input
         :id="`${id}${label}`"
         class="input-degrees"
-        v-model="wipValue"
+        :value="wipValue"
         type="number"
         :name="label"
         autocomplete="off"

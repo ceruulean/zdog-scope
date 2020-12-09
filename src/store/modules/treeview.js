@@ -11,15 +11,12 @@ const getDefaultState = () => ({
 const state = getDefaultState();
 // Getter functions
 const getters = {
-  trimmedView(){
-    return Ztree.trimmedView()
-  }
 }
 // Actions 
 const actions = {
 
-  changeList({commit, getters}){
-    commit('setList', getters.trimmedView)
+  changeList({commit}){
+    commit('setList', Ztree.trimmedView())
   },
 
   sortItem({dispatch}, payload){
@@ -35,10 +32,10 @@ const actions = {
     commit('setDragging', [])
   },
 
-  changeSelectedName({ dispatch, state }, newName){
+  changeSelectedName({ /*dispatch,*/ state }, newName){
     if (!state.selectedListNode) throw new Error('Cannot change name if nothing is selected')
     state.selectedListNode.assignedName = newName
-    dispatch('history/updateSelectedName', newName, {root: true})
+  //  dispatch('history/updateSelectedName', newName, {root: true})
   },
 
   saveSelected({commit}, treeNode){

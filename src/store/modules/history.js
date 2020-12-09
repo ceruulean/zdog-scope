@@ -6,7 +6,6 @@ import {Ztree} from '../index'
 //https://stackoverflow.com/questions/42878329/going-back-to-states-like-undo-redo-on-vue-js-vuex/44865208#44865208
 
 /* eslint-disable no-unused-vars */
-var initialTree
 var undoRedoHistory
 
 class UndoRedo {
@@ -20,47 +19,59 @@ class UndoRedo {
   }
 
   firstState(){
-    this.addState();
-    initialTree = this.history[0];
+    this.addState(this.store.state);
   }
 
-  addState() {
-    let state = Ztree._clone();
-    // may be we have to remove redo steps
+  addState(state) {
+    let tree = Ztree._clone();
+    let latestIndex = this.history.length - 1;
+    console.log('history:' + latestIndex)
+    console.log('at' + this.currentIndex)
+    //may be we have to remove redo steps
+    for (let i = this.currentIndex; i < latestIndex; i++) {
+      
+      this.history.pop();
+    }
     if (this.currentIndex + 1 < this.history.length) {
       this.history.splice(this.currentIndex + 1);
     }
-    this.history.push(state);
+
+    this.history.push([state, tree]);
 
     if (this.limit > 0 && this.history.length >= this.limit){
       this.history.shift();
     }
-    this.currentIndex++;
+    this.currentIndex = this.history.length - 1
   }
 
   undo() {
+    if (this.currentIndex <= 0) return;
     //const prevState = this.history[this.currentIndex - 1];
     // take a copy of the history state
     // because it would be changed during store mutations
     // what would corrupt the undo-redo-history
     // (same on redo)
+
     this.currentIndex--;
     this.rebuild();
   }
 
   redo() {
+    if (this.currentIndex >= this.history.length) return;
     //const nextState = this.history[this.currentIndex + 1];
+    console.log('redo')
     this.currentIndex++;
     this.rebuild();
   }
 
   rebuild(){
-    let state = this.history[this.currentIndex]
-    Ztree.reviveTree(state)
+    console.log(this.currentIndex)
+    let [state, tree] = this.history[this.currentIndex]
+    this.store.dispatch('rebuildZtree', new Zdogger.Reader(tree).Ztree)
+    this.store.replaceState(state);
   }
 
   reset(){
-    initialTree = null
     this.history = null
     this.history = []
     this.currentIndex = -1;
@@ -74,20 +85,21 @@ const undoRedoPlugin = (store) => {
   undoRedoHistory.init(store);
 
   store.subscribe((mutation, /*state*/) => {
-    if (mutation.type == 'setZtree'){
+    if (mutation.type == 'setIllustration'){
       undoRedoHistory.reset()
       return;
     }
     let history = mutation.type.substring(0,7)
     if (history == 'history') {
       // is called AFTER every mutation
-      undoRedoHistory.addState();
+      undoRedoHistory.addState(store.state);
     }
   });
 }
 
 // const getDefaultState = () => ({
-//   initialTree:null
+//   ZTree:null,
+//   selected:null
 // })
 
 // const state = getDefaultState();

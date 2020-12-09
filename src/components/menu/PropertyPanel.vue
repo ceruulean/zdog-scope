@@ -24,6 +24,7 @@
             :placeholder="selectedName"
             @change="updateName"
           >
+            
         </label>
       </div>
       <div class="row">
@@ -48,27 +49,26 @@
           :key="prop"
           :default="selectedOptions[prop]"
           :type="prop"
-          @send-coords="updateVectorProp(prop, $event)"
         >
           {{ capitalize(prop) }}
         </InputVector>
       </div>
       <div class="row">
-        <label
-          v-for="prop in numProps"
+        <InputLabel v-for="prop in numProps"
           :key="prop"
           class="field"
           :for="prop"
-        >
-          {{ capitalize(prop) }}:
-          <input 
-            v-model="wipOptions[prop]"
-            type="text"
-            autocomplete="off"
-            :placeholder="toString(selectedNode[prop])"
-            :name="prop"
+          element="input"
+          :value="wipOptions[prop]"
+          type="number"
+          step=1
+          autocomplete="off"
+          :placeholder="selectedNode[prop]"
+          :name="prop"
+          @change="inputChange(prop, $event)"
           >
-        </label>
+        {{ capitalize(prop) }}:
+        </InputLabel>
         <label v-for="prop in colorProps"
           class="field"
           :for="prop"
@@ -82,21 +82,21 @@
         </label>
       </div>
       <div class="row">
-        <label
-          v-for="prop in boolProps"
+        <InputLabel v-for="prop in boolProps"
           :key="prop"
           class="field"
           :for="prop"
-        >
-          {{ capitalize(prop) }}:
-          <input 
-            v-model="wipOptions[prop]"
-            type="checkbox"
-            autocomplete="off"
-            :checked="selectedNode[prop]"
-            :name="prop"
+          element="input"
+          :value="wipOptions[prop]"
+          type="checkbox"
+          autocomplete="off"
+          :checked="selectedNode[prop]"
+          :name="prop"
+          @change="inputChange(prop, $event)"
           >
-        </label>
+        {{ capitalize(prop) }}:
+        </InputLabel>
+
         <Backface v-if="hasBackfaceColor"
             :color="selectedNode.backface"
             :threeD="isThreeD"
@@ -125,7 +125,7 @@ import StringHelper from '../StringHelperMixin'
 import InputVector from './controls/InputVector'
 import ColorPicker from './controls/ColorPicker'
 import Backface from './controls/Backface'
-//import Input from './controls/input'
+import InputLabel from './controls/InputLabel'
 
 export default {
   name: 'PropertyPanel',
@@ -133,13 +133,12 @@ export default {
     InputVector,
     ColorPicker,
     Backface,
-    // Input
+    InputLabel,
   },
   mixins:[StringHelper],
 
   data(){
     return{
-      wipOptions:{},
       READ_ONLY: [
         'assignedType', 'id'
       ],
@@ -147,10 +146,11 @@ export default {
     }
   },
   computed:{
-    ...mapState([
-      'selected',
-      'treeLoaded'
-    ]),
+    ...mapState({
+      selected:state=>state.selected,
+      treeLoaded:state=>state.treeLoaded,
+      wipOptions:state=>state.properties.wipOptions
+    }),
     ...mapGetters('properties',[
       'selectedOptions',
       'selectedAllProps',
@@ -185,39 +185,38 @@ export default {
     }
   },
   watch:{
-    selectedNode(){
-      this.wipOptions = this.selectedOptions
+    selectedNode(nVal){
+      if (nVal) this.initializeWip();
+      else this.clearWip()
     },
-    selectedName(newVal){
-      this.wipOptions.assignedName = newVal
-    }
   },
   methods:{
     ...mapActions('properties',[
-      'updateProps'
+      'initializeWip',
+      'clearWip',
+      'updateProps',
+      'saveWip',
+      'editOption'
     ]),
     saveProps(e){
       e.preventDefault();
-      this.updateProps(this.wipOptions)
-      this.wipOptions = {};
+      this.saveWip();
     },
     updateColor(prop, newColor){
       let o = {}
       o[prop] = newColor
       this.updateProps(o)
     },
-    updateVectorProp(prop, data){
-      let temp = Object.assign({}, this.selectedNode[prop]);
-      Object.assign(temp, data);
-      this.wipOptions[prop] = temp;
-      let o = {}
-      o[prop] = temp;
-      this.updateProps(o)
+    editProp(prop, value){
+      this.editOption({option: prop, value: value})
+    },
+    inputChange(prop, e){
+      this.editOption({option: prop, value: e.target.value})
     },
     updateName(){
       let newName = this.wipOptions['assignedName'];
       this.$store.dispatch('treeview/updateSelectedName', newName);
-      this.updateProps({assignedName:newName})
+      //this.updateProps({assignedName:newName})
     },
     closeTooltip(){
       //this.$emit('close-tooltip');

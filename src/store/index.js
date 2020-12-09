@@ -4,7 +4,8 @@ import { createStore, createLogger } from 'vuex'
 import treeview from './modules/treeview'
 import properties from './modules/properties'
 import canvas from './modules/canvas'
-import history, {undoRedoPlugin} from './modules/history'
+/* eslint-disable no-unused-vars */
+import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
 
 const debug = process.env.NODE_ENV !== 'production'
 
@@ -29,7 +30,7 @@ function newZtree(arg){
 }
 
 function initCamera(state){
-  if (camera) camera.destroy();
+  if (camera || state == null) {camera.destroy(); camera = null}
   camera = new Camera(Ztree.illustration, state.canvas.settings.camera);
   //Append zoom % label to dom element
   //document.querySelector('#zoom-control').appendChild(camera.label)
@@ -38,18 +39,23 @@ function initCamera(state){
 
 const handlers = {
   keydown: function(e){
-    console.log(e.keyCode)
+    if (e.ctrlKey){
+      if (e.keyCode == 90){ // ctrl+Z
+        e.shiftKey? undoRedoHistory.redo():undoRedoHistory.undo();
+      } else if (e.keyCode == 89){// ctrl+y
+        undoRedoHistory.redo();
+      }
+    }
     if (camera) camera.keydown(e);
+    
   },
   keyup:function(e){
-    console.log(e.keyCode)
     if (camera) camera.keyup(e);
   }
 }
 
 function registerEvents(){
   for (let h in handlers) {
-    console.log(h)
     window.addEventListener(h,  handlers[h])
   }
 }
@@ -90,23 +96,38 @@ const getters = {
 // actions
 const actions = {
 
-  updateZtree({commit, dispatch, state}, newTree){
+  
+  createZtree({commit, dispatch}, newTree){
     newZtree(newTree)
-    unregisterEvents()
-    initCamera(state)
-    registerEvents();
     commit('setZtree', newTree);
     dispatch('canvas/showCanvasAxes')
   },
 
-  newIllustration({dispatch}, payload){
+  rebuildZtree({commit, dispatch}, newTree){
+    //commit('resetState');
+    //newZtree(newTree)
+    Ztree.illustration.children =  newTree.illustration.children
+    Ztree.illustration.nodeMap = newTree.nodeMap
+    Ztree.illustration.relationMap = newTree.relationMap
+    //camera.illustration = newTree.illustration;
+    commit('setZtree', true);
+    dispatch('canvas/showCanvasAxes')
+    dispatch('treeview/resetView')
+    dispatch('treeview/changeList')
+  },
+
+  newIllustration({dispatch, commit, state}, payload){
     if (!payload) { payload = {}}
-    dispatch('updateZtree', payload)
+    unregisterEvents()
+    dispatch('createZtree', payload)
+    commit('setIllustration', true)
+    initCamera(state)
+    registerEvents()
   },
 
   demoJSON({dispatch}, payload){
     let reader = new Zdogger.Reader(payload);
-    dispatch('updateZtree', reader.Ztree)
+    dispatch('newIllustration', reader.Ztree)
   },
 
   changeSelected({commit, dispatch, state}, {id, element}){
@@ -144,11 +165,15 @@ const mutations = {
   setZtree(state, arg){
     if (!arg) {
       state.treeLoaded = false;
-      state.illustration = null
+      initCamera(null)
       return}
-    state.illustration = Ztree.illustration.id
     state.updateTree = !state.updateTree;
     state.treeLoaded = true;
+  },
+
+  setIllustration(state, arg){
+    if (!arg) state.illustration = null;
+    state.illustration = Ztree.illustration.id
   },
 
 
