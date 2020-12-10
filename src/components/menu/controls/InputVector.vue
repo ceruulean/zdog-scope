@@ -10,7 +10,7 @@
     <InputVectorTooltip
       id="degrees"
       label="x"
-      :value="defaultVal.x"
+      :value="toDeg(value.x)"
       :placeholder="defaultVal.x"
       @changev="tooltipChange('x', $event)"
       />
@@ -18,7 +18,7 @@
     <InputVectorTooltip
       id="degrees"
       label="y"
-      :value="defaultVal.y"
+      :value="toDeg(value.y)"
       :placeholder="defaultVal.y"
       @changev="tooltipChange('y', $event)"
       />
@@ -26,7 +26,7 @@
     <InputVectorTooltip
       id="degrees"
       label="z"
-      :value="defaultVal.z"
+      :value="toDeg(value.z)"
       :placeholder="defaultVal.z"
       @changev="tooltipChange('z', $event)"
       />
@@ -41,13 +41,13 @@
       x:
       <input
         :id="`${id}z`"
-        :value="defaultVal.z"
+        :value="value.x"
         type="number"
         name="x"
         autocomplete="off"
         :placeholder="defaultVal.x"
         :step="step"
-        @change="sendCoords"
+        @change="inputChange('x', $event)"
       >
     </label>
 
@@ -55,26 +55,26 @@
       y:
       <input
         :id="`${id}y`"
-        :value="defaultVal.y"
+        :value="value.y"
         type="number"
         name="y"
         autocomplete="off"
         :placeholder="defaultVal.y"
         :step="step"
-        @change="sendCoords"
+        @change="inputChange('y', $event)"
       >
     </label>
     <label :for="`${id}z`">
       z:
       <input
         :id="`${id}z`"
-        :value="defaultVal.z"
+        :value="value.z"
         type="number"
         name="z"
         autocomplete="off"
         :placeholder="defaultVal.z"
         :step="step"
-        @change="sendCoords"
+        @change="inputChange('z', $event)"
       >
     </label>
   </div>
@@ -95,6 +95,10 @@ export default {
       type:String,
       default:'translate'
     },
+    value:{
+      type:Object,
+      default:null
+    },
   },
   emits:['send-coords', 'open-tooltip'],
   mounted(){
@@ -114,7 +118,7 @@ export default {
   },
   computed:{
     defaultVal(){
-      let d = this.$store.state.properties.wipOptions[this.type]
+      let d = this.value
       if (typeof d == 'string') {
         d = JSON.parse(d)
       }
@@ -141,10 +145,22 @@ export default {
   },
 
   methods:{
-    sendCoords(e){ 
+    sendCoords(e){
       let newVal = e.target.value;
       if (newVal == e.target.placeholder || newVal == "") return;
 
+      this.emitCoords();
+    },
+    toRad(degrees){
+      return (Math.PI * degrees) / 180;
+    },
+    toDeg(radians){
+      let raw = (180 * radians) / Math.PI;
+       // round to 3 decimal places
+       //let d = Math.round(raw * 1000) / 1000;
+      return Math.round(raw)
+    },
+    emitCoords(){
       let temp = Object.assign({}, this.euler);
       Object.keys(temp).forEach((key) => {
         if (temp[key] == null) {
@@ -158,17 +174,7 @@ export default {
           }
         }
       });
-     // this.$emit('send-coords', temp);
-      this.$store.dispatch('properties/editOption', {option: this.type, value: temp})
-    },
-    toRad(degrees){
-      return (Math.PI * degrees) / 180;
-    },
-    toDeg(radians){
-      let raw = (180 * radians) / Math.PI;
-       // round to 3 decimal places
-       //let d = Math.round(raw * 1000) / 1000;
-      return Math.round(raw)
+     this.$emit('send-coords', temp);
     },
     editDegrees(coord){
       this.stopEditDegrees();
@@ -189,8 +195,14 @@ export default {
     closeTooltip(){
       this.stopEditDegrees();
     },
+    inputChange(p, evt){
+      this.euler[p] = evt.target.value;
+      this.emitCoords();
+    },
     tooltipChange(p, e){
+      console.log(e)
       this.euler[p] = e;
+      this.emitCoords();
     }
   }
 }

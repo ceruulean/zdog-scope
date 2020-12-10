@@ -88,9 +88,9 @@ const getters = {
     return Ztree.relationSet;
   },
   selectedNode(state){
-    if (!state.selected.id) return null;
+    if (!Ztree)return
     return Ztree.find(state.selected.id)
-  },
+  }
 }
 
 // actions
@@ -106,13 +106,14 @@ const actions = {
   rebuildZtree({commit, dispatch}, newTree){
     //commit('resetState');
     //newZtree(newTree)
-    Ztree.illustration.children =  newTree.illustration.children
-    Ztree.illustration.nodeMap = newTree.nodeMap
-    Ztree.illustration.relationMap = newTree.relationMap
-    //camera.illustration = newTree.illustration;
+   // let newTree = new Zdogger.Reader(schemaTree).Ztree
+
+    Ztree.illustration.children = newTree.illustration.children
+    Ztree.nodeMap = newTree.nodeMap
+    Ztree.relationMap = newTree.relationMap
+
     commit('setZtree', true);
     dispatch('canvas/showCanvasAxes')
-    dispatch('treeview/resetView')
     dispatch('treeview/changeList')
   },
 
@@ -133,6 +134,7 @@ const actions = {
   changeSelected({commit, dispatch, state}, {id, element}){
     //click handler here?
     if (state.selected.id == id) return;
+    dispatch('properties/reset')
     let existing = state.selected.element;
     if (existing) existing.classList.remove('highlight')
     if (id) {
@@ -141,6 +143,7 @@ const actions = {
       dispatch('treeview/clearSelected')
     }
     commit('setSelected', {id, element});
+    dispatch('properties/changeDisplay')
   },
 
   exportTree(){

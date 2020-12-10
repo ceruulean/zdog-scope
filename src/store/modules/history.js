@@ -8,6 +8,10 @@ import {Ztree} from '../index'
 /* eslint-disable no-unused-vars */
 var undoRedoHistory
 
+function deepCopy(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
+
 class UndoRedo {
   store
   history = [];
@@ -18,64 +22,42 @@ class UndoRedo {
     this.store = store;
   }
 
-  firstState(){
-    this.addState(this.store.state);
-  }
-
-  addState(state) {
-    let tree = Ztree._clone();
+  addState(mstate) {
+    let tree = Ztree._JSON();
     let latestIndex = this.history.length - 1;
-    console.log('history:' + latestIndex)
-    console.log('at' + this.currentIndex)
-    //may be we have to remove redo steps
     for (let i = this.currentIndex; i < latestIndex; i++) {
-      
       this.history.pop();
     }
-    if (this.currentIndex + 1 < this.history.length) {
-      this.history.splice(this.currentIndex + 1);
-    }
-
-    this.history.push([state, tree]);
-
-    if (this.limit > 0 && this.history.length >= this.limit){
-      this.history.shift();
-    }
+    this.history.push([deepCopy(mstate), tree]);
+    // if (this.limit > 0 && this.history.length >= this.limit){
+    //   this.history.shift();
+    // }
     this.currentIndex = this.history.length - 1
   }
 
   undo() {
     if (this.currentIndex <= 0) return;
-    //const prevState = this.history[this.currentIndex - 1];
-    // take a copy of the history state
-    // because it would be changed during store mutations
-    // what would corrupt the undo-redo-history
-    // (same on redo)
-
     this.currentIndex--;
     this.rebuild();
   }
 
   redo() {
-    if (this.currentIndex >= this.history.length) return;
+    if (this.currentIndex >= this.history.length - 1) return;
     //const nextState = this.history[this.currentIndex + 1];
-    console.log('redo')
     this.currentIndex++;
     this.rebuild();
   }
 
   rebuild(){
-    console.log(this.currentIndex)
     let [state, tree] = this.history[this.currentIndex]
+   // this.store.replaceState(state);
     this.store.dispatch('rebuildZtree', new Zdogger.Reader(tree).Ztree)
-    this.store.replaceState(state);
   }
 
   reset(){
     this.history = null
     this.history = []
     this.currentIndex = -1;
-    this.firstState()
   }
 }
 
@@ -84,15 +66,16 @@ const undoRedoPlugin = (store) => {
   undoRedoHistory = new UndoRedo(store)
   undoRedoHistory.init(store);
 
-  store.subscribe((mutation, /*state*/) => {
+  store.subscribe((mutation, mstate) => {
     if (mutation.type == 'setIllustration'){
       undoRedoHistory.reset()
+      undoRedoHistory.addState(mstate)
       return;
     }
     let history = mutation.type.substring(0,7)
     if (history == 'history') {
       // is called AFTER every mutation
-      undoRedoHistory.addState(store.state);
+      undoRedoHistory.addState(mstate);
     }
   });
 }
@@ -119,14 +102,14 @@ const actions = {
     let newO = Zdogger(type)(options);
     if (assignedName) {newO.assignedName = assignedName}
     commit('addNode', newO);
-    dispatch('treeview/changeList');
+    dispatch('treeview/changeList', null, {root:true});
   },
 
   deleteZdog({commit}, node){
     commit('removeNode', node)
   },
 
-  updateProps({commit}, payload){
+  updateProps({commit, dispatch}, payload){
     commit('setNodeProps', payload)
   },
 

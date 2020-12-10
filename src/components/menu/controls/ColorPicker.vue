@@ -5,8 +5,9 @@
       <div class="patch" :style="{'backgroundColor': wipColor}"
         @click="toggle">
       </div>
-      <input type="text" v-model="wipColor"
+      <input type="text"
         aria-label="colorpicker"
+        v-model="wipColor"
         @change="colorEnter"
         @blur="close"/>
     </a>
@@ -33,7 +34,7 @@ export default {
     return{
       colorPicker:null,
       isActive:false,
-      wipColor:this.color,
+      wipColor:this.color
     }
   },
   methods:{
@@ -41,6 +42,8 @@ export default {
       if (this.isActive) return;
       this.isActive = true;
       this.$nextTick(()=>{
+        console.log(this.color)
+        this.wipColor = this.color;
         this.mountPicker();
       })
     },
@@ -58,13 +61,13 @@ export default {
     },
     colorEnter(e){
       this.colorPicker.color.set(e.target.value);
-      this.wipColor = this.colorPicker.color.rgbaString;
+      this.wipColor = this.colorPicker.color.rgbaString
       this.$emit('update', this.wipColor);
     },
     mountPicker(){
       let cxt = this;
       cxt.colorPicker = new iro.ColorPicker(cxt.$refs.picker, {
-        color: cxt.wipColor,
+        color: cxt.color,
         width:200,
         layout: [
             { 
@@ -97,11 +100,6 @@ export default {
       })
     },
   },
-  // watch:{
-  //   wipColor(){
-  //     this.selectedNode.color = this.wipColor;
-  //   }
-  // }
 }
 </script>
 

@@ -23,7 +23,7 @@
         </label>
       </div>
       <div class="row between-">
-        <div
+        <!-- <div
           v-if="!bBlank"
           class="field-list radio"
         >
@@ -64,8 +64,7 @@
             >
             None
           </label>
-        </div>
-
+        </div> -->
 
 
         <div class="field-list col" v-if="numProps(mainProps).length > 0">
@@ -301,7 +300,6 @@ export default {
         'COLOR_PROPS',
         'NUM_PROPS',
         'CREATE_PROPS',
-        'bBlank'
     ]),
     mainProps(){
       let m = this.CREATE_PROPS[this.itemtype];

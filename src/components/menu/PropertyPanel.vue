@@ -2,12 +2,8 @@
   <div class="property-panel"
     @click="closeTooltip">
     <h2>Properties</h2>
-    <form
-      v-if="selected.id && treeLoaded"
-      :key="wipOptions"
-      class="field-list"
-    >
-      <div class="row info">
+
+      <div class="row info" v-if="selectedNode && treeLoaded">
         <div class="word-break">
           id: {{ selected.id }}
         </div>
@@ -16,7 +12,7 @@
         </div>
         <label class="input-name">
           <input
-            v-model="wipOptions['assignedName']"
+            :value="selectedNode['assignedName']"
             class="input-name"
             type="text"
             autocomplete="off"
@@ -24,9 +20,12 @@
             :placeholder="selectedName"
             @change="updateName"
           >
-            
         </label>
       </div>
+    <form
+      v-if="selectedNode && treeLoaded"
+      class="field-list"
+    >
       <div class="row">
         <!-- <label
           v-for="(val, prop) in selectedOptions"
@@ -44,32 +43,33 @@
           >
         </label> -->
         <InputVector
-          v-for="prop in vectorProps"
+          v-for="prop in propList('vectors')"
           :id="`v_${prop}`"
           :key="prop"
-          :default="selectedOptions[prop]"
+          :value="selectedNode[prop]"
           :type="prop"
+          @send-coords="inputChange(prop, $event)"
         >
           {{ capitalize(prop) }}
         </InputVector>
       </div>
       <div class="row">
-        <InputLabel v-for="prop in numProps"
+        <InputLabel v-for="prop in propList('nums')"
           :key="prop"
           class="field"
           :for="prop"
           element="input"
-          :value="wipOptions[prop]"
+          :value="selectedNode[prop]"
           type="number"
           step=1
           autocomplete="off"
           :placeholder="selectedNode[prop]"
           :name="prop"
-          @change="inputChange(prop, $event)"
+          @change="inputChange(prop, $event.target.value)"
           >
         {{ capitalize(prop) }}:
         </InputLabel>
-        <label v-for="prop in colorProps"
+        <label v-for="prop in propList('colors')"
           class="field"
           :for="prop"
           :key="prop"
@@ -82,17 +82,17 @@
         </label>
       </div>
       <div class="row">
-        <InputLabel v-for="prop in boolProps"
+        <InputLabel v-for="prop in propList('bools')"
           :key="prop"
           class="field"
           :for="prop"
           element="input"
-          :value="wipOptions[prop]"
+          :value="selectedNode[prop]"
           type="checkbox"
           autocomplete="off"
           :checked="selectedNode[prop]"
           :name="prop"
-          @change="inputChange(prop, $event)"
+          @change="inputChange(prop, $event.target.value)"
           >
         {{ capitalize(prop) }}:
         </InputLabel>
@@ -101,12 +101,12 @@
             :color="selectedNode.backface"
             :threeD="isThreeD"
             :checked="true"
-            @update="updateColor('backface', $event)"
+            @update="inputChange('backface', $event)"
             />
         <Backface v-else
             :threeD="isThreeD"
             :checked="selectedNode.backface"
-            @update="updateColor('backface', $event)"
+            @update="inputChange('backface', $event)"
             />
       </div>
       <button @click="saveProps">
@@ -117,7 +117,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions} from 'vuex'// mapActions  mapGetters,
+import { mapState, mapActions} from 'vuex'// mapActions  mapGetters,
 import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
 import StringHelper from '../StringHelperMixin'
@@ -149,19 +149,9 @@ export default {
     ...mapState({
       selected:state=>state.selected,
       treeLoaded:state=>state.treeLoaded,
-      wipOptions:state=>state.properties.wipOptions
+      displayProps:state=>state.properties.displayProps,
+      selectedNode:state=>state.properties.displayProps.node
     }),
-    ...mapGetters('properties',[
-      'selectedOptions',
-      'selectedAllProps',
-      'numProps',
-      'colorProps',
-      'boolProps',
-      'vectorProps'
-    ]),
-    selectedNode(){
-      return this.$store.getters['selectedNode'];
-    },
     selectedName(){
       if (!this.$store.state.treeview.selectedListNode) return;
       return this.$store.state.treeview.selectedListNode.assignedName
@@ -170,7 +160,7 @@ export default {
       return ADVANCED_PROPERTIES;
     },
     selectedTypeName(){
-      return ZDOG_CLASS_NAME[this.selectedOptions.assignedType];
+      return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
     },
     hasColor(){
       return this.selectedAllProps.includes('color');
@@ -184,39 +174,41 @@ export default {
       || this.selectedTypeName == 'cone'
     }
   },
-  watch:{
-    selectedNode(nVal){
-      if (nVal) this.initializeWip();
-      else this.clearWip()
-    },
-  },
   methods:{
     ...mapActions('properties',[
-      'initializeWip',
-      'clearWip',
+      'changeDisplay',
       'updateProps',
-      'saveWip',
-      'editOption'
+      'editDisplay'
     ]),
+    propList(type){
+      let t = this.displayProps.props[type];
+      return t
+    },
     saveProps(e){
       e.preventDefault();
-      this.saveWip();
     },
     updateColor(prop, newColor){
       let o = {}
       o[prop] = newColor
-      this.updateProps(o)
+
     },
     editProp(prop, value){
-      this.editOption({option: prop, value: value})
+      let p = {option: prop, value: value};
+      this.editOption(p)
+
     },
-    inputChange(prop, e){
-      this.editOption({option: prop, value: e.target.value})
+    inputChange(prop, newVal){
+      //this.editOption({option: prop, value: newVal})
+      let o = {};
+      o[prop] = newVal
+      this.updateProps(o)
     },
-    updateName(){
-      let newName = this.wipOptions['assignedName'];
-      this.$store.dispatch('treeview/updateSelectedName', newName);
-      //this.updateProps({assignedName:newName})
+    updateName(e){
+      let o = {assignedName: e.target.value}
+      console.log(e.target.value)
+      this.editDisplay(o)
+      this.updateProps(o)
+      this.$store.dispatch('treeview/updateSelectedName', e.target.value);
     },
     closeTooltip(){
       //this.$emit('close-tooltip');

@@ -562,6 +562,12 @@ class Ztree{
 
     return result
   }
+/**
+ * Returns a clone of the Ztree
+ */
+  clone(){
+    return new ZtreeReader(this._clone()).Ztree
+  }
 
   /**
    * Returns a JSON string of the tree

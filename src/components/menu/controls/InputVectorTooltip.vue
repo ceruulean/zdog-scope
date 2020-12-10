@@ -8,7 +8,7 @@
       <input
         :id="`${id}${label}`"
         class="input-degrees"
-        :value="wipValue"
+        :value="value"
         type="number"
         :name="label"
         autocomplete="off"
@@ -25,7 +25,7 @@
         >
           <label>{{ `${min}&#176;` }}</label>
           <input
-            v-model="wipValue"
+            :value="value"
             type="range"
             :min="min"
             :max="max"
@@ -69,8 +69,8 @@ export default {
   },
 
   methods:{
-    changeV(){
-      this.$emit('changev', this.wipValue)
+    changeV(e){
+      this.$emit('changev', e.target.value)
     },
     close(){
       this.editing = false;

@@ -112,51 +112,60 @@ function invalidFields(incomingOptions){
 }
 
 
-/* Module1.store.js */
-// State object
-const state = {
-  invalidFields:null,
-  validationSuccess:false,
-  tooltip:null,
-  wipOptions:{}
+function getSelectedNode(rootState){
+  let n = Ztree.find(rootState.selected.id);
+  if (!n) return;
+  let arr = n.constructor.optionKeys
+  let node = Ztree.constructor.getProps(n)
+  let p = ['colors', 'vectors', 'bools', 'nums']
+  let props = {};
+  p.forEach(type=>{
+    props[type] = list[type](arr)
+  })
+
+  return {node, props}
 }
-// Getter functions
-const getters = {
-  selectedAllProps(state, getters, rootState, rootGetters){
-    return rootGetters.selectedNode.constructor.optionKeys
-  },
-  selectedOptions(state, getters, rootState, rootGetters){
-    if (rootState.selected.id) {
-      let o = Ztree.constructor.getProps(rootGetters.selectedNode);
-      return o
-    }
-    return
-  },
-  validationFailed(state){
-    return (state.validationSuccess == false && state.invalidFields);
-  },
-  bBlank(state, getters, rootState){
-    return (!rootState.illustration)
-  },
-  colorProps(state, getters){
-    return getters.selectedAllProps.filter((prop)=>{
+
+let list = {
+  colors(propList){
+    return propList.filter((prop)=>{
       return COLOR_PROPS.includes(prop);
     })
   },
-  vectorProps(state, getters, rootState, rootGetters){
-    return rootGetters.selectedNode.constructor.optionKeys.filter((prop)=>{
+  vectors(propList){
+    return propList.filter((prop)=>{
       return VECTOR_PROPS.includes(prop);
     })
   },
-  boolProps(state, getters){
-    return getters.selectedAllProps.filter(prop=>{
+  bools(propList){
+    return propList.filter(prop=>{
       return BOOL_PROPS.includes(prop) && prop != 'backface'
     })
   },
-  numProps(state, getters){
-    return getters.selectedAllProps.filter(prop=>{
+  nums(propList){
+    return propList.filter(prop=>{
       return NUM_PROPS.includes(prop);
     })
+  },
+}
+
+/* Module1.store.js */
+// State object
+const defaultState = () => ({
+  invalidFields:null,
+  validationSuccess:false,
+  tooltip:null,
+  displayProps:{
+    node:null,
+    props:null
+  }
+})
+
+const state = defaultState();
+// Getter functions
+const getters = {
+  validationFailed(state){
+    return (state.validationSuccess == false && state.invalidFields);
   },
   BOOL_PROPS(){
     return BOOL_PROPS
@@ -180,20 +189,24 @@ const getters = {
 // Actions 
 const actions = {
 
-  initializeWip({commit, getters}){
-    commit('setWipOPTIONS', getters.selectedOptions)
+  changeDisplay({commit, rootState}){
+    let tewst = getSelectedNode(rootState)
+    commit('setDisplayProps', tewst)
+    //commit('setWipOPTIONS', Ztree.constructor.getProps())
   },
 
-  clearWip({commit}){
-    commit('setWipOPTIONS', null)
+  editDisplay({commit}, options){
+    commit('editDisplayProps', options)
   },
 
-  saveWip({dispatch, state}){
-    dispatch('updateProps', state.wipOptions)
+  reset({commit}){
+    commit('resetState')
   },
 
-  updateProps({dispatch, rootGetters}, incomingOptions){
-    let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
+
+  updateProps({dispatch, rootState}, incomingOptions){
+    
+    let node = Ztree.find(rootState.selected.id), options = Object.assign({}, incomingOptions)
     
     delete options['assignedType']
     delete options['id']
@@ -252,13 +265,22 @@ const mutations = {
     state.tooltip = payload;
   },
 
-  setWipOption(state, {option, value}){
-    state.wipOptions[option] = value
+  setDisplayProps(state, payload){
+    if (!payload){
+      state.displayProps = {node:null, props:null}
+      return
+    }
+    state.displayProps = payload
   },
 
-  setWipOPTIONS(state, payload){
-    state.wipOptions = payload
+  editDisplayProps(state, options){
+    Object.assign(state.displayProps.node, options)
+  },
+
+  resetState(state){
+    Object.assign(state, defaultState())
   }
+
 
 }
 
