@@ -1,5 +1,6 @@
 
-import Zdog from 'zdog'
+import Zdog from '../../zdog'
+
 //import versor from 'versor'
 
 //Reference reading: https://www.sitepoint.com/building-3d-engine-javascript/
@@ -23,10 +24,15 @@ class Camera{
   constructor(illustration, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
     this.illustration = illustration;
     let illoe = illustration.element;
+    this.eye = {}
+    this.worldPosition = new Zdog.Vector();
+
+    // this.axes.renderGraph();
     
     this.phi = this.illustration.rotate.x
     this.theta = this.illustration.rotate.y
     this.zoom = this.illustration.zoom
+
 
     //phi is polar (xy plane)
     //theta is azimuthal (zx plane)
@@ -74,8 +80,9 @@ class Camera{
         }
       },
       onDragEnd: function(event) {
-        ctx.dragend();
+        ctx.dragend(event);
         ctx.onmouseup(event);
+  //      console.log(`(ρ,θ,φ):(${ctx.rho},${ctx.theta},${ctx.phi})`)
       },
     });
 
@@ -96,6 +103,8 @@ class Camera{
 
     this.animate();
   }
+
+  static ORIGIN = {x:0,y:0,z:0}
 
   get x(){
     return this.rho * Math.cos(this.phi) * Math.sin(this.theta)
@@ -120,6 +129,22 @@ class Camera{
   set zoom(newZoom){
     this.rho = this.defaultRho / newZoom;
     this.illustration.zoom = newZoom
+  }
+
+  renderAxes(){
+    let ctx = this.illustration.ctx;
+      // clear canvas
+  //ctx.clearRect( 0, 0, canvasWidth, canvasHeight );
+  //ctx.save();
+  // find origin
+    ctx.translate( this.illustration.canvasWidth/2, this.illustration.canvasHeight/2 );
+  // set lineJoin and lineCap to round
+  // ctx.lineJoin = 'round';
+  // ctx.lineCap = 'round';
+  // render scene graph
+
+    this.axes.renderGraphCanvas(ctx);
+      //ctx.restore();
   }
 
   // pan(pointer){
@@ -179,7 +204,9 @@ class Camera{
     this.illustration.rotate = o;
   }
 
-  dragend(){
+  dragend(event){
+    this.selection(event)
+
   }
 
   screendelta(pointer){
@@ -198,6 +225,35 @@ class Camera{
     this.rho = Math.max(0.1, z);
     this.illustration.zoom = this.zoom;
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
+  }
+
+  selection(){
+    let ctx = this.illustration.ctx;
+    let transformer = new TransformationMatrix();
+
+    let X = event.offsetX //- (this.illustration.canvasWidth / 2)
+    let Y = event.offsetY //- (this.illustration.canvasHeight / 2)
+
+    transformer.m = this.illustration.transformMatrix
+    let canvasPoint = transformer.screenPoint(X, Y);
+
+    let nodes = this.illustration._flatGraph;
+    for (let node of nodes){
+      node
+      let path = node.path2d;
+      if (path){
+        let intersect = (ctx.isPointInStroke(path,  canvasPoint.x ,  canvasPoint.y)
+        || ctx.isPointInPath(path,  canvasPoint.x ,  canvasPoint.y));
+        if (intersect){
+          //send an event with the object?
+          node.color = 'white'
+          break;
+        } else {
+          node.color ='black'
+        }
+      }
+    }
+
   }
 
   keydown(e){
@@ -247,9 +303,183 @@ class Camera{
     let listener = this.listeners;
     this.illustration.element.removeEventListener('wheel',  listener['wheel'])
   }
+
+  projection(point){
+    let vector = new Zdog.Vector(point);
+    [vector.z * Math.sin(this.theta)];
+  }
   
 
 }
+
+//https://riptutorial.com/html5-canvas/example/19666/a-transformation-matrix-to-track-translated--rotated---scaled-shape-s-
+
+class TransformationMatrix{
+  m=[1,0,0,1,0,0]
+  reset(){ this.m=[1,0,0,1,0,0]; }
+  multiply(mat){
+    let m = this.m
+    var m0=m[0]*mat[0]+m[2]*mat[1];
+    var m1=m[1]*mat[0]+m[3]*mat[1];
+    var m2=m[0]*mat[2]+m[2]*mat[3];
+    var m3=m[1]*mat[2]+m[3]*mat[3];
+    var m4=m[0]*mat[4]+m[2]*mat[5]+m[4];
+    var m5=m[1]*mat[4]+m[3]*mat[5]+m[5];
+    m=[m0,m1,m2,m3,m4,m5];
+  }
+  screenPoint(transformedX,transformedY){
+    // invert
+    let m = this.m
+    var d =1/(m[0]*m[3]-m[1]*m[2]);
+    let im=[ m[3]*d, -m[1]*d, -m[2]*d, m[0]*d, d*(m[2]*m[5]-m[3]*m[4]), d*(m[1]*m[4]-m[0]*m[5]) ];
+    // point
+    return({
+        x:transformedX*im[0]+transformedY*im[2]+im[4],
+        y:transformedX*im[1]+transformedY*im[3]+im[5]
+    });
+  }
+  transformedPoint(screenX,screenY){
+    let m = this.m
+    return({
+        x:screenX*m[0] + screenY*m[2] + m[4],
+        y:screenX*m[1] + screenY*m[3] + m[5]
+    });    
+  }
+  // shared methods
+  translate(x,y){
+      var mat=[ 1, 0, 0, 1, x, y ];
+      this.multiply(mat);
+  }
+  rotate(rAngle){
+      var c = Math.cos(rAngle);
+      var s = Math.sin(rAngle);
+      var mat=[ c, s, -s, c, 0, 0 ];    
+      this.multiply(mat);
+  }
+  scale(x,y){
+      var mat=[ x, 0, 0, y, 0, 0 ];        
+      this.multiply(mat);
+  }
+  skew(radianX,radianY){
+      var mat=[ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ];
+      this.multiply(mat);
+  }
+  setContextTransform(ctx){
+      ctx.setTransform(this.m[0],this.m[1],this.m[2],this.m[3],this.m[4],this.m[5]);
+  }
+  resetContextTransform(ctx){
+      ctx.setTransform(1,0,0,1,0,0);
+  }
+  getMatrix(){
+      return[...this.m]
+  }
+}
+
+//From phoria.js
+//https://github.com/kevinroast/phoria.js/blob/master/scripts/phoria-view.js
+
+// function calculateClickPointAndVector(scene, mousex, mousey)
+//    {
+//       var camLookAt = vec3.fromValues(
+//          scene.camera.lookat.x,
+//          scene.camera.lookat.y,
+//          scene.camera.lookat.z);
+//       var camOff = vec3.subtract(vec3.create(), scene._cameraPosition, camLookAt);
+      
+//       // get pixels per unit at click plane (plane normal to camera direction going through the camera focus point)
+//       var pixelsPerUnit = (scene.viewport.height / 2) / (vec3.length(camOff) * Math.tan((scene.perspective.fov / 180 * Math.PI) / 2));
+      
+//       // calculate world units (from the centre of canvas) corresponding to the mouse click position
+//       var dif = vec2.fromValues(mousex - (scene.viewport.width / 2), mousey - (scene.viewport.height / 2));
+//       vec2.subtract(dif, dif, new vec2.fromValues(8, 8)); // calibrate
+//       var units = vec2.create();
+//       vec2.scale(units, dif, 1 / pixelsPerUnit);
+      
+//       // move click point horizontally on click plane by the number of units calculated from the x offset of the mouse click
+//       var upVector = vec3.fromValues(scene.camera.up.x, scene.camera.up.y, scene.camera.up.z);
+//       var normalVectorSide = vec3.create();
+//       vec3.cross(normalVectorSide, camOff, upVector);
+//       vec3.normalize(normalVectorSide, normalVectorSide);
+//       var clickPoint = vec3.scaleAndAdd(vec3.create(), camLookAt, normalVectorSide, units[0]);
+      
+//       // move click point vertically on click plane by the number of units calculated from the y offset of the mouse click
+//       var normalVectorUp = vec3.create();
+//       vec3.cross(normalVectorUp, normalVectorSide, camOff);
+//       vec3.normalize(normalVectorUp, normalVectorUp);
+//       vec3.scale(normalVectorUp, normalVectorUp, units[1]);
+//       vec3.subtract(clickPoint, clickPoint, normalVectorUp);
+      
+//       // calculate click vector (vector from click point to the camera's position)
+//       var camVector = vec3.add(vec3.create(), camLookAt, camOff);
+//       return {
+//          clickPoint: clickPoint,
+//          clickVector: vec3.subtract(vec3.create(), clickPoint, camVector)
+//       };
+//    }
+
+// function getIntersectedObjects(scene, clickPoint, clickVector)
+// {
+//    var intersections = [], obj, polygonNormal, polygonPoint, polygonCoords, polygonPlaneIntersection, pointVector;
+   
+//    // Go through all the appropriate objects
+//    var objects = scene.renderlist;
+//    for (var n = 0; n < objects.length; n++)
+//    {
+//       obj = objects[n];
+      
+//       // only consider solid objects
+//       if (obj.style.drawmode !== "solid") continue;
+      
+//       // Go through all the polygons of an object
+//       for (var m = 0; m < obj.polygons.length; m++)
+//       {
+//          polygonNormal = vec3.clone(obj.polygons[m]._worldnormal);
+//          polygonPoint = vec3.clone(obj._worldcoords[obj.polygons[m].vertices[0]]);
+         
+//          // Get the point where the line intersectects the polygon's plane
+//          polygonPlaneIntersection = Phoria.Util.planeLineIntersection(polygonNormal, polygonPoint, clickVector, clickPoint);
+         
+//          // if the intersection is null, it means the line does not intersect the plane
+//          if (polygonPlaneIntersection !== null)
+//          {
+//             // Check if the intersection is inside the polygon
+//             if (Phoria.Util.intersectionInsidePolygon(obj.polygons[m], obj._worldcoords, polygonPlaneIntersection))
+//             {
+//                // add intersection to the array being returned
+//                var returnObject = {
+//                   entity: obj,
+//                   polygonIndex: m,
+//                   intersectionPoint: polygonPlaneIntersection
+//                };
+//                intersections.push(returnObject);
+//             }
+//          }
+//       }
+//    }
+   
+//    // calculate distance to each intersection from camera's position
+//    for (var i = 0; i < intersections.length; i++)
+//    {
+//       intersections[i].distance = vec3.distance(scene._cameraPosition, intersections[i].intersectionPoint);
+//    }
+   
+//    // sort intersection points from closest to farthest
+//    for (var i = 0; i < intersections.length - 1; i++)
+//    {
+//       for (var j = i + 1, keepVal; j < intersections.length; j++)
+//       {
+//          if (intersections[i].distance >= intersections[j].distance)
+//          {
+//             keepVal = intersections[j];
+//             intersections[j] = intersections[i];
+//             intersections[i] = keepVal;
+//          }
+//       }
+//    }
+   
+//    // return list of all intersections
+//    return intersections;
+// }
 
 /** ZDOG HELPERS SAUCE by Mootari:
  * https://observablehq.com/@mootari/zdog-helpers

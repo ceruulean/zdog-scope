@@ -113,8 +113,9 @@ const actions = {
     Ztree.relationMap = newTree.relationMap
 
     commit('setZtree', true);
-    dispatch('canvas/showCanvasAxes')
+    //dispatch('canvas/showCanvasAxes')
     dispatch('treeview/changeList')
+    dispatch('properties/changeDisplay')
   },
 
   newIllustration({dispatch, commit, state}, payload){
@@ -134,14 +135,7 @@ const actions = {
   changeSelected({commit, dispatch, state}, {id, element}){
     //click handler here?
     if (state.selected.id == id) return;
-    dispatch('properties/reset')
-    let existing = state.selected.element;
-    if (existing) existing.classList.remove('highlight')
-    if (id) {
-      element.classList.add('highlight')
-    } else {
-      dispatch('treeview/clearSelected')
-    }
+    //dispatch('properties/reset')
     commit('setSelected', {id, element});
     dispatch('properties/changeDisplay')
   },

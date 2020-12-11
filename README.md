@@ -16,9 +16,9 @@ Built with [Vue 3](https://v3.vuejs.org/)
 - Tree view of objects w/ draggable sort
 - Assign name and edit properties
 - Zoom and pan controls
+- Undo/redo
 
 ## Todo
-- Undo/redo
 - Delete objects
 - Axes toggling
 - Better creation prompt

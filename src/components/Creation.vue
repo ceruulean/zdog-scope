@@ -95,7 +95,7 @@
           v-for="field in vectorProps(mainProps)"
           :id="`${field}_creation`"
           :key="`${field}_creation`"
-          :default="optionDefault(field)"
+          :value="optionDefault(field)"
           :degrees="(field == 'rotate')"
         >
           {{ capitalize(field) }}

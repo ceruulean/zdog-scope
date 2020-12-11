@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 import {Ztree} from '../index'
+
 
 import {
   axesHelper,
@@ -7,8 +9,6 @@ import {
   // gridHelper,gridRectHelper,
   // clearColor,drawRaw,zoomable
 } from '../../canvasHelpers'
-
-/* eslint-disable no-unused-vars */
 
 var selectedAxes, canvasAxes
 
@@ -38,7 +38,8 @@ const actions = {
   async showCanvasAxes({dispatch, state}){
     await dispatch('clearCanvasAxes')
     let illo = Ztree.illustration;
-    canvasAxes = axesHelper({addTo: illo, size:999, stroke:1, head:null})
+    let size = illo.canvasHeight / 2;
+    canvasAxes = axesHelper({addTo: illo, size:size, stroke:1, head:10})
     illo.updateRenderGraph()
   },
 

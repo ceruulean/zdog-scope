@@ -20,7 +20,7 @@ const actions = {
   },
 
   sortItem({dispatch}, payload){
-    dispatch('history/changeParent', payload, {root: true})
+    dispatch('history/updateParent', payload, {root: true})
     dispatch('changeList')
   },
 

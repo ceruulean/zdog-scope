@@ -11,7 +11,7 @@
     >
       <div
         ref="selectitem"
-        class="data-set row"
+        :class="{'data-set':true, 'row':true, 'highlight':(selectedid == node.id)}"
         draggable="true"
         @click.stop="highlight"
         @dragstart="dragStart"

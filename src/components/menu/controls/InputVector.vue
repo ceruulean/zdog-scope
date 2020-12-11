@@ -97,7 +97,7 @@ export default {
     },
     value:{
       type:Object,
-      default:null
+      default:()=>({x:0,y:0,z:0})
     },
   },
   emits:['send-coords', 'open-tooltip'],
