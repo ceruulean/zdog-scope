@@ -15,7 +15,7 @@
     "versor": "^0.1.2",
     "vue": "^3.0.0",
     "vuex": "^4.0.0-rc.1",
-    "zdog": "^1.1.2"
+    "zdog": "github:ceruulean/zdog"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

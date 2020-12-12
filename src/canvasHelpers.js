@@ -1,14 +1,216 @@
 
-import Zdog from '../../zdog'
+/* eslint-disable no-unused-vars */
+import Zdog from 'zdog'
+import { Ztree, Zdogger} from './zdogrigger';
+import {COLOR_PROPS} from './store/modules/properties'
 
 //import versor from 'versor'
 
-//Reference reading: https://www.sitepoint.com/building-3d-engine-javascript/
 
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                             window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
 var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
+
+/**
+ * Returns an array with [ r g b ] values
+ * @param {*} context CanvasRendering2DContext
+ * @param {*} x 
+ * @param {*} y 
+ */
+function getPixel(context, x, y) {
+  let imageData = context.getImageData( x, y, 1, 1 );
+  //console.log(imageData);
+  let data = imageData.data;
+  return [data[0],data[1],data[2]];
+}
+
+//https://stackoverflow.com/questions/23095637/how-do-you-get-random-rgb-in-javascript
+function getRandomRgb() {
+  var num = Math.round(0xffffff * Math.random());
+  var r = num >> 16;
+  var g = num >> 8 & 255;
+  var b = num & 255;
+  return [r,g,b]
+}
+
+class GhostCanvas{
+  constructor(Ztree, ghostIllo){
+    this.Ztree = Ztree;
+    this.ghost = ghostIllo
+    this.copyZtree()
+    this.initColors();
+  }
+
+  copyZtree(){
+    let clone = this.Ztree.clone()
+    this.ghostNodes = clone.nodeMap;
+    this.ghostNodes.delete(clone.illustration.id)
+    this.ghost.children = clone.illustration.children
+    this.ghost.updateGraph()
+  }
+
+  initColors(){
+    this.colorMap = new Map(); //<rgba:[3], id: string>
+    this.nodeColors = new Map(); //<id: string, rgba:[3]>
+    //this.ghost.updateGraph();
+    //this.ghost.renderGraphCanvs(ctx)
+    let nodes = this.ghost._flatGraph.filter(node=>{
+      return (node.id != undefined)
+    })
+    for(let node of nodes){
+      if (node.isCanvas) {
+        continue
+      }
+        let color = getRandomRgb();
+        GhostCanvas.setUniformColor(node, color)
+        this._setMaps(node, color)
+    }
+  }
+
+  static rgbString(data){
+    return `rgb(${data[0]},${data[1]},${data[2]})`
+  }
+
+  get nodeMap(){
+    return this.Ztree.nodeMap;
+  }
+  get transformMatrix(){
+    return this.Ztree.illustration.transformMatrix
+  }
+  /**
+   * Updates nodes and deletes those that are not present in the live canvas.
+   */
+  pruneGhost(){
+    let toDelete = {};
+    this.ghost._flatGraph.forEach(node=>{
+      if (node.id && node.assignedType){
+        toDelete[node.id] = true;
+      }
+    })
+    this.nodeMap.forEach((node,id)=>{
+      //id still exists, update and do not delete
+      if (this.nodeColors.has(id)){
+        toDelete[id] = false;
+        GhostCanvas._updateNode(this.ghostNodes.get(id))
+      } else if (id != this.ghost.id){
+        // id not registered, add it
+        this.addNode(node)
+      }
+    })
+    for (let id in toDelete){
+      if(toDelete[id]){
+        let k = this.nodeColors.get(id)
+        this.colorMap.delete(k)
+        this.nodeColors.delete(id)
+        this.ghostNodes.delete(id)
+      }
+    }
+  }
+/**
+ * Takes the live Zdog and creates a ghost copy
+ * @param {*} zdog Zdog from live canvas
+ */
+  addNode(zdog){
+    if (!zdog.id) throw new Error('Invalid zdog object (must have "id" property ')
+    let color = getRandomRgb()
+    let clone = zdog.copyGraph()
+    let parentid = zdog.addTo.id
+    let parentGhost
+    if (this.ghostNodes.has(parentid)){
+      parentGhost = this.ghostNodes.get(parentid)
+    } else {
+      parentGhost = this.addNode(zdog.addTo)
+    }
+    parentGhost.addChild(clone)
+    let ghostN = GhostCanvas.setUniformColor(clone, color)
+
+    this._setMaps(ghostN, color)
+
+    return ghostN
+  }
+
+  _setMaps(node, colorArr){
+    if (node.id && node.assignedType){
+      this.colorMap.set(colorArr, node.id)
+      this.nodeColors.set(node.id, colorArr)
+      this.ghostNodes.set(node.id, node)
+    }
+  }
+  /**
+   * Sets a Zdog node to a single color and returns the original Zdog object
+   * @param {*} node the Zdog object
+   * @param {*} colorData the array of [r,g,b]
+   */
+  static setUniformColor(zdog, colorData){
+    //Set all color props to same
+    let string = GhostCanvas.rgbString(colorData);
+    let previous = Ztree.getProps(zdog)
+
+    let f = (zdog) => {
+      COLOR_PROPS.forEach(prop=>
+      {if (zdog[prop]) zdog[prop] = string})}
+
+      f(zdog)
+
+    //same with cildren
+    zdog.children.forEach(child=>{
+      //make sure it is not a separate entity (has an id)
+      if (!child.id){
+        GhostCanvas.setUniformColor(child, colorData)
+        let dependents = child._flatGraph; //some composite shapes have flatgraph
+        if (dependents){
+          dependents.forEach(d=>{
+            GhostCanvas.setUniformColor(d, colorData)
+          })
+        }
+      }
+
+    })
+   return previous
+  }
+/**
+ * Sync the ghost node's noncolor properties with the live node
+ * @param {*} ghostNode Zdog node (should be gotten from this.ghostNode)
+ */
+  _updateNode(ghostNode){
+    let original = this.nodeMap.get(ghostNode.id);
+    if (!original) {
+      this.pruneGhost()
+      return
+    }
+    let nodeProps = Ztree.constructor.getProps(original).filter(prop=>{
+      return ! COLOR_PROPS.includes(prop)
+    })
+    Object.assign(ghostNode, nodeProps)
+  }
+
+/**
+ * 
+ */
+  render(){
+   this.ghost.updateRenderGraph()
+   let ctx = this.ghost.ctx;
+   console.log(this.transformMatrix)
+   ctx.setTransform(...this.transformMatrix)
+   this.ghost.updateRenderGraph()
+  }
+
+/**
+ * 
+ * @param {*} screenX 
+ * @param {*} screenY 
+ */
+  getPixel(screenX, screenY){
+    this.render()
+    let transformer = new TransformationMatrix();
+    transformer.m = this.transformMatrix
+    let canvasPoint = transformer.screenPoint(screenX, screenY);
+    let color = getPixel(this.ghost.ctx, canvasPoint.x, canvasPoint.y)
+    console.log(`(${screenX},${screenY}):${color}`)
+    return color
+  }
+}
 
 
 /**
@@ -17,15 +219,22 @@ var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimat
 class Camera{
 /**
  * Creates a camera object that allows panning/zooming
- * @param {Zdog.Illustration} illustration 
+ * @param {Ztree} Ztree
  * @param {*} options 
  * @param {} zoomLabelEle HTML query selector to display zoom
  */
-  constructor(illustration, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
-    this.illustration = illustration;
-    let illoe = illustration.element;
+  constructor(Ztree, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
+    this.illustration = Ztree.illustration;
+    let illoe = this.illustration.element;
     this.eye = {}
     this.worldPosition = new Zdog.Vector();
+
+    this.ghostIllo = new Zdog.Illustration({
+      element:'.ghost-canvas',
+      dragRotate:false
+    })
+
+    this.ghostCanvas = new GhostCanvas(Ztree, this.ghostIllo)
 
     // this.axes.renderGraph();
     
@@ -227,34 +436,47 @@ class Camera{
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
   }
 
-  selection(){
-    let ctx = this.illustration.ctx;
-    let transformer = new TransformationMatrix();
-
-    let X = event.offsetX //- (this.illustration.canvasWidth / 2)
-    let Y = event.offsetY //- (this.illustration.canvasHeight / 2)
-
-    transformer.m = this.illustration.transformMatrix
-    let canvasPoint = transformer.screenPoint(X, Y);
-
-    let nodes = this.illustration._flatGraph;
-    for (let node of nodes){
-      node
-      let path = node.path2d;
-      if (path){
-        let intersect = (ctx.isPointInStroke(path,  canvasPoint.x ,  canvasPoint.y)
-        || ctx.isPointInPath(path,  canvasPoint.x ,  canvasPoint.y));
-        if (intersect){
-          //send an event with the object?
-          node.color = 'white'
-          break;
-        } else {
-          node.color ='black'
-        }
-      }
-    }
-
+  selection(event){
+   // let ctx = this.illustration.ctx;
+    //let c = getPixel(ctx, event.offsetX, event.offsetY)
+    let c = this.ghostCanvas.getPixel(event.offsetX, event.offsetY)
+    console.log(c)
+    
+    //let n = this.ghostCanvas.colorMap.get(c)
+    //console.log(n.id)
   }
+
+  // selection(){
+  //   let ctx = this.illustration.ctx;
+  //   let transformer = new TransformationMatrix();
+
+  //   let X = event.offsetX //- (this.illustration.canvasWidth / 2)
+  //   let Y = event.offsetY //- (this.illustration.canvasHeight / 2)
+  //   console.log(`${X},${Y}`)
+
+  //   transformer.m = this.illustration.transformMatrix
+  //   let canvasPoint = transformer.screenPoint(X, Y);
+
+  //   let nodes = this.illustration._flatGraph;
+  //   for (let node of nodes){
+  //     node
+  //     let path = node.path2d;
+  //     if (path){
+  //       let intersect = (ctx.isPointInStroke(path, canvasPoint.x ,  canvasPoint.y)
+  //       || ctx.isPointInPath(path,  canvasPoint.x ,  canvasPoint.y));
+  //       if (intersect){
+  //         //send an event with the object?
+  //         let n = Ztree.findRoot(node);
+  //         console.log(node.id)
+  //         console.log(n.id)
+  //         n.color = 'white'
+  //         break;
+  //       } else {
+  //         node.color ='black'
+  //       }
+  //     }
+  //   }
+  // }
 
   keydown(e){
     //Shift -> pan
@@ -313,7 +535,6 @@ class Camera{
 }
 
 //https://riptutorial.com/html5-canvas/example/19666/a-transformation-matrix-to-track-translated--rotated---scaled-shape-s-
-
 class TransformationMatrix{
   m=[1,0,0,1,0,0]
   reset(){ this.m=[1,0,0,1,0,0]; }
@@ -374,112 +595,6 @@ class TransformationMatrix{
       return[...this.m]
   }
 }
-
-//From phoria.js
-//https://github.com/kevinroast/phoria.js/blob/master/scripts/phoria-view.js
-
-// function calculateClickPointAndVector(scene, mousex, mousey)
-//    {
-//       var camLookAt = vec3.fromValues(
-//          scene.camera.lookat.x,
-//          scene.camera.lookat.y,
-//          scene.camera.lookat.z);
-//       var camOff = vec3.subtract(vec3.create(), scene._cameraPosition, camLookAt);
-      
-//       // get pixels per unit at click plane (plane normal to camera direction going through the camera focus point)
-//       var pixelsPerUnit = (scene.viewport.height / 2) / (vec3.length(camOff) * Math.tan((scene.perspective.fov / 180 * Math.PI) / 2));
-      
-//       // calculate world units (from the centre of canvas) corresponding to the mouse click position
-//       var dif = vec2.fromValues(mousex - (scene.viewport.width / 2), mousey - (scene.viewport.height / 2));
-//       vec2.subtract(dif, dif, new vec2.fromValues(8, 8)); // calibrate
-//       var units = vec2.create();
-//       vec2.scale(units, dif, 1 / pixelsPerUnit);
-      
-//       // move click point horizontally on click plane by the number of units calculated from the x offset of the mouse click
-//       var upVector = vec3.fromValues(scene.camera.up.x, scene.camera.up.y, scene.camera.up.z);
-//       var normalVectorSide = vec3.create();
-//       vec3.cross(normalVectorSide, camOff, upVector);
-//       vec3.normalize(normalVectorSide, normalVectorSide);
-//       var clickPoint = vec3.scaleAndAdd(vec3.create(), camLookAt, normalVectorSide, units[0]);
-      
-//       // move click point vertically on click plane by the number of units calculated from the y offset of the mouse click
-//       var normalVectorUp = vec3.create();
-//       vec3.cross(normalVectorUp, normalVectorSide, camOff);
-//       vec3.normalize(normalVectorUp, normalVectorUp);
-//       vec3.scale(normalVectorUp, normalVectorUp, units[1]);
-//       vec3.subtract(clickPoint, clickPoint, normalVectorUp);
-      
-//       // calculate click vector (vector from click point to the camera's position)
-//       var camVector = vec3.add(vec3.create(), camLookAt, camOff);
-//       return {
-//          clickPoint: clickPoint,
-//          clickVector: vec3.subtract(vec3.create(), clickPoint, camVector)
-//       };
-//    }
-
-// function getIntersectedObjects(scene, clickPoint, clickVector)
-// {
-//    var intersections = [], obj, polygonNormal, polygonPoint, polygonCoords, polygonPlaneIntersection, pointVector;
-   
-//    // Go through all the appropriate objects
-//    var objects = scene.renderlist;
-//    for (var n = 0; n < objects.length; n++)
-//    {
-//       obj = objects[n];
-      
-//       // only consider solid objects
-//       if (obj.style.drawmode !== "solid") continue;
-      
-//       // Go through all the polygons of an object
-//       for (var m = 0; m < obj.polygons.length; m++)
-//       {
-//          polygonNormal = vec3.clone(obj.polygons[m]._worldnormal);
-//          polygonPoint = vec3.clone(obj._worldcoords[obj.polygons[m].vertices[0]]);
-         
-//          // Get the point where the line intersectects the polygon's plane
-//          polygonPlaneIntersection = Phoria.Util.planeLineIntersection(polygonNormal, polygonPoint, clickVector, clickPoint);
-         
-//          // if the intersection is null, it means the line does not intersect the plane
-//          if (polygonPlaneIntersection !== null)
-//          {
-//             // Check if the intersection is inside the polygon
-//             if (Phoria.Util.intersectionInsidePolygon(obj.polygons[m], obj._worldcoords, polygonPlaneIntersection))
-//             {
-//                // add intersection to the array being returned
-//                var returnObject = {
-//                   entity: obj,
-//                   polygonIndex: m,
-//                   intersectionPoint: polygonPlaneIntersection
-//                };
-//                intersections.push(returnObject);
-//             }
-//          }
-//       }
-//    }
-   
-//    // calculate distance to each intersection from camera's position
-//    for (var i = 0; i < intersections.length; i++)
-//    {
-//       intersections[i].distance = vec3.distance(scene._cameraPosition, intersections[i].intersectionPoint);
-//    }
-   
-//    // sort intersection points from closest to farthest
-//    for (var i = 0; i < intersections.length - 1; i++)
-//    {
-//       for (var j = i + 1, keepVal; j < intersections.length; j++)
-//       {
-//          if (intersections[i].distance >= intersections[j].distance)
-//          {
-//             keepVal = intersections[j];
-//             intersections[j] = intersections[i];
-//             intersections[i] = keepVal;
-//          }
-//       }
-//    }
-   
-//    // return list of all intersections
-//    return intersections;
-// }
 
 /** ZDOG HELPERS SAUCE by Mootari:
  * https://observablehq.com/@mootari/zdog-helpers

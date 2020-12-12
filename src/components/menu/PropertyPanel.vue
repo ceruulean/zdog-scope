@@ -1,9 +1,10 @@
 <template>
-  <div class="property-panel"
-    @click="closeTooltip">
     <h2>Properties</h2>
-
-      <div class="row info" v-if="selectedNode && treeLoaded">
+  <div class="property-panel"
+    @click="closeTooltip"
+    v-if="selectedNode && treeLoaded"
+    >
+      <div class="row info" >
         <div class="word-break">
           id: {{ selected.id }}
         </div>
@@ -22,26 +23,12 @@
           >
         </label>
       </div>
+
     <form
       v-if="selectedNode && treeLoaded"
       class="field-list"
     >
       <div class="row">
-        <!-- <label
-          v-for="(val, prop) in selectedOptions"
-          :key="prop"
-          class="field"
-          :for="prop"
-        >
-          {{ capitalize(prop) }}:
-          <input 
-            v-model="wipOptions[prop]"
-            type="text"
-            autocomplete="off"
-            :placeholder="toString(val)"
-            :name="prop"
-          >
-        </label> -->
         <InputVector
           v-for="prop in propList('vectors')"
           :id="`v_${prop}`"
@@ -61,8 +48,7 @@
           element="input"
           :value="selectedNode[prop]"
           type="number"
-          step=1
-          autocomplete="off"
+          step=0.1
           :placeholder="selectedNode[prop]"
           :name="prop"
           @change="inputChange(prop, $event.target.value)"
@@ -89,7 +75,6 @@
           element="input"
           :value="selectedNode[prop]"
           type="checkbox"
-          autocomplete="off"
           :checked="selectedNode[prop]"
           :name="prop"
           @change="inputChange(prop, $event.target.value)"
@@ -113,7 +98,7 @@
         Apply Changes
       </button>
     </form>
-  </div>
+</div>
 </template>
 
 <script>
@@ -205,8 +190,6 @@ export default {
     },
     updateName(e){
       let o = {assignedName: e.target.value}
-      console.log(e.target.value)
-      this.editDisplay(o)
       this.updateProps(o)
       this.$store.dispatch('treeview/updateSelectedName', e.target.value);
     },

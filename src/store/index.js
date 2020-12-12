@@ -31,7 +31,7 @@ function newZtree(arg){
 
 function initCamera(state){
   if (camera || state == null) {camera.destroy(); camera = null}
-  camera = new Camera(Ztree.illustration, state.canvas.settings.camera);
+  camera = new Camera(Ztree, state.canvas.settings.camera);
   //Append zoom % label to dom element
   //document.querySelector('#zoom-control').appendChild(camera.label)
 }
@@ -145,14 +145,14 @@ const actions = {
     Ztree.download();
   },
 
-  async importTree({commit, dispatch}){
+  async importTree({dispatch}){
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
     dispatch('changeSelected', {id:null, element: null})
     dispatch('treeview/resetView')
-    commit('resetState');
+    //commit('resetState');
 
-    dispatch('updateZtree', newTree)
+    dispatch('newIllustration', newTree)
   },
 }
 

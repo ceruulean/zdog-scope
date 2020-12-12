@@ -200,7 +200,6 @@ export default {
       this.emitCoords();
     },
     tooltipChange(p, e){
-      console.log(e)
       this.euler[p] = e;
       this.emitCoords();
     }

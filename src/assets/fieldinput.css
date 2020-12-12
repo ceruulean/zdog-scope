@@ -1,4 +1,5 @@
 input,label{
+  position:relative;
   font-family: Tahoma, Helvetica, Arial, sans-serif;
 }
 
@@ -6,6 +7,13 @@ input[type="text"], textarea{
   border-radius:3px;
   border:1px solid var(--colorMain);
   padding: 1px 5px;
+}
+
+input[type="number"]{
+  border-radius:3px;
+  border:1px solid var(--colorMain);
+  padding: 1px 0 1px 5px;
+  max-width:10ch;
 }
 
 .input-name{

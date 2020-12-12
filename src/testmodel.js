@@ -1,4 +1,4 @@
-import Zdog from '../../zdog'
+import Zdog from 'zdog'
 import Zdogger from './zdogrigger'
 
 // Made with Zdog

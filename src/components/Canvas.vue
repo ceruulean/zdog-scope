@@ -8,13 +8,14 @@
   />
 
   <canvas
-    class="ghost-canvas"
+    :class="{'ghost-canvas':true, 'hidden':hideGhost}"
     :width="width"
     :height="height"
   />
 
   <div class="axes-controls" />
-  <div id="zoom-control">
+  <div id="zoom-control" style="z-index:200">
+    <button style="z-index:200" @click="hideGhost = !hideGhost">Toggle</button>
   </div>
 </template>
 
@@ -37,6 +38,11 @@ export default {
   //     zoomDisplay:null
   //   }
   // },
+  data(){
+    return{
+      hideGhost:true
+    }
+  },
   computed:{
     ...mapState({
       settings:state=>state.canvas.settings,
@@ -105,7 +111,10 @@ export default {
 
 .ghost-canvas{
   z-index:1;
-  display:none;
+}
+
+.hidden{
+    display:none;
 }
 
 #zoom-control{

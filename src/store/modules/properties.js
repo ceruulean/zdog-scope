@@ -112,20 +112,6 @@ function invalidFields(incomingOptions){
 }
 
 
-function getSelectedNode(rootState){
-  let n = Ztree.find(rootState.selected.id);
-  if (!n) return;
-  let arr = n.constructor.optionKeys
-  let node = Ztree.constructor.getProps(n)
-  let p = ['colors', 'vectors', 'bools', 'nums']
-  let props = {};
-  p.forEach(type=>{
-    props[type] = list[type](arr)
-  })
-
-  return {node, props}
-}
-
 let list = {
   colors(propList){
     return propList.filter((prop)=>{
@@ -147,6 +133,19 @@ let list = {
       return NUM_PROPS.includes(prop);
     })
   },
+}
+
+function getDisplay(rootState){
+  if (!rootState.selected.id) return
+  let n = Ztree.find(rootState.selected.id)
+  let arr = n.constructor.optionKeys
+  let node = Ztree.constructor.getProps(n)
+  let p = ['colors', 'vectors', 'bools', 'nums']
+  let props = {};
+  p.forEach(type=>{
+    props[type] = list[type](arr)
+  })
+  return {node, props}
 }
 
 /* Module1.store.js */
@@ -184,19 +183,17 @@ const getters = {
   },
   NUM_PROPS(){
     return NUM_PROPS
+  },
+  props(){
+    return Ztree.constructor.props;
   }
 }
 // Actions 
 const actions = {
 
   changeDisplay({commit, rootState}){
-    let tewst = getSelectedNode(rootState)
-    commit('setDisplayProps', tewst)
+    commit('setDisplayProps', getDisplay(rootState))
     //commit('setWipOPTIONS', Ztree.constructor.getProps())
-  },
-
-  editDisplay({commit}, options){
-    commit('editDisplayProps', options)
   },
 
   reset({commit}){
@@ -204,9 +201,9 @@ const actions = {
   },
 
 
-  updateProps({dispatch, rootState}, incomingOptions){
+  updateProps({dispatch, rootGetters}, incomingOptions){
     
-    let node = Ztree.find(rootState.selected.id), options = Object.assign({}, incomingOptions)
+    let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
     
     delete options['assignedType']
     delete options['id']
@@ -220,10 +217,6 @@ const actions = {
     dispatch('history/updateProps', {node:node,options:options}, {root: true})
   },
 
-  editOption({commit}, payload){
-    commit('setWipOption', payload)
-  },
-
   validateFields({commit}, incomingOptions){
     let invalids = invalidFields(incomingOptions);
     if (invalids.length > 0) {
@@ -235,16 +228,13 @@ const actions = {
   },
 
   validationReset({commit}){
-    commit('VALIDATION_RESET');
+    commit('VALIDATION_RESET')
+
   },
   
 }
 
 const mutations = {
-
-  log(state, payload){
-    console.log(payload);
-  },
 
   VALIDATION_FAIL(state, invalids){
     state.validationSuccess = false;
@@ -281,8 +271,9 @@ const mutations = {
     Object.assign(state, defaultState())
   }
 
-
 }
+
+export{COLOR_PROPS}
 
 export default {
   namespaced: true,

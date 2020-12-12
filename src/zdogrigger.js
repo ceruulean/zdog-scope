@@ -1,4 +1,4 @@
-import Zdog from '../../zdog'
+import Zdog from 'zdog'
 
 /**
  * classType only accepts 0-13 (corresponding to ZDog types)
@@ -50,6 +50,10 @@ const CYCLIC_PROPS = [
   'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
   'onDragEnd','onResize', 'element'
 ]
+
+let nocyclic = (options) => {return options.filter(option=>{
+  return !CYCLIC_PROPS.includes(option)
+})}
 
 /**
  * Creates Zdog objects with assignedName, uid and assignedType (see ZDOG_CLASS, an 'enum')
@@ -525,21 +529,53 @@ class Ztree{
   trimmedView(){
     return [this.trimNode(this.illustration)]
   }
-
+  /**
+   * Returns an {option:value} object of a Zdog pruned of cyclic values
+   * @param {*} node Zdog object or Class
+   */
   static getProps(node){
-    let props = node.constructor.optionKeys.filter(option=>{
-      return !CYCLIC_PROPS.includes(option)
-    })
-    let o = {}
-    for (let p of props){
-      o[p] = node[p]
+    let options;
+      options = node.constructor.optionKeys
+      let o = {}
+      for (let p of nocyclic(options)){
+        o[p] = node[p]
+      }
+      Object.assign(o, {
+        assignedName: node.assignedName,
+        assignedType: node.assignedType,
+        id: node.id
+      })
+      return o;
+  }
+
+  /**
+   * Gets the valid instantiation options of the Zdog Class
+   * @param {*} arg 
+   */
+  static props(arg){
+    let options;
+    try{
+      if (typeof arg == 'number'){
+        options = ZDOG_CLASS_TYPE[arg].optionKeys
+      } else if (typeof arg == 'string'){
+        options = ZDOG_CLASS_TYPE[ZDOG_CLASS[arg]].optionKeys
+      } else if (arg.optionKeys){
+        options = arg.optionKeys
+      }
+      return nocyclic(options)
+    } catch(e){
+      throw new Error(e)
     }
-    Object.assign(o, {
-      assignedName: node.assignedName,
-      assignedType: node.assignedType,
-      id: node.id
-    })
-    return o;
+  }
+  /**
+   * Find root of composite objects
+   * @param {*} node 
+   */
+  static findRoot(node){
+    if ((node.id && node.assignedType) || !node.addTo) {
+      return node
+    }
+    return Ztree.findRoot(node.addTo);
   }
 
   /**
@@ -585,7 +621,7 @@ class Ztree{
     if (!newSet) {
       newSet = new Set()
     } 
-    for (let id in childIds){
+    for (let id of childIds){
       newSet.add(id);
     }
     this.relationMap.set(parentId, newSet);
@@ -617,15 +653,12 @@ class Ztree{
     let childnode = this.nodeMap.get(id)
     let oldParentNode = childnode.addTo
     let pnode = this.nodeMap.get(newParentId);
-
     //remove child from set record
     this.relationMap.get(oldParentNode.id).delete(id)
     this._addRelation(newParentId, [id])
 
     if (oldParentNode){
       oldParentNode.removeChild(childnode);
-      //swap parent and id if changing places
-      oldParentNode.addChild(pnode);
     }
 
     pnode.addChild(childnode);
@@ -737,6 +770,7 @@ function toRad(degrees) {
 let Zdogger = (type) => {
   if (typeof type == 'string') return create(type);
   if (typeof type == 'number') return make(type);
+  if (type.id) return reviveZdog(type)
   return null;
 }
 

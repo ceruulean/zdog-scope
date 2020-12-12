@@ -68,19 +68,20 @@
 
 
         <div class="field-list col" v-if="numProps(mainProps).length > 0">
-          <label
-            v-for="(field) in numProps(mainProps)"
+          <InputLabel v-for="(field) in numProps(mainProps)"
             :key="`${field}_creation`"
             :for="`${field}_creation`"
+            :id="`${field}_creation`"
+            element="input"
+            v-model="wipOptions[field]"
+            type="number"
+            step=0.1
+            :placeholder="optionDefault(field)"
+            :name="field"
+            @input="wipOptions[field] = $event.target.value"
           >
-            {{ capitalize(field) }}
-            <input
-              :id="`${field}_creation`"
-              v-model="wipOptions[field]"
-              type="text"
-              :placeholder="optionDefault(field)"
-            >
-          </label>
+            {{ capitalize(field) }}:
+          </InputLabel>
         </div>
         <div class="col" v-if="colorProps(mainProps).length > 0">
           <span v-for="field in colorProps(mainProps)" :key="field">
@@ -119,19 +120,20 @@
 
 
         <div class="field-list col" v-if="numProps(miscProps).length > 0">
-          <label
-            v-for="(field) in numProps(miscProps)"
+          <InputLabel v-for="(field) in numProps(miscProps)"
             :key="`${field}_creation`"
             :for="`${field}_creation`"
+            :id="`${field}_creation`"
+            element="input"
+            v-model="wipOptions[field]"
+            type="number"
+            step=0.1
+            :placeholder="optionDefault(field)"
+            :name="field"
+            @input="wipOptions[field] = $event.target.value"
           >
-            {{ capitalize(field) }}
-            <input
-              :id="`${field}_creation`"
-              v-model="wipOptions[field]"
-              type="text"
-              :placeholder="optionDefault(field)"
-            >
-          </label>
+              {{ capitalize(field) }}:
+          </InputLabel>
         </div>
         <div class="col" v-if="colorProps(miscProps).length > 0">
           <span v-for="field in colorProps(miscProps)" :key="field">
@@ -191,11 +193,11 @@
 <script>
 import {mapActions, mapState, mapGetters} from 'vuex'
 import ZdogJSONSchema from '../zdogobjects.json'
-import {ZDOG_CLASS, ZDOG_CLASS_TYPE} from '../zdogrigger'
 
 import InputVector from './menu/controls/InputVector'
 import ColorPicker from './menu/controls/ColorPicker'
 import Backface from './menu/controls/Backface'
+import InputLabel from './menu/controls/InputLabel'
 
 import StringHelper from './StringHelperMixin'
 
@@ -204,7 +206,8 @@ export default {
   components:{
     InputVector,
     ColorPicker,
-    Backface
+    Backface,
+    InputLabel
   },
   mixins:[StringHelper],
   props: {
@@ -220,19 +223,14 @@ export default {
       wipOptions:{},
       wipAssignedName: null,
       appendTo:'selected',
-      miscProps: []
     }
-  },
-  mounted(){
-    this.miscProps = this.ALL_PROPS.filter(option=>{
-        return !this.mainProps.includes(option)
-      })
   },
   methods:{
     ...mapActions({
         newZdogObject:'history/newZdog', //argument should be in format {type:int, options:{}}
         validateFields:'properties/validateFields',
-        newIllustration:'newIllustration'
+        newIllustration:'newIllustration',
+        validationReset:'properties/validationReset'
     }),
     async submit(){
       await this.validateFields(this.wipOptions);
@@ -247,7 +245,6 @@ export default {
         options:options,
         assignedName:this.wipAssignedName
         }
-
       if (this.itemtype == 'illustration') {
         this.newIllustration(temp)
       } else {
@@ -286,6 +283,10 @@ export default {
         return this.COLOR_PROPS.includes(prop)
       })
     },
+    log(e){
+      console.log(e.target.value)
+      console.log(this.wipOptions)
+    }
   },
   computed:{
     ...mapState({
@@ -300,29 +301,31 @@ export default {
         'COLOR_PROPS',
         'NUM_PROPS',
         'CREATE_PROPS',
+        'validationFailed'
     ]),
     mainProps(){
-      let m = this.CREATE_PROPS[this.itemtype];
-      return m
+      return this.CREATE_PROPS[this.itemtype];
+    },
+    miscProps(){
+      return this.ALL_PROPS.filter(prop=>{
+        return !this.mainProps.includes(prop)
+      })
     },
     validSchema(){
       return ZdogJSONSchema.optionValidator;
     },
     bWarning:{
       get(){
-        return this.$store.getters['properties/validationFailed']
+        return this.validationFailed;
         },
       set(newVal){
         if (newVal == false) {
-          this.$store.dispatch('properties/validationReset')
+          this.validationReset();
         }
       }
     },
     ALL_PROPS(){
-      return ZDOG_CLASS_TYPE[ZDOG_CLASS[this.itemtype]].optionKeys.filter(prop=>{
-        return (prop != 'addTo' && prop != 'onPrerender' && prop != 'onDragStart'
-        && prop != 'onDragMove' && prop != 'onDragEnd' && prop != 'onResize')
-      });
+      return this.$store.getters['properties/props'](this.itemtype)
     },
     isThreeD(){
       return this.itemtype == 'cylinder' || this.itemtype == 'hemisphere'

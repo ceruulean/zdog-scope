@@ -1,45 +1,58 @@
 # zdog-scope
 Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 
-Inspired by [nifskope](http://www.niftools.org/), an open source graphics editor.
-
-
-[Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid) for panel resizing
-
-[Zdog 3D Helpers](https://observablehq.com/@mootari/zdog-helpers)
-
-Built with [Vue 3](https://v3.vuejs.org/)
 
 ---
-## Done
+## Done Features
 - Import/Export JSON
 - Tree view of objects w/ draggable sort
 - Assign name and edit properties
 - Zoom and pan controls
 - Undo/redo
 
-## Todo
+## Current Todos
 - Delete objects
-- Axes toggling
+- Canvas object selection
+- Resize canvas with viewport change
+- Render coordinate axes separately
+
+## Future Goals
+
+### UI
+- Toggle View
+- - Axes
+- - Visibility
+- - 'Wireframe'
+- Transform widgets/gyros
+- - Rotation
+- - Slider for stroke? (like Photoshop)
 - Better creation prompt
-- Transform widgets
-- Slider for stroke? (like Photoshop)
-- Canvas node selection
-- Toggle visbility (eye icon?)
-- Advanced Path maker, Path2D API integration?
-- rquestAnimFrame optimization
-- Sort by groups/anchors
-- Search by name
-- Wireframe view
-- Resize canvas on viewport change
+- - Advanced Path maker
+- - SVG path import
+- Sort and Search
+- - By groups/anchors
+- - By name/id
+
+### Generate code/embeds
+- Copy/paste HTML into a webpage
+
+### Animations
+- Keyframe snapshotting and playback
+- Animation Behavior data structure (maybe this can be a separate module for any modeling library)
+- requestAnimFrame optimizations
+
+### 3D World Rendering
+- Full-fledged camera and coordinate systems (currently 'ZYX' and stuff...)
 
 
 ![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.jpg)
 
 ## Controls
-Zoom: Mousewheel
-Panning: Shift + drag or MMB + drag
-Rotate: Click + drag
+- Zoom: Mousewheel
+- Panning: Shift + drag or MMB + drag
+- Rotate: Click + drag
+- Undo: Ctrl + Z
+- Redo: Ctrl + Y or Ctrl + Shift + Z
 
 ## Project setup
 ```
@@ -62,6 +75,3 @@ npm run build
 ```
 npm run lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

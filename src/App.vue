@@ -10,9 +10,10 @@
       <div
         ref="treeview"
         class="split-column tree-view
-          user-select-none"
+          no-select"
       >
         <TreeView/>
+        <button @click="logSelected">Log Selected</button>
       </div>
       <div
         ref="gutter1"
@@ -113,6 +114,9 @@ export default {
           this.changeSelected({node:null,element:null});
         }
     },
+    logSelected(){
+      console.log(this.$store.getters['selectedNode'])
+    }
   },
 }
 </script>
@@ -224,7 +228,7 @@ ul{
   font-size: 0.9em;
 }
 
-.user-select-none{
+.no-select{
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;

@@ -1,13 +1,20 @@
 <template>
     <label
-      class="field"
+      class="input"
       :for="name"
     >
       <slot/>
       <component
         :is="element"
         v-bind="$attrs"
+        autocomplete="off"
+        autocorrect="off"
       />
+      <div v-if="$attrs.type == 'number'"
+        class="numberarrows no-select">
+        <div class="incr">+</div>
+        <div class="decr">-</div>
+      </div>
     </label>
 </template>
 
@@ -36,7 +43,7 @@ export default {
       default:'input'
     }
   },
-  emits:['done'],
+  emits:['model-value'],
   computed:{
     // compType(){
     //   if (this.type == 'color'){
@@ -50,37 +57,41 @@ export default {
   },
 
   methods:{
-
   },
 }
 </script>
 
 <style>
-.input-toggle{
+
+.input input[type=number]::-webkit-inner-spin-button,
+.input input[type=number]::-webkit-outer-spin-button
+{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input input[type=number]
+{
+  -moz-appearance: textfield;
+}
+
+.input .numberarrows{
+  position:absolute;
+  top:0;
+  right:0;
+  height:100%;
   display:flex;
+  flex-flow:column nowrap;
+  background-color:var(--colorPri);
+  z-index: 1;
+  cursor:pointer;
+}
+.input .numberarrows .incr{
+  height:50%;
 }
 
-.input-toggle span{
-  margin-right:0.3rem;
-}
-
-.input-toggle input{
- display:none;
-}
-
-.input-toggle input:checked{
-
-}
-
-.tog-des{
-  background-color:grey;
-  border-radius:1.3rem;
-  width:2.4rem;
-  height:1.3rem;
-}
-
-.input-toggle input:checked + .tog-des{
-  background-color:green;
+.input .numberarrows .decr{
+  height:50%;
 }
 
 </style>

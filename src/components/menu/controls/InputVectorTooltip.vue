@@ -55,7 +55,6 @@ export default {
 
   data(){
     return{
-      wipValue:this.value,
       editing:false
     }
   },

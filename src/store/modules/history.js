@@ -111,9 +111,10 @@ const actions = {
 
   updateProps({commit, dispatch}, payload){
     commit('setNodeProps', payload)
+    dispatch('properties/changeDisplay', null, {root:true})
   },
 
-  updateParents({commit}, payload){
+  updateParent({commit}, payload){
     commit('changeParent', payload)
   },
 
