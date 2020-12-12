@@ -6,7 +6,7 @@
     >
       <div class="row info" >
         <div class="word-break">
-          id: {{ selected.id }}
+          id: {{ selected }}
         </div>
         <div class="text-display-type">
           {{ selectedTypeName }}

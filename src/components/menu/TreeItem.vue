@@ -11,7 +11,7 @@
     >
       <div
         ref="selectitem"
-        :class="{'data-set':true, 'row':true, 'highlight':(selectedid == node.id)}"
+        :class="{'data-set':true, 'row':true, 'highlight':(selected == node.id)}"
         draggable="true"
         @click.stop="highlight"
         @dragstart="dragStart"
@@ -32,9 +32,10 @@
             :dbl="true"
             autofocus
             type="text"
+            :value="node.assignedName"
             :placeholder="node.assignedName"
             :label="node.assignedName"
-            @edit-finish="finishEditAssignedName"
+            @edit-change="finishEditAssignedName"
             />
         </div>
 
@@ -96,14 +97,14 @@ export default {
   },
   computed:{
     ...mapState({
-      selectedid:state => state.selected.id,
+      selected:'selected',
       updateTree:'updateTree'
     }),
     selectItem(){
       return this.$refs.selectitem;
     },
     isSelected(){
-      return (this.selectedid && this.selectedid == this.node.id)
+      return (this.selected == this.node.id)
     },
     hasChildren(){
       return (this.node.children && this.node.children.length > 0)
@@ -114,15 +115,10 @@ export default {
       return true
     }
   },
-  watch:{
-    selectedid(){
-      this.finishEditAssignedName();
-    }
-  },
   methods:{
     ...mapActions({
       changeSelectedName:'treeview/changeSelectedName', //newName
-      changeSelected:'changeSelected', //{node: obj, element: element}
+      changeSelected:'changeSelected',
       saveSelected:'treeview/saveSelected',
       startDrag:'treeview/startDrag',
       stopDrag:'treeview/stopDrag'
@@ -157,15 +153,12 @@ export default {
       this.dragEnd();
     },
     finishEditAssignedName(newVal){
-      if (!newVal) return
+      if (!newVal || (newVal == this.node.assignedName)) return
       this.changeSelectedName(newVal)
     },
     highlight(){
-      let payload = {id: this.node.id,
-       element: this.selectItem
-       }
-      if (this.selectedid == this.node.id) {return}
-      this.changeSelected(payload)
+      if (this.selected == this.node.id) {return}
+      this.changeSelected(this.node.id)
       this.saveSelected(this.node)
     },
     toggleCollapse(e){

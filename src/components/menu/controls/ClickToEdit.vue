@@ -6,6 +6,7 @@
     ref="inp"
     @keydown="keydownHandler"
     @blur="finish"
+    @change="$emit('edit-change', $event.target.value)"
   >
     <slot />
   </component>
@@ -41,7 +42,7 @@ export default {
       default:"input"  
     }
   },
-  emits:['edit-start', 'edit-finish'],
+  emits:['edit-start','edit-change', 'edit-finish'],
 
   data(){
     return{

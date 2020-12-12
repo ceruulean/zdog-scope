@@ -136,8 +136,8 @@ let list = {
 }
 
 function getDisplay(rootState){
-  if (!rootState.selected.id) return
-  let n = Ztree.find(rootState.selected.id)
+  if (!rootState.selected) return
+  let n = Ztree.find(rootState.selected)
   let arr = n.constructor.optionKeys
   let node = Ztree.constructor.getProps(n)
   let p = ['colors', 'vectors', 'bools', 'nums']

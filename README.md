@@ -9,10 +9,10 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 - Assign name and edit properties
 - Zoom and pan controls
 - Undo/redo
+- Canvas object selection
 
 ## Current Todos
 - Delete objects
-- Canvas object selection
 - Resize canvas with viewport change
 - Render coordinate axes separately
 

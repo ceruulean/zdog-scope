@@ -15,7 +15,7 @@ var selectedAxes, canvasAxes
 const getDefaultState = () => ({
   settings:{
     backgroundColor: "#808080",
-    camera:{
+    scene:{
       panInverse:false,
       zoomSpeed:3,
       panSpeed:30
@@ -51,8 +51,13 @@ const actions = {
     let n = rootGetters.selectedNode;
     if (rootState.selected.id == rootState.illustration) return;
 
-    let si = (n.stroke && n.stroke > 5)? n.stroke * 2 : 10; // minimum size length 10
-    let he = (si < 10)? 2 : si / 10; // minimum head 2
+    let si
+    if (n.stroke){
+      si = (n.stroke && n.stroke > 5)? n.stroke * 2 : 10; // minimum size length 10
+    } else {
+      si = 10
+    }
+    let he = (si < 11)? 2 : si / 10; // minimum head 2
     let a = axesHelper({
       size: si,
       head: he
@@ -71,8 +76,8 @@ const actions = {
   clearCanvasAxes(){
     if (canvasAxes){
       canvasAxes.remove();
-      // document.querySelector('#zoom-control').removeChild(camera.label)
-      // camera.destroy();
+      // document.querySelector('#zoom-control').removeChild(scene.label)
+      // scene.destroy();
     }
     canvasAxes = null;
   },

@@ -10,11 +10,11 @@ import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
 const debug = process.env.NODE_ENV !== 'production'
 
 import {Zdogger} from '../zdogrigger'
-import {Camera} from '../canvasHelpers'
+import {Scene} from '../canvasHelpers'
 
 
 var Ztree = new Zdogger.Tree();
-var camera = null;
+var scene = null;
 
 function newZtree(arg){
   if (arg instanceof Zdogger.Tree) {
@@ -29,11 +29,11 @@ function newZtree(arg){
   }
 }
 
-function initCamera(state){
-  if (camera || state == null) {camera.destroy(); camera = null}
-  camera = new Camera(Ztree, state.canvas.settings.camera);
+function initscene(state){
+  if (scene || state == null) {scene.destroy(); scene = null}
+  scene = new Scene(Ztree, state.canvas.settings.scene);
   //Append zoom % label to dom element
-  //document.querySelector('#zoom-control').appendChild(camera.label)
+  //document.querySelector('#zoom-control').appendChild(scene.label)
 }
 
 
@@ -46,11 +46,11 @@ const handlers = {
         undoRedoHistory.redo();
       }
     }
-    if (camera) camera.keydown(e);
+    if (scene) scene.keydown(e);
     
   },
   keyup:function(e){
-    if (camera) camera.keyup(e);
+    if (scene) scene.keyup(e);
   }
 }
 
@@ -70,10 +70,7 @@ function unregisterEvents(){
  *  GLOBALS
  */
 const getDefaultState = () => ({
-  selected:{
-    id:null,
-    element:null,
-  },
+  selected:null,
   illustration:null,
   treeLoaded:false,
 })
@@ -89,7 +86,7 @@ const getters = {
   },
   selectedNode(state){
     if (!Ztree)return
-    return Ztree.find(state.selected.id)
+    return Ztree.find(state.selected)
   }
 }
 
@@ -123,7 +120,14 @@ const actions = {
     unregisterEvents()
     dispatch('createZtree', payload)
     commit('setIllustration', true)
-    initCamera(state)
+    initscene(state)
+    
+    scene.on('selectshape', (e)=>{
+      dispatch('changeSelected', e.detail.id)
+    })
+    scene.on('deselect', (e)=>{
+      dispatch('changeSelected', null)
+    })
     registerEvents()
   },
 
@@ -132,11 +136,11 @@ const actions = {
     dispatch('newIllustration', reader.Ztree)
   },
 
-  changeSelected({commit, dispatch, state}, {id, element}){
+  changeSelected({commit, dispatch, state}, id){
     //click handler here?
-    if (state.selected.id == id) return;
+    if (state.selected == id) return;
     //dispatch('properties/reset')
-    commit('setSelected', {id, element});
+    commit('setSelected', id);
     dispatch('properties/changeDisplay')
   },
 
@@ -148,7 +152,7 @@ const actions = {
   async importTree({dispatch}){
     //save current ztree TODO
     let newTree = await new Zdogger.Reader().load();
-    dispatch('changeSelected', {id:null, element: null})
+    dispatch('changeSelected', null)
     dispatch('treeview/resetView')
     //commit('resetState');
 
@@ -162,7 +166,7 @@ const mutations = {
   setZtree(state, arg){
     if (!arg) {
       state.treeLoaded = false;
-      initCamera(null)
+      initscene(null)
       return}
     state.updateTree = !state.updateTree;
     state.treeLoaded = true;
@@ -174,9 +178,8 @@ const mutations = {
   },
 
 
-  setSelected(state, {id, element}){
-    state.selected.id = id;
-    state.selected.element = element;
+  setSelected(state, id){
+    state.selected = id;
   },
 
   resetState(state) {

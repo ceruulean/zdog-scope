@@ -106,12 +106,12 @@ export default {
       return this.$refs[refName];
     },
     deselect(event){
-      if (!this.selected.id) return;
+      if (!this.selected) return;
         var isClickInside = this.$refs.treeview.contains(event.target);
         
         if (isClickInside) {
           //the click inside the element
-          this.changeSelected({node:null,element:null});
+          this.changeSelected(null);
         }
     },
     logSelected(){
