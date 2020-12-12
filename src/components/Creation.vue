@@ -243,14 +243,13 @@ export default {
       let temp = {
         type: this.itemtype,
         options:options,
-        assignedName:this.wipAssignedName
+        name:this.wipAssignedName
         }
       if (this.itemtype == 'illustration') {
         this.newIllustration(temp)
       } else {
-        let selected = this.selected.id;
-        if (selected) {
-          temp.options.addTo = selected;
+        if (this.selected) {
+          temp.options.addTo = this.selected;
         }
         this.newZdogObject(temp)
       }

@@ -60,10 +60,10 @@ export default {
   },
   computed:{
     min(){
-      return Math.round(this.value) - 180;
+      return 0;
     },
     max(){
-      return Math.round(this.value) + 180;
+      return 360;
     }
   },
 

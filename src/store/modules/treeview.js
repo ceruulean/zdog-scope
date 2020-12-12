@@ -32,12 +32,6 @@ const actions = {
     commit('setDragging', [])
   },
 
-  changeSelectedName({ /*dispatch,*/ state }, newName){
-    if (!state.selectedListNode) throw new Error('Cannot change name if nothing is selected')
-    state.selectedListNode.assignedName = newName
-  //  dispatch('history/updateSelectedName', newName, {root: true})
-  },
-
   saveSelected({commit}, treeNode){
     commit('setSelectedList', treeNode)
   },
@@ -46,8 +40,8 @@ const actions = {
     commit('setSelectedList', null)
   },
 
-  updateSelectedName({state}, newName){
-    state.selectedListNode.assignedName = newName
+  changeDisplayName({state}, newName){
+    state.selectedListNode.name = newName
   },
 
   resetView({commit}){

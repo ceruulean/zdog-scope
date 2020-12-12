@@ -1,7 +1,7 @@
 
 /* eslint-disable no-unused-vars */
 import Zdog from 'zdog'
-import { Ztree } from './zdogrigger';
+import { Ztree, Zdogger } from './zdogrigger';
 import {COLOR_PROPS} from './store/modules/properties'
 
 //import versor from 'versor'
@@ -52,7 +52,7 @@ class GhostCanvas{
       ctx.setTransform(...this.transformMatrix)
       this.ghost.rotate = this.Ztree.illustration.rotate;
       this.ghost.translate = this.Ztree.illustration.translate;
-
+      this.ghost.updateGraph();
     }
     this.ghost.onPrerender = ghostPrerender
   }
@@ -60,7 +60,6 @@ class GhostCanvas{
   copyZtree(){
     let clone = this.Ztree.clone()
     this.ghostNodes = clone.nodeMap;
-    this.ghostNodes.delete(clone.illustration.id)
     this.ghost.children = clone.illustration.children
     this.ghost.updateGraph()
   }
@@ -68,9 +67,7 @@ class GhostCanvas{
   initColors(){
     this.colorMap = new Map(); //<rgba:[3], id: string>
     this.nodeColors = new Map(); //<id: string, rgba:[3]>
-    let nodes = this.ghost._flatGraph.filter(node=>{
-      return (node.id != undefined)
-    })
+    let nodes = this.ghostNodes.values();
     for(let node of nodes){
       if (node.isCanvas) {
         continue
@@ -92,8 +89,8 @@ class GhostCanvas{
    */
   pruneGhost(){
     let toDelete = {};
-    this.ghost._flatGraph.forEach(node=>{
-      if (node.id && node.assignedType){
+    this.ghostNodes.forEach(node=>{
+      if (node.id && node.type && !node.isCanvas){
         toDelete[node.id] = true;
       }
     })
@@ -101,18 +98,15 @@ class GhostCanvas{
       //id still exists, update and do not delete
       if (this.nodeColors.has(id)){
         toDelete[id] = false;
-        GhostCanvas._updateNode(this.ghostNodes.get(id))
-      } else if (id != this.ghost.id){
+        this.updateNode(id)
+      } else if (!node.isCanvas){
         // id not registered, add it
         this.addNode(node)
       }
     })
     for (let id in toDelete){
       if(toDelete[id]){
-        let k = this.nodeColors.get(id)
-        this.colorMap.delete(k)
-        this.nodeColors.delete(id)
-        this.ghostNodes.delete(id)
+        this.removeNode(id)
       }
     }
   }
@@ -123,29 +117,72 @@ class GhostCanvas{
   addNode(zdog){
     if (!zdog.id) throw new Error('Invalid zdog object (must have "id" property ')
     let color = getRandomRgb()
-    let clone = zdog.copyGraph()
+    let clone = Zdogger.copy(zdog)
+    //
     let parentid = zdog.addTo.id
-    let parentGhost
     if (this.ghostNodes.has(parentid)){
-      parentGhost = this.ghostNodes.get(parentid)
-    } else {
-      parentGhost = this.addNode(zdog.addTo)
+      let parentGhost = this.ghostNodes.get(parentid)
+      parentGhost.addChild(clone)
     }
-    parentGhost.addChild(clone)
-    let ghostN = GhostCanvas.setUniformColor(clone, color)
-    this._setMaps(ghostN, color)
-    return ghostN
+    GhostCanvas.setUniformColor(clone, color)
+    this._setMaps(clone, color)
+    return clone
+  }
+/**
+ * Removes the specified id from the ghost canvas
+ * @param {String} id of Zdog object
+ */
+  removeNode(id){
+    let toRem = this.ghostNodes.get(id)
+    toRem.remove()
+    let k = this.nodeColors.get(id)
+    this.colorMap.delete(k)
+    this.nodeColors.delete(id)
+    this.ghostNodes.delete(id)
   }
 
   _setMaps(node, color){
-    if (node.id && node.assignedType){
+    if (node.id && node.type !== undefined){
       let str = colorKey(color)
       this.colorMap.set(str, node.id)
       this.nodeColors.set(node.id, str)
       this.ghostNodes.set(node.id, node)
     }
   }
-  /**
+
+/**
+ * Sync the ghost node's noncolor properties with the live node
+ * @param {String} id of Zdog node (should be gotten from this.ghostNode)
+ */
+  updateNode(id){
+     let original = this.nodeMap.get(id);
+    // if (!original) {
+    //   this.pruneGhost()
+    //   return
+    // }
+    let o = {}
+    let nodeProps = this.Ztree.constructor.props(original).filter(prop=>{
+      return !COLOR_PROPS.includes(prop)
+    })
+    nodeProps.forEach(prop=>{
+      o[prop] = original[prop]
+    })
+    let gn = this.ghostNodes.get(id)
+    Object.assign(gn, o)
+  }
+
+/**
+ * Returns the node id that is under the coordinates (pass in transformed coordinates args if canvas is transformed)
+ * @param {Number} canvasX 
+ * @param {Number} canvasY
+ */
+  getShape(canvasX, canvasY){
+    this.ghost.renderGraph()
+    let color = getPixel(this.ghost.ctx, canvasX, canvasY)
+    return this.colorMap.get(colorKey(color))
+  }
+
+    /**
    * Sets a Zdog node to a single color and returns the original Zdog object
    * @param {*} node the Zdog object
    * @param {*} colorData the array of [ r g b]
@@ -176,33 +213,6 @@ class GhostCanvas{
 
     })
    return previous
-  }
-/**
- * Sync the ghost node's noncolor properties with the live node
- * @param {*} ghostNode Zdog node (should be gotten from this.ghostNode)
- */
-  _updateNode(ghostNode){
-    let original = this.nodeMap.get(ghostNode.id);
-    if (!original) {
-      this.pruneGhost()
-      return
-    }
-    let nodeProps = Ztree.constructor.getProps(original).filter(prop=>{
-      return ! COLOR_PROPS.includes(prop)
-    })
-    Object.assign(ghostNode, nodeProps)
-  }
-
-/**
- * Returns the node id that is under the coordinates (pass in transformed coordinates args if canvas is transformed)
- * @param {Number} canvasX 
- * @param {Number} canvasY
- */
-  getShape(canvasX, canvasY){
-    this.ghost.updateRenderGraph()
-    let color = getPixel(this.ghost.ctx, canvasX, canvasY)
-    //console.log(`(${canvasX},${canvasY}):${color}`)
-    return this.colorMap.get(colorKey(color))
   }
 }
 

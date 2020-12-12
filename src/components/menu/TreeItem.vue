@@ -32,16 +32,15 @@
             :dbl="true"
             autofocus
             type="text"
-            :value="node.assignedName"
-            :placeholder="node.assignedName"
-            :label="node.assignedName"
-            @edit-change="finishEditAssignedName"
+            :placeholder="node.name"
+            :label="node.name"
+            @edit-finish="finishEditAssignedName"
             />
         </div>
 
 
         <div class="text-display-type type">
-          {{ node.assignedType }}
+          {{ node.type }}
         </div>
       </div>
       <div
@@ -61,6 +60,7 @@
           :class="{'collapsed':collapsed}"
           :node="child"
           :parent-id="node.id"
+          @select-uncollapse="uncollapseBubble"
         />
       </ul>
     </div>
@@ -86,7 +86,7 @@ export default {
       default:null
     }
   },
-  emits:['drag-started', 'drag-stop'],
+  emits:['drag-started', 'drag-stop','select-uncollapse'],
 
   data(){
     return{
@@ -100,9 +100,6 @@ export default {
       selected:'selected',
       updateTree:'updateTree'
     }),
-    selectItem(){
-      return this.$refs.selectitem;
-    },
     isSelected(){
       return (this.selected == this.node.id)
     },
@@ -117,7 +114,7 @@ export default {
   },
   methods:{
     ...mapActions({
-      changeSelectedName:'treeview/changeSelectedName', //newName
+      changeSelectedName:'history/updateSelectedName', //newName
       changeSelected:'changeSelected',
       saveSelected:'treeview/saveSelected',
       startDrag:'treeview/startDrag',
@@ -153,7 +150,7 @@ export default {
       this.dragEnd();
     },
     finishEditAssignedName(newVal){
-      if (!newVal || (newVal == this.node.assignedName)) return
+      if (!newVal || (newVal == this.node.name)) return
       this.changeSelectedName(newVal)
     },
     highlight(){
@@ -169,7 +166,19 @@ export default {
     log(event) {
       console.log(event)
     },
+    uncollapseBubble(){
+      this.collapsed = false
+      this.$emit('select-uncollapse')
+    }
   },
+  watch:{
+    isSelected(newVal){
+      if (this.collapsed && newVal == true){
+        this.collapsed = false;
+        this.$emit('select-uncollapse')
+      }
+    }
+  }
 }
 </script>
 

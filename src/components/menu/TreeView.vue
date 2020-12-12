@@ -32,7 +32,6 @@
 </template>
 
 <script>
-//import {reactive, onMounted} from 'vue' // onUpdated, onUnmounted
 import { mapState} from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
@@ -60,10 +59,7 @@ export default {
     treeView: {
       get() {
         return this.$store.state.treeview.list
-      },
-      // set(value) {
-      //   this.$store.dispatch('treeview/changeList')
-      // }
+      }
     },
   },
   watch:{

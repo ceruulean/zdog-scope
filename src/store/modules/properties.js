@@ -12,7 +12,7 @@ const BOOL_PROPS = [
 ]
 
 const COLOR_PROPS = [
-  'color', 'rearFace', 'frontFace', 'leftFace', 'rightFace', 'topFace', 'bottomFace'
+  'color', 'rearFace', 'frontFace', 'leftFace', 'rightFace', 'topFace', 'bottomFace', 'backface'
 ]
 
 const NUM_PROPS = Object.keys(ZdogJSONSchema.optionValidator)
@@ -135,6 +135,10 @@ let list = {
   },
 }
 
+/**
+ * This is not a Vuex getter because the getter seems to cache it? Resulting in inaccurrate display
+ * @param {*} rootState 
+ */
 function getDisplay(rootState){
   if (!rootState.selected) return
   let n = Ztree.find(rootState.selected)
@@ -205,7 +209,7 @@ const actions = {
     
     let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
     
-    delete options['assignedType']
+    delete options['type']
     delete options['id']
 
     let props = Object.keys(options)

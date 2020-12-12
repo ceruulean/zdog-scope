@@ -1,6 +1,6 @@
 
 import {Zdogger} from '../../zdogrigger'
-import {Ztree} from '../index'
+import {Ztree, GhostCanvas} from '../index'
 
 //All history actions and mutations go here
 //https://stackoverflow.com/questions/42878329/going-back-to-states-like-undo-redo-on-vue-js-vuex/44865208#44865208
@@ -93,20 +93,21 @@ const undoRedoPlugin = (store) => {
 // Actions 
 const actions = {
 
-  newZdog({commit, dispatch}, {type, options, assignedName}){
+  newZdog({commit, dispatch}, {type, options, name}){
     if(options.addTo){
       options.addTo = Ztree.find(options.addTo);
     } else {
       options.addTo = Ztree.illustration
     }
     let newO = Zdogger(type)(options);
-    if (assignedName) {newO.assignedName = assignedName}
+    if (name) {newO.name = name}
     commit('addNode', newO);
     dispatch('treeview/changeList', null, {root:true});
   },
 
-  deleteZdog({commit}, node){
-    commit('removeNode', node)
+  deleteZdog({commit, dispatch}, id){
+    commit('removeNode', id)
+    dispatch('changeSelected', null, {root:true})
   },
 
   updateProps({commit, dispatch}, payload){
@@ -118,14 +119,16 @@ const actions = {
     commit('changeParent', payload)
   },
 
-  updateSelectedName({ commit, rootState, rootGetters }, newName){
-    if (!rootState.selected.id) throw new Error('Cannot assign name to null selected node');
+  updateSelectedName({ commit, rootState, rootGetters, dispatch}, newName){
+    if (!rootState.selected) throw new Error('Cannot assign name to null selected node');
     commit('setNodeProps', {
         node: rootGetters.selectedNode,
         options: {
-          assignedName: newName
+          name: newName
         }
       })
+
+    dispatch('treeview/changeList', null, {root:true})
     },
 }
 
@@ -136,6 +139,7 @@ const mutations = {
     if (!Ztree) throw new Error('Cannot add node to nonexistent tree');
     Ztree.addNode(node);
     Ztree.illustration.renderGraph(node)
+    GhostCanvas.addNode(node)
   },
 
   setNodeProps(state, {node, options}){
@@ -143,10 +147,12 @@ const mutations = {
       node[o] = options[o]
     }
     node.updateGraph();
+    GhostCanvas.updateNode(node.id)
   },
 
-  removeNode(state, node){
-    Ztree.removeNode(node)
+  removeNode(state, id){
+    Ztree.removeNode(id)
+    GhostCanvas.removeNode(id)
   },
 
   changeParent(state, {id, newParentId}){

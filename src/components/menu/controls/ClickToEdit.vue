@@ -6,7 +6,7 @@
     ref="inp"
     @keydown="keydownHandler"
     @blur="finish"
-    @change="$emit('edit-change', $event.target.value)"
+    @change="finish"
   >
     <slot />
   </component>

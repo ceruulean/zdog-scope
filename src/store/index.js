@@ -14,28 +14,33 @@ import {Scene} from '../canvasHelpers'
 
 
 var Ztree = new Zdogger.Tree();
-var scene = null;
+var GhostCanvas = null
+var CanvasScene = null;
 
 function newZtree(arg){
   if (arg instanceof Zdogger.Tree) {
     Ztree = arg
   } else if (arg.options) {
     Ztree = new Zdogger.Tree(arg.options)
-    if (arg.assignedName) {
-      Ztree.illustration.assignedName = arg.assignedName;
+    if (arg.name) {
+      Ztree.illustration.name = arg.name;
     }
   } else {
     Ztree = new Zdogger.Tree({});
   }
 }
 
-function initscene(state){
-  if (scene || state == null) {scene.destroy(); scene = null}
-  scene = new Scene(Ztree, state.canvas.settings.scene);
+function initCanvasScene(state){
+  if (CanvasScene || state == null) {
+    CanvasScene.destroy();
+    CanvasScene = null
+    GhostCanvas = null
+  }
+  CanvasScene = new Scene(Ztree, state.canvas.settings.CanvasScene);
+  GhostCanvas = CanvasScene.ghostCanvas
   //Append zoom % label to dom element
-  //document.querySelector('#zoom-control').appendChild(scene.label)
+  //document.querySelector('#zoom-control').appendChild(CanvasScene.label)
 }
-
 
 const handlers = {
   keydown: function(e){
@@ -46,11 +51,11 @@ const handlers = {
         undoRedoHistory.redo();
       }
     }
-    if (scene) scene.keydown(e);
+    if (CanvasScene) CanvasScene.keydown(e);
     
   },
   keyup:function(e){
-    if (scene) scene.keyup(e);
+    if (CanvasScene) CanvasScene.keyup(e);
   }
 }
 
@@ -77,13 +82,8 @@ const getDefaultState = () => ({
 
 const state = getDefaultState()
 
-
 // getters
 const getters = {
-  Zrelations(){
-    if (!Ztree) return null;
-    return Ztree.relationSet;
-  },
   selectedNode(state){
     if (!Ztree)return
     return Ztree.find(state.selected)
@@ -93,7 +93,6 @@ const getters = {
 // actions
 const actions = {
 
-  
   createZtree({commit, dispatch}, newTree){
     newZtree(newTree)
     commit('setZtree', newTree);
@@ -109,6 +108,10 @@ const actions = {
     Ztree.nodeMap = newTree.nodeMap
     Ztree.relationMap = newTree.relationMap
 
+    Ztree.illustration.updateRenderGraph();
+
+    GhostCanvas.pruneGhost();
+
     commit('setZtree', true);
     //dispatch('canvas/showCanvasAxes')
     dispatch('treeview/changeList')
@@ -120,12 +123,12 @@ const actions = {
     unregisterEvents()
     dispatch('createZtree', payload)
     commit('setIllustration', true)
-    initscene(state)
+    initCanvasScene(state)
     
-    scene.on('selectshape', (e)=>{
+    CanvasScene.on('selectshape', (e)=>{
       dispatch('changeSelected', e.detail.id)
     })
-    scene.on('deselect', (e)=>{
+    CanvasScene.on('deselect', (e)=>{
       dispatch('changeSelected', null)
     })
     registerEvents()
@@ -137,8 +140,11 @@ const actions = {
   },
 
   changeSelected({commit, dispatch, state}, id){
-    //click handler here?
     if (state.selected == id) return;
+    //click handler here?
+    if (!id) {
+      dispatch('treeview/clearSelected')
+    }
     //dispatch('properties/reset')
     commit('setSelected', id);
     dispatch('properties/changeDisplay')
@@ -166,7 +172,7 @@ const mutations = {
   setZtree(state, arg){
     if (!arg) {
       state.treeLoaded = false;
-      initscene(null)
+      initCanvasScene(null)
       return}
     state.updateTree = !state.updateTree;
     state.treeLoaded = true;
@@ -189,7 +195,8 @@ const mutations = {
   }
 }
 
-export{Ztree}
+//Export the Ztree and import in other modules that will need to access its properties
+export{Ztree, GhostCanvas}
 
 export default createStore({
   modules: {

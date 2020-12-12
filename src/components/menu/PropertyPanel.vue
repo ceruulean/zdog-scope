@@ -13,7 +13,7 @@
         </div>
         <label class="input-name">
           <input
-            :value="selectedNode['assignedName']"
+            :value="selectedNode['name']"
             class="input-name"
             type="text"
             autocomplete="off"
@@ -98,7 +98,24 @@
         Apply Changes
       </button>
     </form>
+
+    <button @click="bWarning = true">Delete</button>
 </div>
+<teleport to="body">
+  <Modal
+    v-if="bWarning"
+    @close="bWarning = false"
+  >
+  Are you sure you want to delete?
+    <button @click="deleteSelected">
+      Yes
+    </button>
+    <button @click="bWarning = false">
+      Cancel
+    </button>
+  </Modal>
+</teleport>
+
 </template>
 
 <script>
@@ -106,6 +123,8 @@ import { mapState, mapActions} from 'vuex'// mapActions  mapGetters,
 import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
 
 import StringHelper from '../StringHelperMixin'
+
+import Modal from '../Modal'
 
 import InputVector from './controls/InputVector'
 import ColorPicker from './controls/ColorPicker'
@@ -119,15 +138,17 @@ export default {
     ColorPicker,
     Backface,
     InputLabel,
+    Modal
   },
   mixins:[StringHelper],
 
   data(){
     return{
       READ_ONLY: [
-        'assignedType', 'id'
+        'type', 'id'
       ],
       wipTooltip:null,
+      bWarning:false
     }
   },
   computed:{
@@ -139,13 +160,13 @@ export default {
     }),
     selectedName(){
       if (!this.$store.state.treeview.selectedListNode) return;
-      return this.$store.state.treeview.selectedListNode.assignedName
+      return this.$store.state.treeview.selectedListNode.name
     },
     advancedProps(){
       return ADVANCED_PROPERTIES;
     },
     selectedTypeName(){
-      return ZDOG_CLASS_NAME[this.selectedNode.assignedType];
+      return ZDOG_CLASS_NAME[this.selectedNode.type];
     },
     hasColor(){
       return this.selectedAllProps.includes('color');
@@ -167,6 +188,7 @@ export default {
     ]),
     propList(type){
       let t = this.displayProps.props[type];
+      if (type == 'colors') t = t.filter(prop=>prop != 'backface')
       return t
     },
     saveProps(e){
@@ -189,13 +211,18 @@ export default {
       this.updateProps(o)
     },
     updateName(e){
-      let o = {assignedName: e.target.value}
+      let ne = e.target.value;
+      let o = {name:ne}
       this.updateProps(o)
-      this.$store.dispatch('treeview/updateSelectedName', e.target.value);
+      this.$store.dispatch('history/updateSelectedName', ne);
     },
     closeTooltip(){
       //this.$emit('close-tooltip');
     },
+    deleteSelected(){
+      this.$store.dispatch('history/deleteZdog', this.selected)
+      this.bWarning = false;
+    }
   },
 }
 </script>

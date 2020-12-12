@@ -56,7 +56,7 @@ let nocyclic = (options) => {return options.filter(option=>{
 })}
 
 /**
- * Creates Zdog objects with assignedName, uid and assignedType (see ZDOG_CLASS, an 'enum')
+ * Creates Zdog objects with name, uid and type (see ZDOG_CLASS, an 'enum')
  * @param {Number} int 
  */
 function make(int){
@@ -104,12 +104,12 @@ return (idStr);
 }
 
 /**
- * Adds an "assignedName" property to the Zdog item for human covenience (and open up for search/filter options in the future?)
+ * Adds an "name" property to the Zdog item for human covenience (and open up for search/filter options in the future?)
  * @param {*} ZdogItem 
  */
 function assignName(ZdogItem, name){
   if (!name) name = "untitled";
-  Object.defineProperty(ZdogItem, "assignedName", {
+  Object.defineProperty(ZdogItem, "name", {
     enumerable: true,
     writable: true,
     configurable:false,
@@ -127,11 +127,11 @@ function assignUID(ZdogItem){
   Object.defineProperty(ZdogItem, "id", {enumerable:true, configurable: false, writable: false });
 }
 /**
- * Adds the property "assignedType" as an integer for class checking
+ * Adds the property "type" as an integer for class checking
  * @param {*} ZdogItem 
  */
 function assignType(ZdogItem, int){
-  Object.defineProperty(ZdogItem, "assignedType", {
+  Object.defineProperty(ZdogItem, "type", {
     enumerable: true,
     writable: false,
     configurable:false,
@@ -161,6 +161,7 @@ function isClass(ZdogItem, zdogType){
 /**
  * Add properties to native Zdog objects that don't have ids or type assigned to them yet
  * @param {*} ZdogItem 
+ * @param {*} options {id,name, type}
  */
 function assignExisting(ZdogItem){
   //start backwards because anchor is 0 and is the parent of almost all objects
@@ -171,11 +172,12 @@ function assignExisting(ZdogItem){
       break;
     }
   }
-  if (type < 0) return ZdogItem; // return the original because can only do certain objects...? UGH this is annoying
-  assignName(ZdogItem, 'untitled');
-  assignUID(ZdogItem);
-  assignType(ZdogItem, type);
-  
+  if (type < 0) return ZdogItem; // return the original because can only do certain objects
+
+  if (!ZdogItem.name) assignName(ZdogItem, 'untitled');
+  if (!ZdogItem.id) assignUID(ZdogItem);
+  if (!ZdogItem.type) assignType(ZdogItem, type);
+
   for (let c of ZdogItem.children){
     assignExisting(c);
   }
@@ -183,7 +185,7 @@ function assignExisting(ZdogItem){
 }
 
 /**
- * Add 'id', 'assignedType' and 'assignedName' properties to an illustration and returns a copy
+ * Add 'id', 'type' and 'name' properties to an illustration and returns a copy
  * @param {Zdog.Illustration} illustration
  */
 function importExisting(illustration){
@@ -204,8 +206,8 @@ function importExisting(illustration){
  * @param {*} ZdogItem 
  */
 function ZdogFilterProps(ZdogItem){
-  if(!ZdogItem || (isNaN(ZdogItem.assignedType)) ) return;
-  let type = ZdogItem.assignedType;
+  if(!ZdogItem || (isNaN(ZdogItem.type)) ) return;
+  let type = ZdogItem.type;
   if (type == 4) return //we're not serializing dragger type
   let classType = ZDOG_CLASS_TYPE[type];
   let recordProps = classType.optionKeys.filter(option=>{
@@ -214,8 +216,8 @@ function ZdogFilterProps(ZdogItem){
   if (!recordProps) return
 
   let result = {
-    assignedType: type,
-    assignedName: ZdogItem.assignedName,
+    type: type,
+    name: ZdogItem.name,
     id: ZdogItem.id
   }
 
@@ -271,11 +273,11 @@ function reviveZdog(plainObject){
   if (typeof plainObject === "string"){
     plainObject = JSON.parse(plainObject);
   }
-  let {id, assignedName, assignedType, ...options} = plainObject;
-  let ZdogO = new ZDOG_CLASS_TYPE[assignedType](options);
+  let {id, name, type, ...options} = plainObject;
+  let ZdogO = new ZDOG_CLASS_TYPE[type](options);
   
-  assignName(ZdogO, assignedName);
-  assignType(ZdogO, assignedType)
+  assignName(ZdogO, name);
+  assignType(ZdogO, type)
   ZdogO.id = id;
   Object.defineProperty(ZdogO, "id", {enumerable:true, configurable: false, writable: false });
   return ZdogO
@@ -369,7 +371,7 @@ class ZtreeReader{
   download(){
     if (!this.Ztree) throw new Error('Cannot download if there is no tree')
     let content = this.Ztree._JSON();
-    ZtreeReader.Download(content, `${this.Ztree.illustration.assignedName}.json`, 'text/json');
+    ZtreeReader.Download(content, `${this.Ztree.illustration.name}.json`, 'text/json');
   }
 
   /**
@@ -447,7 +449,7 @@ class Ztree{
       this.flatten(this.illustration)
     }
     this.addNode(this.illustration);
-    this.illustration.assignedName = 'root'
+    this.illustration.name = 'root'
   }
 
   //flatten existing zdog object into Map and Set to record relations
@@ -471,9 +473,9 @@ class Ztree{
       }
       for (let child of ZdogItem.children){
         if (
-          !isNaN(child.assignedType)
-          // (child.assignedType !== undefined)
-          // && (child.assignedType !== null)
+          !isNaN(child.type)
+          // (child.type !== undefined)
+          // && (child.type !== null)
           // && child.id
           ){ 
 
@@ -501,10 +503,10 @@ class Ztree{
    * @param {*} node a Zdog object within the tree
    */
   trimNode(node){
-    let {id,assignedName,assignedType,visible,children} = node;
-    if (!id || isNaN(assignedType)) return null;
+    let {id,name,type,visible,children} = node;
+    if (!id || isNaN(type)) return null;
     let index = this.indexOf(node);
-    assignedType = ZDOG_CLASS_NAME[assignedType];
+    type = ZDOG_CLASS_NAME[type];
     if (visible === undefined) visible = true
 
     if (children && children.length > 0) {
@@ -514,13 +516,13 @@ class Ztree{
     } else {
       children = null
     }
-    return ({id,assignedName,assignedType,index,visible,children})
+    return ({id,name,type,index,visible,children})
   }
 
   download(){
     let content = this._JSON();
     ZtreeReader.Download(content,
-      `${this.illustration.assignedName}.json`, 'text/json');
+      `${this.illustration.name}.json`, 'text/json');
   }
 
   /**
@@ -541,8 +543,8 @@ class Ztree{
         o[p] = node[p]
       }
       Object.assign(o, {
-        assignedName: node.assignedName,
-        assignedType: node.assignedType,
+        name: node.name,
+        type: node.type,
         id: node.id
       })
       return o;
@@ -561,6 +563,8 @@ class Ztree{
         options = ZDOG_CLASS_TYPE[ZDOG_CLASS[arg]].optionKeys
       } else if (arg.optionKeys){
         options = arg.optionKeys
+      } else {
+        options = arg.constructor.optionKeys
       }
       return nocyclic(options)
     } catch(e){
@@ -572,7 +576,7 @@ class Ztree{
    * @param {*} node 
    */
   static findRoot(node){
-    if ((node.id && node.assignedType) || !node.addTo) {
+    if ((node.id && node.type) || !node.addTo) {
       return node
     }
     return Ztree.findRoot(node.addTo);
@@ -626,19 +630,28 @@ class Ztree{
     }
     this.relationMap.set(parentId, newSet);
   }
-  //can be id string or the object itself
-  removeNode(node){
-    let id = Ztree._nodeID(node);
+/**
+ * Removes node from Ztree
+ * @param {String} id of Zdog node to remove
+ */
+  removeNode(id){
     if (id == this.illustration.id) throw new Error('Cannot delete root')
+    let node = this.nodeMap.get(id)
 
-    //put children to parent node
-    let parent = node.addTo
-    node.children.map(child=>{
-      child.remove();
-      parent.addChild(child);
-    })
-    //update Map
-    this._addRelation(this.relationMap.get(parent.id), [...this.relationMap.get(id)])
+    if (node.children){
+      //put children to parent node
+      let parent = node.addTo
+      node.children.map(child=>{
+        child.remove();
+        parent.addChild(child);
+      })
+      //update Map
+      let childs = this.relationMap.get(id);
+      if (childs){
+        childs = [...childs]
+        this._addRelation(this.relationMap.get(parent.id), childs)
+      }
+    }
 
     //remove record of relations
     this.relationMap.delete(id);
@@ -647,6 +660,7 @@ class Ztree{
     })
     //update Map
     this.nodeMap.delete(id);
+    node.remove()
   }
 //id of the node to be adopted
   changeParent(id, newParentId){
@@ -685,7 +699,7 @@ class Ztree{
     let id = Ztree._nodeID(node);
     let set = [...this.relationMap.get(id).values()];
     return (set.children.some(child=>{
-      return !isNaN(child.assignedType)
+      return !isNaN(child.type)
     }));
   }
 
@@ -757,12 +771,22 @@ function toRad(degrees) {
   return (Math.PI * degrees) / 180;
 }
 
+/**
+ * Creates a deep copy of a Zdog object
+ * @param {*} zdog A Zdog object
+ */
+function copy(zdog){
+  return assignExisting(zdog.copy())
+}
+
  /**
  * To create a Zdog object with id: Zdogger('anchor')
  * 
  * To create a Ztree: new Zdogger.Tree(illustration)
  * 
  * To create a file reader: new Zdogger.Reader(Ztree)
+ * 
+ * To create a deep copy: Zdogger.copy(ZdogItem)
  * 
  * To convert degrees to radians: Zdogger.toRad(degree)
   * @param {String} type 
@@ -778,6 +802,7 @@ Zdogger.Tree = Ztree
 Zdogger.isClass = isClass
 Zdogger.Reader = ZtreeReader
 Zdogger.toRad = toRad
+Zdogger.copy = copy
 
 export {
   Zdogger, Ztree, ZtreeReader,
