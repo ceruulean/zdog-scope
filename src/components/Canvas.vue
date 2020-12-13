@@ -1,27 +1,31 @@
 <template>
   <canvas
+    id="canvas"
     ref="workingCanvas"
     class="zdog-canvas"
-    :width="width"
-    :height="height"
+    :width="windowWidth"
+    :height="windowHeight"
     :style="{backgroundColor:settings.backgroundColor}"
   />
 
   <canvas
-    :class="{'ghost-canvas':true, 'hidden':hideGhost}"
-    :width="width"
-    :height="height"
+    id="ghost"
+    :class="{'hidden':hideGhost}"
+    :width="windowWidth"
+    :height="windowHeight"
   />
 
-  <div class="axes-controls" />
-  <div id="zoom-control" style="z-index:200">
+  <div class="developer">
     <button style="z-index:200" @click="hideGhost = !hideGhost">Toggle</button>
+  </div>
+  <div id="zoom-control">
+
   </div>
 </template>
 
 <script>
-//import {setup} from 'vue' // onUpdated, onUnmounted
 import {mapState, mapActions, mapGetters} from 'vuex'
+import { useWindowSize } from 'vue-window-size';
 
 /**
  * NOTES
@@ -38,6 +42,14 @@ export default {
   //     zoomDisplay:null
   //   }
   // },
+  setup(){
+    const { width, height } = useWindowSize();
+
+    return{
+      windowWidth: width,
+      windowHeight: height,
+    }
+  },
   data(){
     return{
       hideGhost:true
@@ -52,12 +64,6 @@ export default {
     ...mapGetters({
         selectedNode: 'selectedNode',
     }),
-    width(){
-      return window.innerWidth;
-    },
-    height(){
-      return window.innerHeight;
-    },
   },
   watch:{
     selectedNode(nVal, oVal){
@@ -84,42 +90,44 @@ export default {
         y: event.clientY
       };
     },
-    // isShapeClicked(path, {x, y}){
-    //   ctx.isPointInPath
-    // }
   }
 }
 </script>
 
 <style>
 
-[class$="-canvas"]{
+#canvas, #ghost{
   position:absolute;
   top:0;
   left:0;
 }
-.zdog-canvas{
+#canvas{
   width:100vw;
   height:100vh;
-  z-index:0;
+  z-index:var(--zCanvas);
 }
 
-.ghost-canvas{
+canvas.ghost-canvas{
   width:100vw;
   height:100vh;
-  z-index:1;
+  z-index:var(--zGhost);
+}
+
+div.developer{
+  z-index:3;
 }
 
 .hidden{
-    display:none;
+  display:none;
 }
 
 #zoom-control{
   position:absolute;
   bottom:0;
+  z-index:var(--zPanel)
 }
 
-.zoom-control figure{
+#zoom-control figure{
   padding:0.1rem 0.2rem;
   margin:0;
 

@@ -1,4 +1,4 @@
-import Zdog from 'zdog'
+import Zdog from '../../zdog'
 import Zdogger from './zdogrigger'
 /* eslint-disable no-unused-vars */
 // namespace
@@ -2145,7 +2145,5 @@ var zdogCanvas = document.querySelector('.zdog-canvas');
 ZdogSpookyHouse.init( zdogCanvas );
 
 let testmodel = tree._JSON();
-
-console.log(testmodel)
 
 export default testmodel;

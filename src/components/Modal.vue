@@ -39,7 +39,7 @@ export default {
   height:100vh;
   justify-content:center;
   align-items:center;
-  z-index:999;
+  z-index:var(--zModal);
   display:flex;
 }
 .modal.active{

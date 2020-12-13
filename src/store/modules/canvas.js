@@ -4,10 +4,7 @@ import {Ztree} from '../index'
 
 import {
   axesHelper,
-  // rotationHelper,
-  // perspectiveHelper,
-  // gridHelper,gridRectHelper,
-  // clearColor,drawRaw,zoomable
+  //makeAxis,
 } from '../../canvasHelpers'
 
 var selectedAxes, canvasAxes
@@ -18,7 +15,8 @@ const getDefaultState = () => ({
     scene:{
       panInverse:false,
       zoomSpeed:3,
-      panSpeed:30
+      panSpeed:30,
+      ghostQuery:'#ghost'
     }
   },
 })
@@ -39,7 +37,7 @@ const actions = {
     await dispatch('clearCanvasAxes')
     let illo = Ztree.illustration;
     let size = illo.canvasHeight / 2;
-    canvasAxes = axesHelper({addTo: illo, size:size, stroke:1, head:10})
+   // canvasAxes = axesHelper({addTo: illo, size:size, stroke:1, head:10})
     illo.updateRenderGraph()
   },
 

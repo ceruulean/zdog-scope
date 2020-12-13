@@ -36,7 +36,7 @@ function initCanvasScene(state){
     CanvasScene = null
     GhostCanvas = null
   }
-  CanvasScene = new Scene(Ztree, state.canvas.settings.CanvasScene);
+  CanvasScene = new Scene(Ztree, state.canvas.settings.scene);
   GhostCanvas = CanvasScene.ghostCanvas
   //Append zoom % label to dom element
   //document.querySelector('#zoom-control').appendChild(CanvasScene.label)
@@ -100,14 +100,10 @@ const actions = {
   },
 
   rebuildZtree({commit, dispatch}, newTree){
-    //commit('resetState');
-    //newZtree(newTree)
-   // let newTree = new Zdogger.Reader(schemaTree).Ztree
-
+    
     Ztree.illustration.children = newTree.illustration.children
     Ztree.nodeMap = newTree.nodeMap
     Ztree.relationMap = newTree.relationMap
-
     Ztree.illustration.updateRenderGraph();
 
     GhostCanvas.pruneGhost();

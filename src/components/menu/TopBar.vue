@@ -29,35 +29,37 @@
       </button>
     </div>
   </div>
-  <Modal
-    v-if="!bWarning && hasIllustration && creationItemType"
-    @close="cancelPrompt"
-  >
-    <Creation
-      :itemtype="creationItemType"
+  <teleport to="body">
+    <Modal
+      v-if="!bWarning && hasIllustration && creationItemType"
+      @close="cancelPrompt"
+    >
+      <Creation
+        :itemtype="creationItemType"
+        @close-prompt="cancelPrompt"
+      />
+    </Modal>
+    <Modal
+      v-if="bWarning && hasIllustration"
+      @close="cancelPrompt"
+    >
+      <p>WARNING: Are you sure you want to replace the current illustration?</p>
+      <button @click="closeWarning">
+        Yes
+      </button>
+      <button @click="cancelPrompt">
+        Cancel
+      </button>
+    </Modal>
+    <Modal
+      v-if="bSettings"
+      @close="cancelPrompt"
+    >
+    <Settings
       @close-prompt="cancelPrompt"
     />
-  </Modal>
-  <Modal
-    v-if="bWarning && hasIllustration"
-    @close="cancelPrompt"
-  >
-    <p>WARNING: Are you sure you want to replace the current illustration?</p>
-    <button @click="closeWarning">
-      Yes
-    </button>
-    <button @click="cancelPrompt">
-      Cancel
-    </button>
-  </Modal>
-  <Modal
-    v-if="bSettings"
-    @close="cancelPrompt"
-  >
-  <Settings
-    @close-prompt="cancelPrompt"
-  />
-  </Modal>
+    </Modal>
+  </teleport>
 </template>
 
 <script>
@@ -167,7 +169,7 @@ export default {
   position:relative;
   border:1px solid black;
   height:var(--menuTopBarHeight);
-  z-index:99;
+  z-index:var(--zTopBar);
 }
 
 button{

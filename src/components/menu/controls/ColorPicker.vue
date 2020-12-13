@@ -103,13 +103,13 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 
-.picker-wrapper{
+div.picker-wrapper{
   position:relative;
 }
 
-.picker{
+div.picker{
   position:absolute;
   margin:0;
   top:2rem;
@@ -117,10 +117,10 @@ export default {
   transform:translateX(-50%);
   background-color:rgba(255,255,255,0.9);
   padding:0.5rem;
-    z-index:20;
+  z-index:var(--zPanel)
 }
 
-.picker-button{
+a.picker-button{
   display:flex;
   flex-flow:row nowrap;
   line-height:1rem;
@@ -129,11 +129,11 @@ export default {
   align-items:center;
 }
 
-.picker-wrapper input{
+div.picker-wrapper input{
   height:1.3rem;
 }
 
-.patch{
+div.patch{
   border-radius:50% 50%;
   width:1.5rem;
   height:1.5rem;

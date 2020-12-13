@@ -132,6 +132,11 @@ const actions = {
     },
 }
 
+function render(node){
+  node.updateGraph();
+  Ztree.illustration.renderGraph(node)
+}
+
 // Mutations  
 const mutations = {
 
@@ -146,18 +151,19 @@ const mutations = {
     for (let o in options){
       node[o] = options[o]
     }
-    node.updateGraph();
+    render(node)
     GhostCanvas.updateNode(node.id)
   },
 
   removeNode(state, id){
     Ztree.removeNode(id)
     GhostCanvas.removeNode(id)
+    Ztree.illustration.updateRenderGraph();
   },
 
   changeParent(state, {id, newParentId}){
-    let nodeUpdate = Ztree.changeParent(id, newParentId);
-    nodeUpdate.updateGraph();
+    let node = Ztree.changeParent(id, newParentId);
+    render(node)
   }
 }
 

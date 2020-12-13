@@ -35,7 +35,7 @@ export default {
 
 .tooltip-popover{
   position:relative;
-  z-index:99;
+  z-index:var(--zTooltip);
   background-color:white;
 }
 

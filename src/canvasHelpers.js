@@ -1,6 +1,7 @@
 
 /* eslint-disable no-unused-vars */
-import Zdog from 'zdog'
+//import Zdog from 'zdog' // ../../zdog
+import Zdog from '../../zdog'
 import { Ztree, Zdogger } from './zdogrigger';
 import {COLOR_PROPS} from './store/modules/properties'
 
@@ -46,8 +47,7 @@ class GhostCanvas{
   constructor(Ztree, ghostIllo){
     this.Ztree = Ztree;
     this.ghost = ghostIllo
-    this.copyZtree()
-    this.initColors();
+    this.init()
     let ghostPrerender = (ctx) => {
       ctx.setTransform(...this.transformMatrix)
       this.ghost.rotate = this.Ztree.illustration.rotate;
@@ -57,14 +57,12 @@ class GhostCanvas{
     this.ghost.onPrerender = ghostPrerender
   }
 
-  copyZtree(){
+
+  init(){
     let clone = this.Ztree.clone()
     this.ghostNodes = clone.nodeMap;
     this.ghost.children = clone.illustration.children
-    this.ghost.updateGraph()
-  }
 
-  initColors(){
     this.colorMap = new Map(); //<rgba:[3], id: string>
     this.nodeColors = new Map(); //<id: string, rgba:[3]>
     let nodes = this.ghostNodes.values();
@@ -129,7 +127,7 @@ class GhostCanvas{
     return clone
   }
 /**
- * Removes the specified id from the ghost canvas
+ * Removes the specified node from the ghost canvas
  * @param {String} id of Zdog object
  */
   removeNode(id){
@@ -152,7 +150,7 @@ class GhostCanvas{
 
 /**
  * Sync the ghost node's noncolor properties with the live node
- * @param {String} id of Zdog node (should be gotten from this.ghostNode)
+ * @param {String} id of Zdog node
  */
   updateNode(id){
      let original = this.nodeMap.get(id);
@@ -172,7 +170,7 @@ class GhostCanvas{
   }
 
 /**
- * Returns the node id that is under the coordinates (pass in transformed coordinates args if canvas is transformed)
+ * Returns the node id that is under the coordinates (pass in transformed coordinates if Ghost canvas is transformed)
  * @param {Number} canvasX 
  * @param {Number} canvasY
  */
@@ -230,23 +228,27 @@ class Scene{
  * Creates a Scene object that allows panning/zooming.
  * @param {Ztree} Ztree
  * @param {*} options 
- * @param {} zoomLabelEle HTML query selector to display zoom
  */
-  constructor(Ztree, options={zoomSpeed:3, panInverse:false, panSpeed:30}){
+  constructor(Ztree, options={ghostQuery:'.zdog-ghost', zoomSpeed:3, panInverse:false, panSpeed:30}){
     this.illustration = Ztree.illustration;
     let illoe = this.illustration.element;
     this.eye = {}
     this.worldPosition = new Zdog.Vector();
 
     this.ghostIllo = new Zdog.Illustration({
-      element:'.ghost-canvas',
+      element: options.ghostQuery,
       dragRotate:false
     })
 
+
     this.ghostCanvas = new GhostCanvas(Ztree, this.ghostIllo)
 
-    // this.axes.renderGraph();
-    
+             //let axiso = {stroke:2, t:5, front:{y:1}}
+
+              //console.log(canvasAxes)
+    this.canvasAxes = new AxesHelper(this.illustration)
+
+
     this.phi = this.illustration.rotate.x
     this.theta = this.illustration.rotate.y
     this.zoom = this.illustration.zoom
@@ -263,7 +265,6 @@ class Scene{
         /
      */
 
-
     this.zoomSpeed = options.zoomSpeed
     this.panInverse = options.panInverse
     this.panSpeed = options.panSpeed
@@ -274,33 +275,30 @@ class Scene{
 
     let ctx = this;
 
-    this.listeners = {}
+    this.events = {
+   //   wheel:[],
+      down:[],
+      up:[],
+      move:[],
+    }
 
     this.on('wheel', this.onwheel.bind(this))
 
     this.dragger = new Zdog.Dragger({
       startElement: illoe,
-      onDragStart: function(pointer, event) {
-        ctx.onmousedown(event);
-        ctx.dragstarted(pointer.pageX, pointer.pageY)
+      onDragStart: function(event, pointer) {
+        ctx.cursordown(event, pointer)
       },
-      onDragMove: function( pointer, dX, dY ) {
-        if (ctx.isPanning){
-          ctx.pan(pointer)
-        } else {
-          ctx.dragRotate(pointer, dX,dY)
-        }
+      onDragMove: function( event, pointer, dX, dY ) {
+        ctx.cursormove( event, pointer, dX, dY)
       },
       onDragEnd: function(event) {
-        ctx.dragend(event);
-        ctx.onmouseup(event);
-  //      console.log(`(ρ,θ,φ):(${ctx.rho},${ctx.theta},${ctx.phi})`)
+        ctx.cursorup(event)
       },
     });
 
     this.label = document.createElement('span')
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
-
     this.animate();
   }
 
@@ -327,52 +325,33 @@ class Scene{
     this.illustration.zoom = newZoom
   }
 
-  renderAxes(){
-    let ctx = this.illustration.ctx;
-      // clear canvas
-  //ctx.clearRect( 0, 0, canvasWidth, canvasHeight );
-  //ctx.save();
-  // find origin
-    ctx.translate( this.illustration.canvasWidth/2, this.illustration.canvasHeight/2 );
-  // set lineJoin and lineCap to round
-  // ctx.lineJoin = 'round';
-  // ctx.lineCap = 'round';
-  // render scene graph
 
-    this.axes.renderGraphCanvas(ctx);
-      //ctx.restore();
+  /**
+   * Cursor events handle touch/mouse/pointer
+   */
+  cursordown(event, pointer) {
+    this.x0 = pointer.pageX;
+    this.y0 = pointer.pageY;
+    this.totaldelta = 0;
+
+    this.isMouseDown = event.buttons;
+    if (event.button == 1){    //MMB pressed
+      this.isPanning = true;
+      }
+      this._dispatch('down', event)
+    }
+
+  cursormove(event, pointer, dX, dY ){
+    if (this.isPanning){
+      this.dragPan(pointer)
+    } else {
+      this.dragRotate(pointer, dX,dY)
+    }
+    this._dispatch('move', event)
   }
 
-  // pan(pointer){
-  //   let [dx, dy] = this.screendelta(pointer)
-
-  //   if (!this.panInverse){
-  //     dx = dx * -1
-  //     dy = dy * -1
-  //   }
-
-  //   let r = this.rho * Math.cos(this.phi)
-
-  //   let speed = (this.panSpeed / 100)
-  //   let y2 = this.illustration.translate.y + (dy*speed)
-  //   let x2 = this.illustration.translate.x + (dx*speed)
-
-  //   let phi2 = Math.atan2(y2, r);
-  //   let theta2 = Math.atan2(x2 , r);
-  //   let r2 = Math.sqrt(Math.pow(r,2) + Math.pow(dx, 2))
-  //   let rho2 = r2 / Math.cos(phi2);
-
-  //   this.theta = theta2
-  //   this.phi = phi2
-  //   this.rho = rho2
-
-  //   let o = {x:this.x, y:this.y, z:this.z}
-  //   this.illustration.translate = o;
-  //   this.illustration.rotate =  {x:this.phi, y:this.theta, z:this.illustration.rotate.z}
-  // }
-
-  pan(pointer){
-    let [dx, dy] = this.screendelta(pointer)
+  dragPan(pointer){
+    let [dx, dy] = this._screendelta(pointer)
 
     if (!this.panInverse){
       dx = dx * -1
@@ -384,40 +363,35 @@ class Scene{
     let x2 = this.illustration.translate.x + (dx*speed)
     let o = {x:x2, y:y2, z:this.z}
     this.illustration.translate = o;
-
   }
 
-  dragstarted(x0,y0) {
-    this.x0 = x0;
-    this.y0 = y0;
-    this.totaldelta = 0;
-    }
-
   dragRotate(pointer) {
-    let [dx, dy] = this.screendelta(pointer)
+    let [dx, dy] = this._screendelta(pointer)
     this.theta = (this.theta + this.radRatio( dx));
     this.phi = (this.phi + this.radRatio( dy ));
     let o = {x:this.phi, y:this.theta, z:this.illustration.rotate.z}
     this.illustration.rotate = o;
   }
 
-  dragend(event){
+  cursorup(event){
+    this.isMouseDown = event.buttons
+    if (event.button == 1){     //MMB released
+      this.isPanning = false;
+    }
     //detect if drag or click
-    //might need a threshold depending on mobile/web... maybe later
-    if (Math.abs(this.totaldelta) < 5 ) {
+    if (Math.abs(this.totaldelta) < 5 ) {    //might need a threshold depending on mobile/web... maybe later
       this.selection(event)
     }
+    this._dispatch('up', event)
+      //console.log(`(ρ,θ,φ):(${ctx.rho},${ctx.theta},${ctx.phi})`)
   }
 
-  screendelta(pointer){
+  _screendelta(pointer){
     let deltaX = this.x0 - pointer.pageX;
     let deltaY = this.y0 - pointer.pageY;
-
     this.x0 = pointer.pageX;
     this.y0 = pointer.pageY;
-
     this.totaldelta += (deltaX + deltaY)
-
     return [deltaX, deltaY]
   }
 
@@ -427,6 +401,7 @@ class Scene{
     this.rho = Math.max(0.1, z);
     this.illustration.zoom = this.zoom;
     this.label.innerText = `${Math.round(this.zoom * 100)}%`
+    //this._dispatch('wheel',event)
   }
 
   selection(event){
@@ -458,21 +433,6 @@ class Scene{
     }
   }
 
-  onmousedown(event){
-    this.isMouseDown = event.buttons;
-    //MMB pressed
-    if (event.button == 1){
-      this.isPanning = true;
-    }
-  }
-
-  onmouseup(event){
-    this.isMouseDown = event.buttons
-    //MMB pressed
-    if (event.button == 1){
-      this.isPanning = false;
-    }
-  }
  /**
   * Attach events to the canvas element.
   * 
@@ -480,12 +440,25 @@ class Scene{
   * 
   *  new Scene().on('selectshape', (e)=>{console.log(e.detail.id)})
   * 
+  * Other event names include 'down','up','move', which trigger on mouse/touch/pointer, and 'wheel'
+  * 
   * @param {*} eventName 
-  * @param {*} callback 
+  * @param {*} callback function(event){...}
   */
   on(eventName, callback){
-    this.listeners[eventName] = callback
-    this.illustration.element.addEventListener(eventName, callback)
+    let dispatch = this.events[eventName]
+    if (dispatch === null || dispatch === undefined){
+      this.events[eventName] = callback
+      this.illustration.element.addEventListener(eventName, callback)
+    } else if (dispatch.length !== undefined) {
+      this.events[eventName].push(callback)
+    }
+  }
+
+  _dispatch(eventName, event){
+    this.events[eventName].forEach(fn=>{
+      fn(event)
+    })
   }
 
   /**
@@ -497,80 +470,92 @@ class Scene{
   }
 
   animate = () => {
-    this.illustration.updateRenderGraph();
-    this.animReq = requestAnimationFrame(this.animate);
+    this.illustration.updateRenderGraph()
+    this.canvasAxes.render()
+    this.animReq = requestAnimationFrame(this.animate)
   }
 
   destroy(){
-    let listeners = this.listeners;
-    for (let l in listeners){
-      this.illustration.element.removeEventListener(l, listeners[l])
+    let listeners = this.events;
+    for (let name in listeners){
+      if (listeners[name].length !== undefined){
+        this.illustration.element.removeEventListener(name, listeners[name])
+      }
     }
+    this.dragger.destroy();
+    delete this.dragger
   }
 
 }
 
-// //https://riptutorial.com/html5-canvas/example/19666/a-transformation-matrix-to-track-translated--rotated---scaled-shape-s-
-// class TransformationMatrix{
-//   m=[1,0,0,1,0,0]
-//   reset(){ this.m=[1,0,0,1,0,0]; }
-//   multiply(mat){
-//     let m = this.m
-//     var m0=m[0]*mat[0]+m[2]*mat[1];
-//     var m1=m[1]*mat[0]+m[3]*mat[1];
-//     var m2=m[0]*mat[2]+m[2]*mat[3];
-//     var m3=m[1]*mat[2]+m[3]*mat[3];
-//     var m4=m[0]*mat[4]+m[2]*mat[5]+m[4];
-//     var m5=m[1]*mat[4]+m[3]*mat[5]+m[5];
-//     m=[m0,m1,m2,m3,m4,m5];
-//   }
-//   screenPoint(transformedX,transformedY){
-//     // invert
-//     let m = this.m
-//     var d =1/(m[0]*m[3]-m[1]*m[2]);
-//     let im=[ m[3]*d, -m[1]*d, -m[2]*d, m[0]*d, d*(m[2]*m[5]-m[3]*m[4]), d*(m[1]*m[4]-m[0]*m[5]) ];
-//     // point
-//     return({
-//         x:transformedX*im[0]+transformedY*im[2]+im[4],
-//         y:transformedX*im[1]+transformedY*im[3]+im[5]
-//     });
-//   }
-//   transformedPoint(screenX,screenY){
-//     let m = this.m
-//     return({
-//         x:screenX*m[0] + screenY*m[2] + m[4],
-//         y:screenX*m[1] + screenY*m[3] + m[5]
-//     });    
-//   }
-//   // shared methods
-//   translate(x,y){
-//       var mat=[ 1, 0, 0, 1, x, y ];
-//       this.multiply(mat);
-//   }
-//   rotate(rAngle){
-//       var c = Math.cos(rAngle);
-//       var s = Math.sin(rAngle);
-//       var mat=[ c, s, -s, c, 0, 0 ];    
-//       this.multiply(mat);
-//   }
-//   scale(x,y){
-//       var mat=[ x, 0, 0, y, 0, 0 ];        
-//       this.multiply(mat);
-//   }
-//   skew(radianX,radianY){
-//       var mat=[ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ];
-//       this.multiply(mat);
-//   }
-//   setContextTransform(ctx){
-//       ctx.setTransform(this.m[0],this.m[1],this.m[2],this.m[3],this.m[4],this.m[5]);
-//   }
-//   resetContextTransform(ctx){
-//       ctx.setTransform(1,0,0,1,0,0);
-//   }
-//   getMatrix(){
-//       return[...this.m]
-//   }
-// }
+
+function drawAxis(illo, ZdogAxis){
+  let matrix = illo.transformMatrix
+  // //matrix( scaleX(), skewY(), skewX(), scaleY(), translateX(), translateY() )
+    let c = ZdogAxis.getPoints();
+    let u = new Zdog.Vector(c[0])
+    let v = new Zdog.Vector(c[1])
+
+    ZdogAxis.t = 100 / matrix[0]
+  //Transform the points to match the illo
+  u.multiply({x:matrix[0], y:matrix[3]})
+  v.multiply({x:matrix[0], y:matrix[3]})
+  u.add({x:matrix[4], y:matrix[5]})
+  v.add({x:matrix[4], y:matrix[5]})
+
+  drawRaw(illo, ctx => {
+    ctx.beginPath()
+    ctx.strokeStyle = ZdogAxis.color
+    ctx.lineWidth = ZdogAxis.stroke
+    ctx.moveTo(u.x, u.y)
+    ctx.lineTo(v.x, v.y)
+    ctx.stroke()
+  })
+}
+
+class AxesHelper{
+  pos = []
+  neg = []
+  constructor(illo){
+    this.illustration = illo
+
+    let t = window.innerWidth;
+
+    let form = (front, color) => {
+      return makeAxis({
+        front:front,
+        color:color,
+        t:t, visible:false
+      })
+    }
+    this.pos.push(form({x:1}, 'x'))
+    this.pos.push(form({y:1}, 'y'))
+    this.pos.push(form({z:1}, 'z'))
+
+    let opacity = 0.6
+    this.neg.push(form({x:-1}, `hsla(0,100%,30%,${opacity})`))
+    this.neg.push(form({y:-1}, `hsla(120,100%,30%,${opacity})`))
+    this.neg.push(form({z:-1}, `hsla(240,100%,30%,${opacity})`))
+
+    this.pos.forEach(a=>{
+      illo.addChild(a)
+    })
+    this.neg.forEach(a=>{
+      illo.addChild(a)
+    })
+  }
+
+  render(){
+    let illo = this.illustration;
+    this.pos.forEach(a=>{
+      drawAxis(illo, a)
+    })
+    this.neg.forEach(a=>{
+      drawAxis(illo, a)
+    })
+  }
+}
+
 
 /** ZDOG HELPERS SAUCE by Mootari:
  * https://observablehq.com/@mootari/zdog-helpers
@@ -899,12 +884,18 @@ function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
 
 }
 
+
+function makeAxis(options){
+  return new Zdog.Axis(options)
+}
+
 export {
+  makeAxis,
   axesHelper,
   rotationHelper,
   perspectiveHelper,
   gridHelper,gridRectHelper,
   Scene,
-  requestAnimationFrame, cancelAnimationFrame,
 
-  clearColor,drawRaw,zoomable}
+  requestAnimationFrame, cancelAnimationFrame,
+}

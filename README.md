@@ -13,8 +13,8 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 
 ## Current Todos
 - Delete objects
-- Resize canvas with viewport change
 - Render coordinate axes separately
+- Resize canvas with viewport change
 
 ## Future Goals
 

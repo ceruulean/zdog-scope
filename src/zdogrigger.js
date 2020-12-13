@@ -1,4 +1,5 @@
-import Zdog from 'zdog'
+//import Zdog from 'zdog' // ../../zdog
+import Zdog from '../../zdog'
 
 /**
  * classType only accepts 0-13 (corresponding to ZDog types)

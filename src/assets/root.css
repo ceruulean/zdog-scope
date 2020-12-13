@@ -13,6 +13,15 @@
   --colorInputPri: var(--colorMain);
 
   --borderRadius: 3px;
+  --paddingElement:0.1rem 0.2rem;
 
-  --paddingElement:0.1rem 0.2rem
+/*Z-Indicies*/
+  --zWarning:100;
+  --zModal:99;
+  --zTooltip:51;
+  --zTopMenu:50;
+  --zWidget:3;
+  --zPanel:1;
+  --zCanvas:0;
+  --zGhost:-1;
 }

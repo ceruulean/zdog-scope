@@ -43,8 +43,6 @@ import TreeView from './components/menu/TreeView.vue'
 import Canvas from './components/Canvas.vue'
 
 import Split from 'split-grid'
-//import Zdog from 'zdog'
-
 
 export default {
   name: 'App',
@@ -59,6 +57,11 @@ export default {
     const gutter1 = ref(null);
     const gutter2 = ref(null);
 
+    // const panelDimens = ref({
+    //   treeview:{
+    //     width:0
+    //   }
+    // })
 
     onMounted(()=>{
         window.split = Split({
@@ -69,9 +72,11 @@ export default {
           track: 3,
           element: gutter2.value,
         }],
-        // onDragEnd: (/*direction, track*/) => {
-        //   resize.value = true;
-        //   resize.value = false;
+        // onDragEnd: (direction, track) => {
+        //   if (track == 1){
+        //     Treeview.value.clientWidth
+        //     //truncEllipse(text, max)
+        //   }
         // }
       /**Horizontal gutters */
         // rowGutters: [{
@@ -153,7 +158,7 @@ a, button{
   display:grid;
   grid-template-columns: 1fr 6px 2fr 6px 1fr; /*define column and gutter widths here*/
   border-collapse:collapse;
-  z-index:1;
+  z-index:var(--zCanvas);
 }.split-grid.overlay{
   position:relative;
   top:0;
@@ -167,7 +172,7 @@ a, button{
 }.split-column.tree-view, .split-column.properties{
   background-color:rgb(255,255,255);
   position:relative;
-  z-index:19
+  z-index:var(--zPanel)
 }
 
 [class^='gutter'] {
@@ -176,7 +181,7 @@ a, button{
   background-repeat: no-repeat;
   background-position: 50%;
   cursor: col-resize;
-  z-index:20;
+  z-index:var(--zPanel)
 }
 
 [class^='gutter']:before {

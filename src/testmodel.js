@@ -1,4 +1,4 @@
-import Zdog from 'zdog'
+import Zdog from '../../zdog'
 import Zdogger from './zdogrigger'
 
 // Made with Zdog
@@ -12,7 +12,7 @@ const eggplant = '#636';
 
 const illo = new Zdog.Illustration({
   element: '.zdog-canvas',
-  zoom: 1,
+  zoom: 5,
  // rotate: { y: -TAU/8 },
   dragRotate: true,
 });
