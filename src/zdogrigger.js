@@ -88,23 +88,17 @@ const create = (itemName) => {
 }
 
 /**
- * Generates a random ID in the format "x_xxxxxxxx_xxxxx"
- * (Code from https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript)
+ * Generates a basic random ID
  */
 function generateUid() {
-// desired length of Id
-var idStrLen = 16;
-// always start with a letter -- base 36 makes for a nice shortcut
-var idStr = (Math.floor((Math.random() * 25)) + 10).toString(36) + "_";
-// add a timestamp in milliseconds (base 36 again) as the base
-idStr += (new Date()).getTime().toString(36) + "_";
-// similar to above, complete the Id using random, alphanumeric characters
-do {
-    idStr += (Math.floor((Math.random() * 35))).toString(36);
-} while (idStr.length < idStrLen);
-
-return (idStr);
-}
+  // always start with a letter -- base 36 makes for a nice shortcut
+    let result = ""
+    var t = (Math.random() * 20).toString(36)
+    for(let i = t.length-1; i > 1; i--){
+      result += t[i]
+    }
+    return result
+  }
 
 /**
  * Adds an "name" property to the Zdog item for human covenience (and open up for search/filter options in the future?)
