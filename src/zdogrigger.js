@@ -1,5 +1,7 @@
-//import Zdog from 'zdog' // ../../zdog
+//import Zdog from 'zdog'
+/* eslint-disable no-unused-vars */
 import Zdog from '../../zdog'
+import json_beautifier from 'csvjson-json_beautifier';
 
 /**
  * classType only accepts 0-13 (corresponding to ZDog types)
@@ -193,6 +195,14 @@ function importExisting(illustration){
   let copy = illustration.copyGraph();
   assignExisting(copy);
   return copy;
+}
+
+/**
+ * Creates a deep copy of a Zdog object
+ * @param {*} zdog A Zdog object
+ */
+function copy(zdog){
+  return assignExisting(zdog.copy())
 }
 
   /**
@@ -762,6 +772,12 @@ class Ztree{
     })
   }
 
+  generateEmbed({selector, width, height, bgColor, mini}){
+    let combined = ''
+   combined += canvasTagGenerate(selector, width, height, bgColor) + '\n'
+   combined += scriptTagGenerate(this, selector, mini)
+   return combined
+  }
 }
 
 /**
@@ -772,13 +788,141 @@ function toRad(degrees) {
   return (Math.PI * degrees) / 180;
 }
 
-/**
- * Creates a deep copy of a Zdog object
- * @param {*} zdog A Zdog object
+/** EMBED GENERATORS
  */
-function copy(zdog){
-  return assignExisting(zdog.copy())
+
+ function canvasTagGenerate(selector='.zdog-canvas', width=300, height=300, bgColor='transparent'){
+   let attribute = '';
+   let omitSelector = (str) => {
+    return str.substr(1, str.length - 1)
+   }
+   switch (selector[0]) {
+    case '.':
+      attribute = `class="${omitSelector(selector)}"`
+      break;
+    case '#':
+      attribute = `id="${omitSelector(selector)}`
+      break;
+    case '[':
+      attribute = selector.replace(/\[\]\^\*\$/g, '')
+      break;
+    default:
+      attribute = `class="${selector}"`
+   }
+   return `<canvas ${attribute} width="${width}" height="${height}" style="background-color:${bgColor}"></canvas>`
+ }
+
+ //https://javascript.info/string
+/**
+ * Creates a JavaScript <script> string of the Ztree (for embed copy-paste)
+ * @param {Ztree} ztree 
+ * @param {Boolean} mini 
+ */
+ function scriptTagGenerate(ztree, selector=".zdog-canvas", mini=false){
+   let result = '<script>'
+   let tab = mini?'':'\t';
+   let nl = mini?'':'\n'
+   let plain = ztree.trimmedView()
+   //return an array with [base, children, nestedChilds]
+   let getFlat = (node) => {
+     let arr = [node];
+     if (node.children && node.children.length > 0) {
+      node.children.forEach(child=>{
+        child.addTo = node.id
+        arr = [...arr, ...getFlat(child)]
+      })
+     }
+     return arr
+   }
+   let properNames = ZDOG_CLASS_NAME.map(name=>{
+    return capitalize(name)
+   })
+   properNames[11] = "RoundedRect"
+   let order = getFlat(plain[0])
+
+   for (let i = 0; i < order.length; i++){
+     let id = order[i].id
+     let type = properNames[ZDOG_CLASS[order[i].type]]
+     let node = ztree.find(id)
+     let options = Ztree.getProps(node)
+
+     let declaration = `${nl}var ${id} = new Zdog.${type}(`
+     if (type == "Illustration"){
+       options.dragRotate = true
+       options.element = selector;
+      }
+
+     //prune options to save filesize
+     delete options.id
+     delete options.type
+     delete options.name
+
+     let defaults = node.constructor.defaults;
+     for (let d in defaults){
+      if (defaults[d] == options[d]){
+        delete options[d]
+      }
+     }
+
+     for (let d in options){
+      if (d == 'translate' || d == 'rotate'){
+        if (options[d].x == 0){
+          delete options[d].x
+        }
+        if (options[d].y == 0){
+          delete options[d].y
+        }
+        if (options[d].z == 0){
+          delete options[d].z
+        }
+        if (options[d] == {}){
+          delete options[d]
+        }
+      }
+      if (d == 'scale'){
+        if (options[d].x == 1){
+          delete options[d].x
+        }
+        if (options[d].y == 1){
+          delete options[d].y
+        }
+        if (options[d].z == 1){
+          delete options[d].z
+        }
+        if (options[d] == {}){
+          delete options[d]
+        }
+      }
+     }
+
+     //use plugin to avoid double quotes from JSON.stringify
+     let jjj = json_beautifier(options, {
+      dropQuotesOnKeys:true,
+      minify:mini
+     })
+
+     if (order[i].addTo){
+      declaration += jjj.slice(0, jjj.length-1)
+      declaration += `,${nl}addTo: ${order[i].addTo}${nl}}`
+     } else {
+      declaration += jjj
+     }
+     declaration += ');'+nl;
+     result += declaration
+   }
+
+   result += `${nl}function animate() {
+    ${ztree.illustration.id}.updateRenderGraph();${nl}requestAnimationFrame(animate);}${nl}animate();${nl}</script>`
+   return result
+ }
+
+function capitalize(string){
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+
+//** EXPORTS */
+
 
  /**
  * To create a Zdog object with id: Zdogger('anchor')

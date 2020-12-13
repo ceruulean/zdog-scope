@@ -175,7 +175,6 @@ export default {
   watch:{
     isSelected(newVal){
       if (this.collapsed && newVal == true){
-        this.collapsed = false;
         this.$emit('select-uncollapse')
       }
     }

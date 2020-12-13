@@ -11,6 +11,7 @@
   "dependencies": {
     "@jaames/iro": "^5.3.1",
     "core-js": "^3.6.5",
+    "csvjson-json_beautifier": "^5.0.4",
     "split-grid": "^1.0.9",
     "versor": "^0.1.2",
     "vue": "^3.0.0",

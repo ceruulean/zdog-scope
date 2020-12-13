@@ -25,6 +25,10 @@
       <button @click="log">
         Console Log
       </button>
+      <button @click="embedGen">
+        Embed Dream
+      </button>
+      <textarea v-if="embed" :value="embed"></textarea>
       <br>
     </ul>
 </template>
@@ -52,13 +56,10 @@ export default {
   computed:{
     ...mapState({
       illustration:'illustration',
-      treeLoaded:'treeLoaded'
+      treeLoaded:'treeLoaded',
+      embed:state=>state.treeview.embed,
+      treeView:state=>state.treeview.list
     }),
-    treeView: {
-      get() {
-        return this.$store.state.treeview.list
-      }
-    },
   },
   watch:{
     illustration(nVal){
@@ -74,6 +75,9 @@ export default {
     log(){
       console.log(this.treeView)
     },
+    embedGen(){
+      this.$store.dispatch('treeview/embed')
+    }
   },
 }
 </script>

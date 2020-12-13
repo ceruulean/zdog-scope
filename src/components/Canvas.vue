@@ -25,7 +25,7 @@
 
 <script>
 import {mapState, mapActions, mapGetters} from 'vuex'
-import { useWindowSize } from 'vue-window-size';
+// import { useWindowSize } from 'vue-window-size';
 
 /**
  * NOTES
@@ -42,14 +42,14 @@ export default {
   //     zoomDisplay:null
   //   }
   // },
-  setup(){
-    const { width, height } = useWindowSize();
+  // setup(){
+  //   const { width, height } = useWindowSize();
 
-    return{
-      windowWidth: width,
-      windowHeight: height,
-    }
-  },
+  //   return{
+  //     windowWidth: width,
+  //     windowHeight: height,
+  //   }
+  // },
   data(){
     return{
       hideGhost:true
@@ -64,6 +64,12 @@ export default {
     ...mapGetters({
         selectedNode: 'selectedNode',
     }),
+    windowWidth(){
+      return window.innerWidth;
+    },
+    windowHeight(){
+      return window.innerHeight;
+    },
   },
   watch:{
     selectedNode(nVal, oVal){

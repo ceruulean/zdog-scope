@@ -5,7 +5,8 @@ import {Ztree} from '../index'
 const getDefaultState = () => ({
   list: [],
   blockIds:[],
-  selectedListNode:null
+  selectedListNode:null,
+  embed:null
 })
 
 const state = getDefaultState();
@@ -44,6 +45,12 @@ const actions = {
     state.selectedListNode.name = newName
   },
 
+  embed({commit}){
+    let e = Ztree.generateEmbed({selector:'.zdog-canvas', mini:true});
+    console.log(e)
+    commit('setEmbed', e)
+  },
+
   resetView({commit}){
     commit('resetState')
   }
@@ -62,6 +69,10 @@ const mutations = {
 
   setSelectedList(state, payload){
     state.selectedListNode = payload
+  },
+
+  setEmbed(state, payload){
+    state.embed = payload
   },
 
   resetState(state) {
