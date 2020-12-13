@@ -183,41 +183,47 @@ export default {
 </script>
 
 <style lang='scss'>
-li.tree-item{
- /* background-color:rgba(100, 97, 97, 1);*/
+.tree-item{
   display:flex;
   justify-content:space-between;
   flex-direction:column;
   position:relative;
+  cursor:pointer;
 
-  * {
-    cursor:pointer;
-  }
-
-  .row{
-    border-bottom: 1px solid rgba(0,0,0,0.3);
-  }
-
+/*States*/
   .highlight{
     background-color:var(--colorLight);
   }
-
-  .data-set{
-    width: 100%;
-    height:1.3rem;
+  .collapsed{
+    display:none;
   }
-
+/*Dom Elements*/
   ul{
     position:relative;
   }
-
   button{
     position:relative;
     line-height:0.3rem;
     padding:0.2rem 0.1rem;
     width:2.5ch;
   }
-
+  li:before{
+    position:absolute;
+    top:0;
+    left:0.6rem;
+    content:'';
+    width:1px;
+    background-color:var(--colorMain);
+    height:100%;
+  }
+/*inner Styling*/
+  .row{
+    border-bottom: 1px solid rgba(0,0,0,0.3);
+  }
+  .data-set{
+    width: 100%;
+    height:1.3rem;
+  }
   .index{
     text-align:right;
     border-right:1px solid rgba(92, 85, 85, 0.2);
@@ -233,7 +239,6 @@ li.tree-item{
       color:var(--colorMain);
     }
   }
-
   .name{
     width:99%;
     text-align:left;
@@ -243,25 +248,10 @@ li.tree-item{
       width:100%;
     }
   }
-
- li:before{
-    position:absolute;
-    top:0;
-    left:0.6rem;
-    content:'';
-    width:1px;
-    background-color:var(--colorMain);
-    height:100%;
-  }
-
-  .collapsed{
-    display:none;
-  }
-
+/*Drag N Drop*/
   .empty-list-dropzone{
     padding:0.5rem 0 0 0;
   }
-
   .drag-over-ghost{
     border:1px dashed var(--colorPri);
     background-color:var(--colorLight);

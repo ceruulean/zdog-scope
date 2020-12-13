@@ -157,6 +157,6 @@ upperArm.copyGraph({
 // animate();
 
 let tree = new Zdogger.Tree(illo)
-let testmodel = tree._JSON();
+let testmodel = tree.JSON();
 
 export default testmodel;

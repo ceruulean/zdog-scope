@@ -1,12 +1,10 @@
 
 /* eslint-disable no-unused-vars */
 //import Zdog from 'zdog' // ../../zdog
-import Zdog from '../../zdog'
-import { Ztree, Zdogger } from './zdogrigger';
-import {COLOR_PROPS} from './store/modules/properties'
+import Zdog from '../../../zdog'
+import { Ztree, zCopy, justProps } from './ztree';
 
 //import versor from 'versor'
-
 
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                             window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
@@ -23,15 +21,6 @@ function getPixel(context, x, y) {
   let imageData = context.getImageData( x, y, 1, 1 );
   let data = imageData.data;
   return [data[0],data[1],data[2]];
-}
-
-//https://stackoverflow.com/questions/23095637/how-do-you-get-random-rgb-in-javascript
-function getRandomRgb() {
-  var num = Math.round(0xffffff * Math.random());
-  var r = num >> 16;
-  var g = num >> 8 & 255;
-  var b = num & 255;
-  return [r,g,b]
 }
 
 function colorKey(data){
@@ -114,7 +103,7 @@ class GhostCanvas{
   addNode(zdog){
     if (!zdog.id) throw new Error('Invalid zdog object (must have "id" property ')
     let color = getRandomRgb()
-    let clone = Zdogger.copy(zdog)
+    let clone = zCopy(zdog)
     //
     let parentid = zdog.addTo.id
     if (this.ghostNodes.has(parentid)){
@@ -195,7 +184,7 @@ class GhostCanvas{
   static setUniformColor(zdog, colorData){
     //Set all color props to same
     let string = rgbString(colorData);
-    let previous = Ztree.getProps(zdog)
+    let previous = justProps(zdog)
 
     let f = (zdog) => {
       COLOR_PROPS.forEach(prop=>
@@ -640,19 +629,6 @@ function axesHelper({size = 100, head = 10, stroke = 1, x = 'hsl(0, 100%, 50%)',
   return a;
 }
 
-/**
- * Takes an HSL string and returns an array of the HSL values.
- * https://stackoverflow.com/questions/19289537/javascript-match-and-parse-hsl-color-string-with-regex
- * @param {*} color hsl string in the format hsl(x, x%, x%)';
- */
-function parseHSL(color){
-  let regexp = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g;
-  return regexp.exec(color).slice(1).map(val=>{
-    return Number(val);
-  });
-  //array of [0]: Hue, [1]: Saturation, [2]:Lightness
-}
-
 
 
 /**
@@ -796,39 +772,31 @@ function clearColor(illo, color) {
   ctx.restore();
 }
 
-function drawRaw(illo, draw) {
-  const ctx = illo.ctx;
-  ctx.save();
-  ctx.resetTransform();
-  draw(ctx);
-  ctx.restore();
-}
-
 /**
  * Attaches zoom event to the illustration, returns the illustration
  * @param {Zdog.Illustration} illo
  * @param {Object} options
  */
-// function zoomable(illo, options = {}) {
-//   Object.assign(illo, {
-//     setZoomable(zoomable) {
-//       zoomable
-//         ? this.element.addEventListener('wheel', this)
-//         : this.element.removeEventListener('wheel', this);
-//     },
-//     zoomSpeed: .001,
-//     minZoom: .1,
-//     onwheel(event) {
-//       event.preventDefault();
-//       const z0 = this.zoom, z = z0 - event.deltaY * this.zoomSpeed;
-//       // Max boundary handled by Zdog.
-//       this.zoom = z < this.minZoom ? this.minZoom : z;
-//       if(this.onZoom) this.onZoom(this.zoom, this.zoom - z0);
-//     }
-//   }, options);
-//   illo.setZoomable(illo.zoomSpeed != 0);
-//   return illo;
-// }
+function zoomable(illo, options = {}) {
+  Object.assign(illo, {
+    setZoomable(zoomable) {
+      zoomable
+        ? this.element.addEventListener('wheel', this)
+        : this.element.removeEventListener('wheel', this);
+    },
+    zoomSpeed: .001,
+    minZoom: .1,
+    onwheel(event) {
+      event.preventDefault();
+      const z0 = this.zoom, z = z0 - event.deltaY * this.zoomSpeed;
+      // Max boundary handled by Zdog.
+      this.zoom = z < this.minZoom ? this.minZoom : z;
+      if(this.onZoom) this.onZoom(this.zoom, this.zoom - z0);
+    }
+  }, options);
+  illo.setZoomable(illo.zoomSpeed != 0);
+  return illo;
+}
 
 /**
  * Creates an object that can add functionality to new Illustration instance
@@ -914,18 +882,57 @@ function perspectiveHelper({fov = 100, zOffset = 0, scaleStroke = true} = {}) {
 
 }
 
-
 function makeAxis(options){
   return new Zdog.Axis(options)
 }
 
+const COLOR_PROPS = [
+  'color', 'rearFace', 'frontFace', 'leftFace', 'rightFace', 'topFace', 'bottomFace', 'backface'
+]
+
+
+//https://stackoverflow.com/questions/23095637/how-do-you-get-random-rgb-in-javascript
+function getRandomRgb() {
+  var num = Math.round(0xffffff * Math.random());
+  var r = num >> 16;
+  var g = num >> 8 & 255;
+  var b = num & 255;
+  return [r,g,b]
+}
+
+/**
+ * Takes an HSL string and returns an array of the HSL values.
+ * https://stackoverflow.com/questions/19289537/javascript-match-and-parse-hsl-color-string-with-regex
+ * @param {*} color hsl string in the format hsl(x, x%, x%)';
+ */
+function parseHSL(color){
+  let regexp = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g;
+  return regexp.exec(color).slice(1).map(val=>{
+    return Number(val);
+  });
+  //array of [0]: Hue, [1]: Saturation, [2]:Lightness
+}
+
+function drawRaw(illo, draw) {
+  const ctx = illo.ctx;
+  ctx.save();
+  ctx.resetTransform();
+  draw(ctx);
+  ctx.restore();
+}
+
+
+const Color = {
+  PROPS: COLOR_PROPS,
+  randomRgb: getRandomRgb,
+  parseHSL: parseHSL
+}
+
 export {
+  Scene,
   makeAxis,
   axesHelper,
-  rotationHelper,
-  perspectiveHelper,
-  gridHelper,gridRectHelper,
-  Scene,
+  Color,
+};
 
-  requestAnimationFrame, cancelAnimationFrame,
-}
+export default Scene;

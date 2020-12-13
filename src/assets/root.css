@@ -19,9 +19,20 @@
   --zWarning:100;
   --zModal:99;
   --zTooltip:51;
-  --zTopMenu:50;
+  --zTopBar:50;
   --zWidget:3;
   --zPanel:1;
   --zCanvas:0;
   --zGhost:-1;
+}
+
+html,body{
+  margin:0;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+}
+div{
+  box-sizing:border-box;
+}
+a, button{
+  cursor:pointer;
 }

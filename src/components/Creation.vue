@@ -199,7 +199,7 @@ import ColorPicker from './menu/controls/ColorPicker'
 import Backface from './menu/controls/Backface'
 import InputLabel from './menu/controls/InputLabel'
 
-import StringHelper from './StringHelperMixin'
+import StringMixin from '../zdogger'
 
 export default {
   name: 'Creation',
@@ -209,7 +209,7 @@ export default {
     Backface,
     InputLabel
   },
-  mixins:[StringHelper],
+  mixins:[StringMixin],
   props: {
     itemtype:{
       type:String,

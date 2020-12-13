@@ -17,12 +17,12 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .tooltip-wrapper{
   position:absolute;
 }
 
-.closer{
+.tooltip-wrapper .closer{
   position:fixed;
   top:0;
   left:0;
@@ -33,7 +33,7 @@ export default {
   z-index:1;
 }
 
-.tooltip-popover{
+.tooltip-wrapper .tooltip-popover{
   position:relative;
   z-index:var(--zTooltip);
   background-color:white;

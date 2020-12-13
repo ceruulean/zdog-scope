@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import StringHelper from '../../StringHelperMixin'
+import StringMixin from '../../../zdogger'
 
 // import InputVector from './InputVector'
  import ColorPicker from './ColorPicker'
@@ -28,7 +28,7 @@ import StringHelper from '../../StringHelperMixin'
 
 export default {
   name: 'InputLabel',
-  mixins:[StringHelper],
+  mixins:[StringMixin],
   inheritAttrs: false,
   components:{
     ColorPicker

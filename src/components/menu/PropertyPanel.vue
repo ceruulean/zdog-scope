@@ -115,14 +115,13 @@
     </button>
   </Modal>
 </teleport>
-
 </template>
 
 <script>
 import { mapState, mapActions} from 'vuex'// mapActions  mapGetters,
-import {ZDOG_CLASS_NAME, ADVANCED_PROPERTIES} from '../../zdogrigger'
+import {ZCLASS} from '../../zdogger/ztree'
 
-import StringHelper from '../StringHelperMixin'
+import {StringMixin} from '../../zdogger'
 
 import Modal from '../Modal'
 
@@ -140,7 +139,7 @@ export default {
     InputLabel,
     Modal
   },
-  mixins:[StringHelper],
+  mixins:[StringMixin],
 
   data(){
     return{
@@ -162,11 +161,8 @@ export default {
       if (!this.$store.state.treeview.selectedListNode) return;
       return this.$store.state.treeview.selectedListNode.name
     },
-    advancedProps(){
-      return ADVANCED_PROPERTIES;
-    },
     selectedTypeName(){
-      return ZDOG_CLASS_NAME[this.selectedNode.type];
+      return ZCLASS.NAMES[this.selectedNode.type];
     },
     hasColor(){
       return this.selectedAllProps.includes('color');
@@ -227,35 +223,41 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 @import '../../assets/fieldinput.css';
 
-.property-panel .info{
-  justify-content:space-between;
-}.property-panel .info div{
-  color:rgba(0,0,0,0.6);
-  font-size:0.9em;
-  padding:0 0.2rem;
-}
+.property-panel {
+  ::placeholder{
+    color:rgba(0,0,0,1);
+    opacity:1;
+  }
 
-.property-panel ::placeholder
-{
-  color:rgba(0,0,0,1);
-  opacity:1;
-}
-.property-panel input:placeholder-shown {
-  color:rgba(0,0,0,1);
-  opacity:1;
-}
+  input{
+    &:placeholder-shown {
+      color:rgba(0,0,0,1);
+      opacity:1;
+    }
+    &.input-name{
+      max-width:100%;
+    }
+  }
 
-.property-panel .field{
-  font-size:1.05rem;
-  margin:3px 2px;
-  text-transform:capitalize;
-  user-select:none;
-}
+  .info{
+    justify-content:space-between;
 
-.property-panel input.input-name{
-  max-width:100%;
+    div{
+      color:rgba(0,0,0,0.6);
+      font-size:0.9em;
+      padding:0 0.2rem;
+    }
+  }
+
+  .field{
+    font-size:1.05rem;
+    margin:3px 2px;
+    text-transform:capitalize;
+    user-select:none;
+  }
+
 }
 </style>

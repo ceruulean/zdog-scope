@@ -21,7 +21,7 @@
         :key="`${item}_${index}`"
         :aria-label="item"
         :class="{
-          'hide': (item != 'illustration' && !hasIllustration)
+          'hidden': (item != 'illustration' && !hasIllustration)
         }"
         @click="promptCreate"
       >
@@ -65,7 +65,7 @@
 <script>
 //import Zdog from 'zdog'
 import {mapActions} from 'vuex'// mapActions 
-import {ZDOG_CLASS_NAME} from '../../zdogrigger'
+import {ZCLASS} from '../../zdogger/ztree'
 
 import Modal from '../Modal.vue'
 import Creation from '../Creation.vue'
@@ -85,7 +85,6 @@ export default {
       bImporting:false,
       creationItemType: null,
       bWarning:false,
-      ZDOG_CLASS_NAME: ZDOG_CLASS_NAME,
       bSettings:false
     }
   },
@@ -94,12 +93,12 @@ export default {
       return this.$store.state.illustration
     },
     hasIllustration() {
-    return (this.illustration !== null && this.illustration !== undefined)
+      return (!!this.illustration)
     },
     creatables(){
-      let c = [...ZDOG_CLASS_NAME];
+      let c = [...ZCLASS.NAMES];
       return c.filter(name=>{
-        return name != "dragger"
+        return (name != "dragger" || name != "vector")
       })
     },
     currentSettings(){
@@ -164,7 +163,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .toolbar{
   position:relative;
   border:1px solid black;
@@ -172,12 +171,7 @@ export default {
   z-index:var(--zTopBar);
 }
 
-button{
+.toolbar button{
   text-transform:capitalize;
-}
-
-.hide{
-  display:none;
-  visibility:hidden;
 }
 </style>

@@ -1,17 +1,7 @@
 import { createStore, createLogger } from 'vuex'
-
-//import MODULES from './modules/MODUELS' if ever gets more modules NEED TO AUTOMATE THIS
-import treeview from './modules/treeview'
-import properties from './modules/properties'
-import canvas from './modules/canvas'
-/* eslint-disable no-unused-vars */
-import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
+import Zdogger from '../zdogger'
 
 const debug = process.env.NODE_ENV !== 'production'
-
-import {Zdogger} from '../zdogrigger'
-import {Scene} from '../canvasHelpers'
-
 
 var Ztree = new Zdogger.Tree();
 var GhostCanvas = null
@@ -36,10 +26,8 @@ function initCanvasScene(state){
     CanvasScene = null
     GhostCanvas = null
   }
-  CanvasScene = new Scene(Ztree, state.canvas.settings.scene);
+  CanvasScene = new Zdogger.Scene(Ztree, state.canvas.settings.scene);
   GhostCanvas = CanvasScene.ghostCanvas
-  //Append zoom % label to dom element
-  //document.querySelector('#zoom-control').appendChild(CanvasScene.label)
 }
 
 const handlers = {
@@ -85,7 +73,7 @@ const state = getDefaultState()
 // getters
 const getters = {
   selectedNode(state){
-    if (!Ztree)return
+    if (!Ztree) return
     return Ztree.find(state.selected)
   }
 }
@@ -124,7 +112,7 @@ const actions = {
     CanvasScene.on('selectshape', (e)=>{
       dispatch('changeSelected', e.detail.id)
     })
-    CanvasScene.on('deselect', (e)=>{
+    CanvasScene.on('deselect', ()=>{
       dispatch('changeSelected', null)
     })
     registerEvents()
@@ -192,7 +180,12 @@ const mutations = {
 }
 
 //Export the Ztree and import in other modules that will need to access its properties
-export{Ztree, GhostCanvas}
+export{Ztree, CanvasScene}
+
+import treeview from './modules/treeview'
+import properties from './modules/properties'
+import canvas from './modules/canvas'
+import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
 
 export default createStore({
   modules: {

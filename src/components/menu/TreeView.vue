@@ -1,36 +1,36 @@
 <template>
   <h2>Tree View</h2>
     TODO: filter anchors, add icon, searchbar
-    <header class="row between text-display-type">
-      <div class="col index">
-        Index
-      </div>
-      <div class="col name">
-        Name
-      </div>
-      <div class="col type">
-        Type
-      </div>
-    </header>
-    <ul
-      v-if="treeView && treeLoaded"
-      class="tree-bg"
-    >
-      <TreeItem
-        v-for="(node) in treeView"
-        :key="node.id"
-        :node="node"
-        :depth="0"
-      />
-      <button @click="log">
-        Console Log
-      </button>
-      <button @click="embedGen">
-        Embed Dream
-      </button>
-      <textarea v-if="embed" :value="embed"></textarea>
-      <br>
-    </ul>
+  <header class="row between text-display-type">
+    <div class="col index">
+      Index
+    </div>
+    <div class="col name">
+      Name
+    </div>
+    <div class="col type">
+      Type
+    </div>
+  </header>
+  <ul
+    v-if="treeView && treeLoaded"
+    class="tree-bg"
+  >
+    <TreeItem
+      v-for="(node) in treeView"
+      :key="node.id"
+      :node="node"
+      :depth="0"
+    />
+    <button @click="log">
+      Console Log
+    </button>
+    <button @click="embedGen">
+      Embed Dream
+    </button>
+    <textarea v-if="embed" :value="embed"></textarea>
+    <br>
+  </ul>
 </template>
 
 <script>
@@ -76,15 +76,14 @@ export default {
       console.log(this.treeView)
     },
     embedGen(){
-      this.$store.dispatch('treeview/embed')
+      this.$store.dispatch('treeview/createEmbed')
     }
   },
 }
 </script>
 
 <style lang="scss">
-div.tree-view {
-  
+.tree-view {
   ul.tree-bg{
     background-image: linear-gradient(0deg,
       var(--colorShade) 25%,

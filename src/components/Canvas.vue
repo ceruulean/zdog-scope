@@ -106,25 +106,19 @@ export default {
   position:absolute;
   top:0;
   left:0;
-}
-#canvas{
   width:100vw;
   height:100vh;
+}
+#canvas{
   z-index:var(--zCanvas);
 }
 
-canvas.ghost-canvas{
-  width:100vw;
-  height:100vh;
+#ghost{
   z-index:var(--zGhost);
 }
 
-div.developer{
+.developer{
   z-index:3;
-}
-
-.hidden{
-  display:none;
 }
 
 #zoom-control{

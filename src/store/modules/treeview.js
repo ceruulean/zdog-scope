@@ -45,7 +45,7 @@ const actions = {
     state.selectedListNode.name = newName
   },
 
-  embed({commit}){
+  createEmbed({commit}){
     let e = Ztree.generateEmbed({selector:'.zdog-canvas', mini:true});
     console.log(e)
     commit('setEmbed', e)

@@ -1,6 +1,6 @@
 
-import {Zdogger} from '../../zdogrigger'
-import {Ztree, GhostCanvas} from '../index'
+import Zdogger from '../../zdogger'
+import {Ztree, CanvasScene} from '../index'
 
 //All history actions and mutations go here
 //https://stackoverflow.com/questions/42878329/going-back-to-states-like-undo-redo-on-vue-js-vuex/44865208#44865208
@@ -23,7 +23,7 @@ class UndoRedo {
   }
 
   addState(mstate) {
-    let tree = Ztree._JSON();
+    let tree = Ztree.JSON();
     let latestIndex = this.history.length - 1;
     for (let i = this.currentIndex; i < latestIndex; i++) {
       this.history.pop();
@@ -80,16 +80,6 @@ const undoRedoPlugin = (store) => {
   });
 }
 
-// const getDefaultState = () => ({
-//   ZTree:null,
-//   selected:null
-// })
-
-// const state = getDefaultState();
-// // Getter functions
-// const getters = {
-
-// }
 // Actions 
 const actions = {
 
@@ -142,28 +132,19 @@ const mutations = {
 
   addNode(state, node){
     if (!Ztree) throw new Error('Cannot add node to nonexistent tree');
-    Ztree.addNode(node);
-    Ztree.illustration.renderGraph(node)
-    GhostCanvas.addNode(node)
+    CanvasScene.addNode(node)
   },
 
-  setNodeProps(state, {node, options}){
-    for (let o in options){
-      node[o] = options[o]
-    }
-    render(node)
-    GhostCanvas.updateNode(node.id)
+  setNodeProps(state, {id, options}){
+    CanvasScene.updateNode({id, options})
   },
 
   removeNode(state, id){
-    Ztree.removeNode(id)
-    GhostCanvas.removeNode(id)
-    Ztree.illustration.updateRenderGraph();
+    CanvasScene.removeNode(id)
   },
 
   changeParent(state, {id, newParentId}){
-    let node = Ztree.changeParent(id, newParentId);
-    render(node)
+    CanvasScene.changeParent(id, newParentId)
   }
 }
 
@@ -171,8 +152,6 @@ export {undoRedoPlugin, undoRedoHistory}
 
 export default {
   namespaced: true,
-  // state,
-  // getters,
   actions,
   mutations
 }

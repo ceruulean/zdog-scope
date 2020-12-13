@@ -4,7 +4,6 @@ import {Ztree} from '../index'
 
 import {
   axesHelper,
-  //makeAxis,
 } from '../../canvasHelpers'
 
 var selectedAxes, canvasAxes

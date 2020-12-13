@@ -12,9 +12,8 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 - Canvas object selection
 
 ## Current Todos
-- Delete objects
-- Render coordinate axes separately
-- Resize canvas with viewport change
+- Delete objects key shortcut
+- Resize canvas with panel/viewport
 
 ## Future Goals
 
@@ -75,3 +74,4 @@ npm run build
 ```
 npm run lint
 ```
+[Zdog SVG importer](https://github.com/sakamies/zdog-svg-importer)

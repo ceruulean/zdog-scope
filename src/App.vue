@@ -5,7 +5,6 @@
     />
     <div
       class="split-grid overlay"
-      style=""
     >
       <div
         ref="treeview"
@@ -129,22 +128,8 @@ export default {
 <style>
 @import './assets/root.css';
 
-html,body{
-  margin:0;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-}
-
-*{
-  box-sizing:border-box;
-}
-
 h1,h2,h3,h4,h5{
   margin:0.5rem 0.5rem 0.7rem 0.5rem
-}
-
-
-a, button{
-  cursor:pointer;
 }
 
 #app {
@@ -240,4 +225,8 @@ ul{
   -ms-user-select: none;
 }
 
+.hidden{
+  visibility:hidden;
+  display:none;
+}
 </style>

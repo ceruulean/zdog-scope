@@ -1,11 +1,17 @@
-//import Zdog from 'zdog'
-/* eslint-disable no-unused-vars */
-import Zdog from '../../zdog'
+import Zdog from '../../../zdog'
+
 import json_beautifier from 'csvjson-json_beautifier';
+
+/**
+ * Zdog properties that are derived, or do esoteric things
+  const ADVANCED_PROPERTIES  = ['origin','sortValue','pixelRatio',
+  'renderOrigin','renderFront','renderNormal','pathCommands',
+  'canvasHeight','canvasWidth']   */
 
 /**
  * classType only accepts 0-13 (corresponding to ZDog types)
  */
+
 const ZDOG_CLASS_TYPE = [
   Zdog.Anchor,
   Zdog.Shape,
@@ -22,7 +28,7 @@ const ZDOG_CLASS_TYPE = [
   Zdog.Box,
   Zdog.Vector
 ]
-
+  
 /**
  * Treated like an enum
  */
@@ -47,8 +53,7 @@ const ZDOG_CLASS = {
  * Treated like an enum, convert an integer to the Zdog class/type/object name
  */
 const ZDOG_CLASS_NAME = Object.keys(ZDOG_CLASS);
-
-
+  
 const CYCLIC_PROPS = [
   'addTo', 'dragRotate', 'onPrerender', 'onDragStart', 'onDragMove',
   'onDragEnd','onResize', 'element'
@@ -57,6 +62,19 @@ const CYCLIC_PROPS = [
 let nocyclic = (options) => {return options.filter(option=>{
   return !CYCLIC_PROPS.includes(option)
 })}
+  
+/**
+ * Generates a basic random ID
+ */
+function generateUid() {
+// always start with a letter -- base 36 makes for a nice shortcut
+  let result = ""
+  var t = (Math.random() * 20).toString(36)
+  for(let i = t.length-1; i > 1; i--){
+    result += t[i]
+  }
+  return result
+}
 
 /**
  * Creates Zdog objects with name, uid and type (see ZDOG_CLASS, an 'enum')
@@ -72,7 +90,7 @@ function make(int){
     return newZdog;
   }
 }
-
+  
 /**
  * Instead of new Zdog.Anchor(options), can call
  * create('anchor') and defer object creation until you receive all options
@@ -86,20 +104,7 @@ function make(int){
 const create = (itemName) => {
   return make(ZDOG_CLASS[itemName])
 }
-
-/**
- * Generates a basic random ID
- */
-function generateUid() {
-  // always start with a letter -- base 36 makes for a nice shortcut
-    let result = ""
-    var t = (Math.random() * 20).toString(36)
-    for(let i = t.length-1; i > 1; i--){
-      result += t[i]
-    }
-    return result
-  }
-
+  
 /**
  * Adds an "name" property to the Zdog item for human covenience (and open up for search/filter options in the future?)
  * @param {*} ZdogItem 
@@ -113,7 +118,7 @@ function assignName(ZdogItem, name){
     value: name
   })
 }
-
+  
 /**
  * Adds a unique identifier "id" immutable property to the Zdog item.
  * @param {*} ZdogItem 
@@ -135,26 +140,26 @@ function assignType(ZdogItem, int){
     value: int
   })
 }
-
+  
 /**
  * Checks if the Zdog item is a certain type of instance ('Shape,' 'Vector,' etc.) Will return true for super classes (like Illustration is an Anchor)
  * @param {*} ZdogItem the Zdog item
- * @param {*} zdogType can be String or Number (e.g. 'anchor' or 0 or '0')
+ * @param {*} type can be String or Number (e.g. 'anchor' or 0 or '0')
  */
-function isClass(ZdogItem, zdogType){
+function isClass(zdog, type){
   //string argument
   let int = 0;
-  if (typeof zdogType == 'string') {
-    zdogType = zdogType.toLowerCase();
-    int = ZDOG_CLASS[zdogType];
-  } else if (Number.isInteger(zdogType)) {
-    int = zdogType
+  if (typeof type == 'string') {
+    type = type.toLowerCase();
+    int = ZDOG_CLASS[type];
+  } else if (Number.isInteger(type)) {
+    int = type
   } else {
     return false
   }
-  return (ZdogItem instanceof ZDOG_CLASS_TYPE[int]);
+  return (zdog instanceof ZDOG_CLASS_TYPE[int]);
 }
-
+  
 /**
  * Add properties to native Zdog objects that don't have ids or type assigned to them yet
  * @param {*} ZdogItem 
@@ -180,7 +185,7 @@ function assignExisting(ZdogItem){
   }
   return ZdogItem
 }
-
+  
 /**
  * Add 'id', 'type' and 'name' properties to an illustration and returns a copy
  * @param {Zdog.Illustration} illustration
@@ -202,19 +207,30 @@ function copy(zdog, deep=false){
   }
   return assignExisting(zdog.copyGraph())
 }
-
-  /**
-   * Zdog properties that are derived, or do esoteric things
-   */
-  const ADVANCED_PROPERTIES  = ['origin','sortValue','pixelRatio',
-  'renderOrigin','renderFront','renderNormal','pathCommands',
-  'canvasHeight','canvasWidth']
-
+  
 /**
- * Zerialises Zdog object and returns JSON string with bare minimum properties
+ * Revives the plain Object or a stringified JSON into a Zdog object
+ * @param {*} plainObject 
+ */
+function reviveZdog(plainObject){
+  if (typeof plainObject === "string"){
+    plainObject = JSON.parse(plainObject);
+  }
+  let {id, name, type, ...options} = plainObject;
+  let ZdogO = new ZDOG_CLASS_TYPE[type](options);
+  
+  assignName(ZdogO, name);
+  assignType(ZdogO, type)
+  ZdogO.id = id;
+  Object.defineProperty(ZdogO, "id", {enumerable:true, configurable: false, writable: false });
+  return ZdogO
+}
+  
+/**
+ * Zerialises Zdog object and returns a JS object with bare minimum properties
  * @param {*} ZdogItem 
  */
-function ZdogFilterProps(ZdogItem){
+function toObject(ZdogItem){
   if(!ZdogItem || (isNaN(ZdogItem.type)) ) return;
   let type = ZdogItem.type;
   if (type == 4) return //we're not serializing dragger type
@@ -248,49 +264,55 @@ function ZdogFilterProps(ZdogItem){
 
   if (type == 8){
       //illustration element prop set to a selector
-     result.element = '.zdog-canvas';
+      result.element = '.zdog-canvas';
   }
-
-  // //Assign anchor props
-  // if (type != 0 && type != 13 && type != 4) {
-  //   recordProps = CREATE_PROPS['anchor']
-  //   recordProps.forEach(prop=>{
-  //     result[prop] = strin(prop);
-  //   })
-
-  //   //Assign Shape props
-  //   if (type != 6 && type != 8 ) {
-  //     recordProps = CREATE_PROPS['shape']
-  //     recordProps.forEach(prop=>{
-  //       result[prop] = strin(prop);
-  //     })
-  //   } else if (type == 8 ) {
-  //     //illustration element prop set to a selector
-  //     result.element = '.zdog-canvas';
-  //   }
-    
-  // }
-
   return result;
 }
 
 /**
- * Revives the plain Object or a stringified JSON into a Zdog object
- * @param {*} plainObject 
+ * Returns an {option:value} object of a Zdog pruned of cyclic values
+ * @param {*} zdog Zdog object
  */
-function reviveZdog(plainObject){
-  if (typeof plainObject === "string"){
-    plainObject = JSON.parse(plainObject);
+// function getProps(node){
+function justProps(zdog){
+  let options;
+  options = zdog.constructor.optionKeys
+  let o = {}
+  for (let p of nocyclic(options)){
+    o[p] = zdog[p]
   }
-  let {id, name, type, ...options} = plainObject;
-  let ZdogO = new ZDOG_CLASS_TYPE[type](options);
-  
-  assignName(ZdogO, name);
-  assignType(ZdogO, type)
-  ZdogO.id = id;
-  Object.defineProperty(ZdogO, "id", {enumerable:true, configurable: false, writable: false });
-  return ZdogO
+  Object.assign(o, {
+    name: zdog.name,
+    type: zdog.type,
+    id: zdog.id
+  })
+  return o;
 }
+  
+/**
+ * Gets the valid instantiation options of the Zdog Class
+ * 
+ * validProps('Anchor') // returns ["rotate", "translate", "scale"]
+ * @param {*} arg can be String or Integer
+ */
+function validProps(arg){
+  let options;
+  try{
+    if (typeof arg == 'number'){
+      options = ZDOG_CLASS_TYPE[arg].optionKeys
+    } else if (typeof arg == 'string'){
+      options = ZDOG_CLASS_TYPE[ZDOG_CLASS[arg.toLowerCase()]].optionKeys
+    } else if (arg.optionKeys){
+      options = arg.optionKeys
+    } else {
+      options = arg.constructor.optionKeys
+    }
+    return nocyclic(options)
+  } catch(e){
+    throw new Error(e)
+  }
+}
+
 
 /**
  * JSON converter for Ztree
@@ -540,46 +562,7 @@ class Ztree{
   trimmedView(){
     return [this.trimNode(this.illustration)]
   }
-  /**
-   * Returns an {option:value} object of a Zdog pruned of cyclic values
-   * @param {*} node Zdog object or Class
-   */
-  static getProps(node){
-    let options;
-      options = node.constructor.optionKeys
-      let o = {}
-      for (let p of nocyclic(options)){
-        o[p] = node[p]
-      }
-      Object.assign(o, {
-        name: node.name,
-        type: node.type,
-        id: node.id
-      })
-      return o;
-  }
 
-  /**
-   * Gets the valid instantiation options of the Zdog Class
-   * @param {*} arg 
-   */
-  static props(arg){
-    let options;
-    try{
-      if (typeof arg == 'number'){
-        options = ZDOG_CLASS_TYPE[arg].optionKeys
-      } else if (typeof arg == 'string'){
-        options = ZDOG_CLASS_TYPE[ZDOG_CLASS[arg]].optionKeys
-      } else if (arg.optionKeys){
-        options = arg.optionKeys
-      } else {
-        options = arg.constructor.optionKeys
-      }
-      return nocyclic(options)
-    } catch(e){
-      throw new Error(e)
-    }
-  }
   /**
    * Find root of composite objects
    * @param {*} node 
@@ -594,13 +577,13 @@ class Ztree{
   /**
    * Returns a plain of the tree object
    */
-  _plain(){
+  plain(){
     let {illustration, nodeMap, relationMap} = this;
 
     let result = {
       illustration: illustration.id,
       nodes: [...nodeMap.values()].map(node=>{
-        return ZdogFilterProps(node)
+        return toObject(node)
       }),
       relations: [...relationMap.entries()].map(entry=>{
         let key = entry[0]
@@ -615,14 +598,17 @@ class Ztree{
  * Returns a clone of the Ztree
  */
   clone(){
-    return new ZtreeReader(this._plain()).Ztree
+    let p = this.plain();
+    let c = new ZtreeReader(p).Ztree;
+    console.log(c)
+    return c
   }
 
   /**
    * Returns a JSON string of the tree
    */
   JSON(){
-    return JSON.stringify(this._plain());
+    return StringUtils.toString(this.plain())
   }
 
   addNode(ZdogItem){
@@ -780,14 +766,6 @@ class Ztree{
   }
 }
 
-/**
- * Converts degrees to radians
- * @param {Number} degrees 
- */
-function toRad(degrees) {
-  return (Math.PI * degrees) / 180;
-}
-
 /** EMBED GENERATORS
  */
 
@@ -820,7 +798,6 @@ function toRad(degrees) {
  */
  function scriptTagGenerate(ztree, selector=".zdog-canvas", mini=false){
    let result = '<script>'
-   let tab = mini?'':'\t';
    let nl = mini?'':'\n'
    let plain = ztree.trimmedView()
    //return an array with [base, children, nestedChilds]
@@ -923,39 +900,50 @@ function capitalize(string){
 
 //** EXPORTS */
 
-
  /**
  * To create a Zdog object with id: Zdogger('anchor')
  * 
- * To create a Ztree: new Zdogger.Tree(illustration)
+ * To create a Ztree: new Z.Tree(illustration)
  * 
- * To create a file reader: new Zdogger.Reader(Ztree)
+ * To create a file reader: new Z.Reader(Ztree)
  * 
- * To create a copy: Zdogger.copy(ZdogItem, deep?)
+ * To create a copy: Z.copy(ZdogItem, deep?)
  * 
- * To convert degrees to radians: Zdogger.toRad(degree)
   * @param {String} type 
   */
-let Zdogger = (type) => {
+ const Z = (type) => {
   if (typeof type == 'string') return create(type);
   if (typeof type == 'number') return make(type);
   if (type.id) return reviveZdog(type)
   return null;
 }
 
-Zdogger.Tree = Ztree
-Zdogger.isClass = isClass
-Zdogger.Reader = ZtreeReader
-Zdogger.toRad = toRad
-Zdogger.copy = copy
+const  ZCLASS = {
+  TYPES: ZDOG_CLASS_TYPE,
+  ENUMS: ZDOG_CLASS,
+  NAMES: ZDOG_CLASS_NAME
+}
 
-export {
-  Zdogger, Ztree, ZtreeReader,
-  isClass, ZdogFilterProps,
-  ZDOG_CLASS_TYPE, ZDOG_CLASS, ZDOG_CLASS_NAME,
-  ADVANCED_PROPERTIES,
-  CYCLIC_PROPS
-  }
+const StringUtils = {
+  capitalize: capitalize,
+  toString: (o) => {return JSON.stringify(o)}
+}
+
+const zCopy = copy;
+
+Z.copy = zCopy
+Z.is = isClass
+Z.import = importExisting
+Z.revive = reviveZdog
+Z.toObject = toObject
+Z.justProps = justProps
+Z.propsFor = validProps
+Z.CLASS = ZCLASS
+Z.Tree = Ztree
+Z.Reader = ZtreeReader
+
+export {Z, Ztree, ZtreeReader,
+  ZCLASS, zCopy, justProps, StringUtils }
 
 
-export default Zdogger;
+export default Z;

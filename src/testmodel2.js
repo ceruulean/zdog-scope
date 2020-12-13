@@ -2144,6 +2144,6 @@ ZdogSpookyHouse.init = function( canvas ) {
 var zdogCanvas = document.querySelector('.zdog-canvas');
 ZdogSpookyHouse.init( zdogCanvas );
 
-let testmodel = tree._JSON();
+let testmodel = tree.JSON();
 
 export default testmodel;

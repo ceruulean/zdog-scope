@@ -1,4 +1,5 @@
 import {Ztree} from '../index'
+import {propsFor} from '../../zdogger'
 
 import {CYCLIC_PROPS} from '../../zdogrigger'
 import ZdogJSONSchema from '../../zdogobjects.json'
@@ -189,7 +190,7 @@ const getters = {
     return NUM_PROPS
   },
   props(){
-    return Ztree.constructor.props;
+    return propsFor;
   }
 }
 // Actions 
