@@ -191,6 +191,10 @@ import properties from './modules/properties'
 import canvas from './modules/canvas'
 import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
 
+let plugins = [undoRedoPlugin]
+
+debug ? plugins.push(createLogger()) : null;
+
 export default createStore({
   modules: {
     treeview,
@@ -203,8 +207,5 @@ export default createStore({
   mutations,
   actions,
   //strict: debug,
-  plugins: [
-    undoRedoPlugin,
-    debug ? createLogger() : null
-  ]
+  plugins: plugins
 })

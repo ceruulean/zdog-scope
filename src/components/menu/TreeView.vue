@@ -22,9 +22,6 @@
       :node="node"
       :depth="0"
     />
-    <button @click="log">
-      Console Log
-    </button>
     <button @click="embedGen">
       Embed Dream
     </button>

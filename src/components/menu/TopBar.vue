@@ -3,7 +3,8 @@
     <button @click="settings">
       Settings
     </button>
-    <button @click="exportTree">
+    <button v-if="hasIllustration"
+      @click="exportTree">
       Export
     </button>
     <button @click="importing">

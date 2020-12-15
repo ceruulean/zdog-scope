@@ -80,7 +80,6 @@ function generateUid() {
   let r  = (Math.floor((Math.random() * 25)) + 10).toString(36)
   let u = xorShift(seed);
   r += (u < 0 ? -u : u).toString(36);
-  console.log(r)
   return r
 }
 
@@ -887,8 +886,7 @@ class Ztree{
      result += declaration
    }
 
-   result += `${nl}function animate() {
-    ${ztree.illustration.id}.updateRenderGraph();${nl}requestAnimationFrame(animate);}${nl}animate();${nl}</script>`
+   result += `${nl}function animate(){${ztree.illustration.id}.updateRenderGraph();${nl}requestAnimationFrame(animate);}${nl}animate();${nl}</script>`
    return result
  }
 

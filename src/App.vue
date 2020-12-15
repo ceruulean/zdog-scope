@@ -12,7 +12,6 @@
           no-select"
       >
         <TreeView/>
-        <button @click="logSelected">Log Selected</button>
       </div>
       <div
         ref="gutter1"
@@ -55,12 +54,6 @@ export default {
   setup(){
     const gutter1 = ref(null);
     const gutter2 = ref(null);
-
-    // const panelDimens = ref({
-    //   treeview:{
-    //     width:0
-    //   }
-    // })
 
     onMounted(()=>{
         window.split = Split({

@@ -15,7 +15,7 @@
     :height="windowHeight"
   />
 
-  <div class="developer">
+  <div class="canvas developer">
     <button style="z-index:200" @click="hideGhost = !hideGhost">Toggle</button>
   </div>
   <div id="zoom-control">
@@ -118,7 +118,7 @@ export default {
   z-index:1;
 }
 
-.developer{
+canvas.developer{
   z-index:3;
   position:absolute;
   bottom:0;

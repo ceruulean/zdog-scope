@@ -33,7 +33,7 @@ in head tag.
 ---
 
 ## Current Todos
-- Delete objects key shortcut
+- Delete objects hotkey
 - Resize canvas with panel/viewport
 
 ## Future Goals
