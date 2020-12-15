@@ -160,9 +160,9 @@ class GhostCanvas{
 
   //id of the node to be adopted
   changeParent(id, newParentId){
-    let childnode = this.nodeMap.get(id)
+    let childnode = this.ghostNodes.get(id)
     childnode.remove();
-    this.nodeMap.get(newParentId).addChild(childnode);
+    this.ghostNodes.get(newParentId).addChild(childnode);
   }
 
 /**
