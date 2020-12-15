@@ -2,6 +2,7 @@
 //const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+  publicPath:"/prototypes/zdogscope",
   configureWebpack:{
     // plugins: [
     //   new HtmlWebpackPlugin({

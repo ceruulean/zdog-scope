@@ -1,4 +1,4 @@
-import {ztree} from '../index'
+//import {ztree} from '../index'
 import {justProps} from '../../zdogger/ztree'
 
 import ZdogJSONSchema from '../../zdogobjects.json'
@@ -139,9 +139,10 @@ let list = {
  * This is not a Vuex getter because the getter seems to cache it? Resulting in inaccurrate display
  * @param {*} rootState 
  */
-function getDisplay(rootState){
-  if (!rootState.selected) return
-  let n = ztree.find(rootState.selected)
+function getDisplay(rootGetters){
+  // if (!rootState.selected) return
+  // let n = ztree.find(rootState.selected)
+  let n = rootGetters.selectedNode
   let arr = n.constructor.optionKeys
   let node = justProps(n)
   let p = ['colors', 'vectors', 'bools', 'nums']
@@ -189,8 +190,8 @@ const getters = {
 // Actions 
 const actions = {
 
-  changeDisplay({commit, rootState}){
-    commit('setDisplayProps', getDisplay(rootState))
+  changeDisplay({commit, rootGetters}){
+    commit('setDisplayProps', getDisplay(rootGetters))
   },
 
   reset({commit}){
@@ -198,9 +199,9 @@ const actions = {
   },
 
 
-  updateProps({dispatch, rootState}, incomingOptions){
+  updateProps({dispatch, rootGetters}, incomingOptions){
     
-    let id = rootState.selected, options = Object.assign({}, incomingOptions)
+    let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
     
     delete options['type']
     delete options['id']
@@ -211,7 +212,7 @@ const actions = {
         options[prop] = Number(options[prop]);
       }
     }
-    dispatch('history/updateProps', {id,options}, {root: true})
+    dispatch('history/updateProps', {node,options}, {root: true})
   },
 
   validateFields({commit}, incomingOptions){

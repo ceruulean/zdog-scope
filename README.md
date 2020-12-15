@@ -11,11 +11,36 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 - Undo/redo
 - Canvas object selection
 
+
+[Check out the demo (last build: Dec 15, 2020)](https://www.the-gale.com/prototypes/zdogscope/)
+
+WARNING: UI is rough.
+
+## Controls
+- Zoom: Mousewheel
+- Panning: Shift + drag or MMB + drag
+- Rotate: Click + drag
+- Undo: Ctrl + Z
+- Redo: Ctrl + Y or Ctrl + Shift + Z
+
+### Generate code embed by clicking on "Embed Dream"
+
+Copy/paste output into an HTML document.
+
+Make sure you have `<script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>`
+in head tag.
+
+---
+
 ## Current Todos
 - Delete objects key shortcut
 - Resize canvas with panel/viewport
 
 ## Future Goals
+
+### System
+
+Rust port of some functions
 
 ### UI
 - Toggle View
@@ -32,26 +57,14 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 - - By groups/anchors
 - - By name/id
 
-### Generate code/embeds
-- Copy/paste HTML into a webpage
-
 ### Animations
 - Keyframe snapshotting and playback
 - Animation Behavior data structure (maybe this can be a separate module for any modeling library)
 - requestAnimFrame optimizations
 
 ### 3D World Rendering
-- Full-fledged camera and coordinate systems (currently 'ZYX' and stuff...)
+- Full-fledged camera and coordinate systems (currently 'ZYX')
 
-
-![Screenshot of the editor with an item selected](https://raw.githubusercontent.com/ceruulean/zdog-scope/master/public/capture.jpg)
-
-## Controls
-- Zoom: Mousewheel
-- Panning: Shift + drag or MMB + drag
-- Rotate: Click + drag
-- Undo: Ctrl + Z
-- Redo: Ctrl + Y or Ctrl + Shift + Z
 
 ## Project setup
 ```
@@ -62,8 +75,6 @@ npm install
 ```
 npm run serve
 ```
-
-Click on 'Demo' button to load an illustration
 
 ### Compiles and minifies for production
 ```

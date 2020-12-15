@@ -62,18 +62,26 @@ const CYCLIC_PROPS = [
 let nocyclic = (options) => {return options.filter(option=>{
   return !CYCLIC_PROPS.includes(option)
 })}
-  
+
 /**
  * Generates a basic random ID
+ * https://stackoverflow.com/questions/3231459/create-unique-id-with-javascript
+ * https://svijaykoushik.github.io/blog/2019/10/04/three-awesome-ways-to-generate-random-number-in-javascript/
  */
+var seed = Date.now();
 function generateUid() {
-// always start with a letter -- base 36 makes for a nice shortcut
-  var t = (Math.random() * 20).toString(36)
-  let result = t[0]
-  for(let i = t.length-1; i > 1; i--){
-    result += t[i]
+  let xorShift = () =>{
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return seed;
   }
-  return result
+// always start with a letter -- base 36 makes for a nice shortcut
+  let r  = (Math.floor((Math.random() * 25)) + 10).toString(36)
+  let u = xorShift(seed);
+  r += (u < 0 ? -u : u).toString(36);
+  console.log(r)
+  return r
 }
 
 /**

@@ -474,12 +474,13 @@ class Scene{
     this.ghostCanvas.removeNode(id)
   }
 
-  updateNode({id, options}){
-    let node = this.ztree.find(id)
+  updateNode({node, options}){
+    //let node = this.ztree.find(id)
+    console.log(node)
     for (let o in options){
       node[o] = options[o]
     }
-    this.ghostCanvas.updateNode(id)
+    this.ghostCanvas.updateNode(node.id)
   }
 
   changeParent(id, newParentId){

@@ -165,8 +165,8 @@ const mutations = {
     CanvasScene.addNode(node)
   },
 
-  setNodeProps(state, {id, options}){
-    CanvasScene.updateNode({id, options})
+  setNodeProps(state, {node, options}){
+    CanvasScene.updateNode({node, options})
   },
 
   removeNode(state, id){

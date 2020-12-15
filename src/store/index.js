@@ -205,6 +205,6 @@ export default createStore({
   //strict: debug,
   plugins: [
     undoRedoPlugin,
-   // debug ? createLogger() : null
+    debug ? createLogger() : null
   ]
 })
