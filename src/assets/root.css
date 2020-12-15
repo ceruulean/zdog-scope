@@ -2,7 +2,7 @@
   --menuTopBarHeight:2rem;
   --canvasHeight:calc(100vh - 2rem);
   --modalBGColor:white;
-  --readableParagraph:76ch;
+  --paragraph:76ch;
 
   --colorDark:#0D1F2D;
   --colorLight:#FAE1DF;

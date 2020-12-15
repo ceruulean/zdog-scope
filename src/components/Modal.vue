@@ -77,7 +77,7 @@ figure{
   position:relative;
   min-height:50vh;
   width:98vw;
-  max-width:var(--readableParagraph);
+  max-width:var(--paragraph);
   padding:1rem;
   background-color:var(--modalBGColor);
   border-radius:3px;

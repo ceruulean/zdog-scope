@@ -9,6 +9,12 @@ input[type="text"], textarea{
   padding: 1px 5px;
 }
 
+textarea{
+  min-width:50%;
+  width:var(--paragraph);
+  max-width:100%;
+}
+
 input[type="number"]{
   border-radius:3px;
   border:1px solid var(--colorMain);

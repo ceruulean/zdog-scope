@@ -14,7 +14,7 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 
 [Check out the demo (last build: Dec 15, 2020)](https://www.the-gale.com/prototypes/zdogscope/)
 
-WARNING: UI is rough.
+Demo model by Zdog creator, Alex Desandro.
 
 ## Controls
 - Zoom: Mousewheel
@@ -35,6 +35,7 @@ in head tag.
 ## Current Todos
 - Delete objects hotkey
 - Resize canvas with panel/viewport
+- Adjust settings (zooming is too fast on Chrome)
 
 ## Future Goals
 
@@ -85,4 +86,3 @@ npm run build
 ```
 npm run lint
 ```
-[Zdog SVG importer](https://github.com/sakamies/zdog-svg-importer)
