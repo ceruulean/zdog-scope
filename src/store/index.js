@@ -1,22 +1,24 @@
+/* eslint-disable no-unused-vars */
 import { createStore, createLogger } from 'vuex'
 import Zdogger from '../zdogger'
 
 const debug = process.env.NODE_ENV !== 'production'
 
-var Ztree = new Zdogger.Tree();
+var ztree = new Zdogger.Tree();
+var Reader = new Zdogger.Reader();
 var GhostCanvas = null
 var CanvasScene = null;
 
 function newZtree(arg){
   if (arg instanceof Zdogger.Tree) {
-    Ztree = arg
+    ztree = arg
   } else if (arg.options) {
-    Ztree = new Zdogger.Tree(arg.options)
+    ztree = new Zdogger.Tree(arg.options)
     if (arg.name) {
-      Ztree.illustration.name = arg.name;
+      ztree.illustration.name = arg.name;
     }
   } else {
-    Ztree = new Zdogger.Tree({});
+    ztree = new Zdogger.Tree({});
   }
 }
 
@@ -26,7 +28,7 @@ function initCanvasScene(state){
     CanvasScene = null
     GhostCanvas = null
   }
-  CanvasScene = new Zdogger.Scene(Ztree, state.canvas.settings.scene);
+  CanvasScene = new Zdogger.Scene(ztree, state.canvas.settings.scene);
   GhostCanvas = CanvasScene.ghostCanvas
 }
 
@@ -73,8 +75,8 @@ const state = getDefaultState()
 // getters
 const getters = {
   selectedNode(state){
-    if (!Ztree) return
-    return Ztree.find(state.selected)
+    if (!ztree) return
+    return ztree.find(state.selected)
   }
 }
 
@@ -87,12 +89,12 @@ const actions = {
     dispatch('canvas/showCanvasAxes')
   },
 
-  rebuildZtree({commit, dispatch}, newTree){
+  rebuildztree({commit, dispatch}, newTree){
     
-    Ztree.illustration.children = newTree.illustration.children
-    Ztree.nodeMap = newTree.nodeMap
-    Ztree.relationMap = newTree.relationMap
-    Ztree.illustration.updateRenderGraph();
+    ztree.illustration.children = newTree.illustration.children
+    ztree.nodeMap = newTree.nodeMap
+    ztree.relationMap = newTree.relationMap
+    ztree.illustration.updateRenderGraph();
 
     GhostCanvas.pruneGhost();
 
@@ -119,24 +121,26 @@ const actions = {
   },
 
   demoJSON({dispatch}, payload){
-    let reader = new Zdogger.Reader(payload);
-    dispatch('newIllustration', reader.Ztree)
+    Reader = new Zdogger.Reader(payload);
+    dispatch('newIllustration', Reader.tree)
   },
 
   changeSelected({commit, dispatch, state}, id){
     if (state.selected == id) return;
     //click handler here?
+    commit('setSelected', id);
     if (!id) {
       dispatch('treeview/clearSelected')
+      dispatch('properties/reset')
+      return;
     }
-    //dispatch('properties/reset')
-    commit('setSelected', id);
+
     dispatch('properties/changeDisplay')
   },
 
   exportTree(){
     //save current ztree TODO
-    Ztree.download();
+    new Zdogger.Reader(ztree).download();
   },
 
   async importTree({dispatch}){
@@ -164,7 +168,7 @@ const mutations = {
 
   setIllustration(state, arg){
     if (!arg) state.illustration = null;
-    state.illustration = Ztree.illustration.id
+    state.illustration = ztree.illustration.id
   },
 
 
@@ -179,8 +183,8 @@ const mutations = {
   }
 }
 
-//Export the Ztree and import in other modules that will need to access its properties
-export{Ztree, CanvasScene}
+//Export the ztree and import in other modules that will need to access its properties
+export{ztree, CanvasScene}
 
 import treeview from './modules/treeview'
 import properties from './modules/properties'
@@ -201,6 +205,6 @@ export default createStore({
   //strict: debug,
   plugins: [
     undoRedoPlugin,
-    debug ? createLogger() : null
+   // debug ? createLogger() : null
   ]
 })

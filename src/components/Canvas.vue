@@ -114,11 +114,14 @@ export default {
 }
 
 #ghost{
-  z-index:var(--zGhost);
+  /* z-index:var(--zGhost); */
+  z-index:1;
 }
 
 .developer{
   z-index:3;
+  position:absolute;
+  bottom:0;
 }
 
 #zoom-control{

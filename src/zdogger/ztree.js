@@ -68,8 +68,8 @@ let nocyclic = (options) => {return options.filter(option=>{
  */
 function generateUid() {
 // always start with a letter -- base 36 makes for a nice shortcut
-  let result = ""
   var t = (Math.random() * 20).toString(36)
+  let result = t[0]
   for(let i = t.length-1; i > 1; i--){
     result += t[i]
   }
@@ -228,9 +228,10 @@ function reviveZdog(plainObject){
   
 /**
  * Zerialises Zdog object and returns a JS object with bare minimum properties
- * @param {*} ZdogItem 
+ * @param {*} ZdogItem Zdog Item
+ * @param {String} canvasQuery A query selector string if the node is an illustration
  */
-function toObject(ZdogItem){
+function toObject(ZdogItem, canvasQuery=".zdog-canvas"){
   if(!ZdogItem || (isNaN(ZdogItem.type)) ) return;
   let type = ZdogItem.type;
   if (type == 4) return //we're not serializing dragger type
@@ -252,7 +253,7 @@ function toObject(ZdogItem){
         return true;
       }
     } else if(prop == 'element') {
-      return '.zdog-canvas'
+      return canvasQuery
     }
     return ZdogItem[prop]
   }
@@ -264,7 +265,7 @@ function toObject(ZdogItem){
 
   if (type == 8){
       //illustration element prop set to a selector
-      result.element = '.zdog-canvas';
+      result.element = canvasQuery;
   }
   return result;
 }
@@ -323,11 +324,11 @@ class ZtreeReader{
    * @param {Ztree} arg 
    */
   constructor(arg){
-    this.Ztree = null
+    this.tree = null
     if (!arg) {
       return
     } else if (arg instanceof Ztree) {
-      this.Ztree = Ztree
+      this.tree = arg
     } else {
       this.reviveTree(arg);
     }
@@ -365,12 +366,12 @@ class ZtreeReader{
     objecT.nodes.forEach(node=>{
       maP.set(node.id, node);
       if(node.id == objecT.illustration){
-        this.Ztree = new Ztree(node);
+        this.tree = new Ztree(node, objecT.canvasQuery);
       }
     })
-    this.Ztree.nodeMap = maP;
+    this.tree.nodeMap = maP;
     //set relations, each relation is {parent:'parentid', children:[array of childids]}
-    this.Ztree.relationMap = new Map();
+    this.tree.relationMap = new Map();
     for(var r of objecT.relations){
       let parent = maP.get(r.parent);
       let set = new Set(r.children.map(id=>{
@@ -378,10 +379,10 @@ class ZtreeReader{
         parent.addChild(child)
         return id;
       }));
-      this.Ztree.relationMap.set(r.parent, set);
+      this.tree.relationMap.set(r.parent, set);
     }
 
-    return this.Ztree;
+    return this.tree;
   }
 
   /**
@@ -400,9 +401,9 @@ class ZtreeReader{
    * Method to download the Ztree as JSON
    */
   download(){
-    if (!this.Ztree) throw new Error('Cannot download if there is no tree')
-    let content = this.Ztree.JSON();
-    ZtreeReader.Download(content, `${this.Ztree.illustration.name}.json`, 'text/json');
+    if (!this.tree) throw new Error('Cannot download if there is no tree')
+    let content = this.tree.toJSON();
+    ZtreeReader.Download(content, `${this.tree.illustration.name}.json`, 'text/json');
   }
 
   /**
@@ -434,7 +435,7 @@ class ZtreeReader{
         var fileReader = new FileReader();
         fileReader.onloadend = (ev) => {
           this.reviveTree(ev.target.result);
-          resolve(this.Ztree);
+          resolve(this.tree);
         }
         for (let f of fileList){
           fileReader.readAsText(f);
@@ -455,37 +456,46 @@ class Ztree{
    * Illustration can be null
    * @param {Zdog.Illustration} illustration 
    */
-  constructor(illustration){
+  constructor(illustration, canvasQuery=".zdog-canvas"){
+    let optionsDefault = {
+      element: canvasQuery,
+      width: window.innerWidth,
+      height: window.innerHeight,
+     // rotate: {x:-.5+Math.PI, z: 0, y:.5+Math.PI}, //default Zdog rotation is weird
+      //dragRotate:true
+      }
+
+    this.canvasQuery = canvasQuery;
     this.nodeMap = new Map();
     this.relationMap = new Map(); //{key: id, value: Set() of child ids}
     if (!illustration){
       this.illustration = null;
       return;
     }else if (!illustration.element || typeof illustration.element == 'string'){
-      let optionsDefault = {
-        element: '.zdog-canvas',
-        width: window.innerWidth,
-        height: window.innerHeight,
-       // rotate: {x:-.5+Math.PI, z: 0, y:.5+Math.PI}, //default Zdog rotation is weird
-        //dragRotate:true
-        }
-
-      let options = Object.assign({}, optionsDefault)
-      Object.assign(options, illustration);
+      // the illustration is just a plain object
+      if (illustration.element){
+        this.canvasQuery = illustration.element;
+      }
+      let options = Object.assign(optionsDefault, illustration)
       this.illustration = create('illustration')(options);
-    } else if (illustration.id) {
-      this.illustration = illustration
-    } else {
-      this.illustration = importExisting(illustration)
-      this.flatten(this.illustration)
+    } else if (Z.is(illustration, 'illustration')) {
+      if (illustration.id){
+        this.illustration = illustration
+      } else {
+        this.illustration = importExisting(illustration)
+        this.flatten(this.illustration)
+        this.illustration.name = 'root'
+      }
     }
     this.addNode(this.illustration);
-    this.illustration.name = 'root'
   }
 
   //flatten existing zdog object into Map and Set to record relations
   flatten(ZdogItem){
     let mainID = Ztree._nodeID(ZdogItem)
+    if (!ZdogItem.id){
+      assignExisting(ZdogItem)
+    }
     this.nodeMap.set(mainID, ZdogItem);
     if (ZdogItem.addTo){
       let pID = ZdogItem.addTo.id;
@@ -515,18 +525,7 @@ class Ztree{
         }
       }
     }
-  }
-
-  static getCommonProps(node){
-    let filtered = Object.keys(node).filter((prop) => {
-      Ztree.COMMON_PROPERTIES.contains(prop)
-    });
-
-    let obj = {}
-    filtered.forEach(prop => {
-      obj[prop] = node[prop];
-    })
-    return obj
+    return ZdogItem.id;
   }
 
   /**
@@ -535,25 +534,20 @@ class Ztree{
    */
   trimNode(node){
     let {id,name,type,visible,children} = node;
+    let o = Object.assign({}, {id,name,type,visible,children})
     if (!id || isNaN(type)) return null;
-    let index = this.indexOf(node);
-    type = ZDOG_CLASS_NAME[type];
+    o.index = this.indexOf(node);
+    o.type = ZDOG_CLASS_NAME[type];
     if (visible === undefined) visible = true
 
     if (children && children.length > 0) {
-      children = children.map(child=>{
+      o.children = children.map(child=>{
         return this.trimNode(child);
       }).filter(x=>x);
     } else {
       children = null
     }
-    return ({id,name,type,index,visible,children})
-  }
-
-  download(){
-    let content = this.JSON();
-    ZtreeReader.Download(content,
-      `${this.illustration.name}.json`, 'text/json');
+    return o
   }
 
   /**
@@ -578,12 +572,12 @@ class Ztree{
    * Returns a plain of the tree object
    */
   plain(){
-    let {illustration, nodeMap, relationMap} = this;
+    let {illustration, canvasQuery, nodeMap, relationMap} = this;
 
     let result = {
       illustration: illustration.id,
       nodes: [...nodeMap.values()].map(node=>{
-        return toObject(node)
+        return toObject(node, canvasQuery)
       }),
       relations: [...relationMap.entries()].map(entry=>{
         let key = entry[0]
@@ -598,16 +592,13 @@ class Ztree{
  * Returns a clone of the Ztree
  */
   clone(){
-    let p = this.plain();
-    let c = new ZtreeReader(p).Ztree;
-    console.log(c)
-    return c
+    return new ZtreeReader(this.plain()).tree;
   }
 
   /**
    * Returns a JSON string of the tree
    */
-  JSON(){
+  toJSON(){
     return StringUtils.toString(this.plain())
   }
 
@@ -821,7 +812,7 @@ class Ztree{
      let id = order[i].id
      let type = properNames[ZDOG_CLASS[order[i].type]]
      let node = ztree.find(id)
-     let options = Ztree.getProps(node)
+     let options = justProps(node)
 
      let declaration = `${nl}var ${id} = new Zdog.${type}(`
      if (type == "Illustration"){
@@ -898,6 +889,14 @@ function capitalize(string){
 }
 
 
+const  ZCLASS = {
+  TYPES: ZDOG_CLASS_TYPE,
+  ENUMS: ZDOG_CLASS,
+  NAMES: ZDOG_CLASS_NAME
+}
+
+const zCopy = copy;
+
 //** EXPORTS */
 
  /**
@@ -911,36 +910,31 @@ function capitalize(string){
  * 
   * @param {String} type 
   */
- const Z = (type) => {
-  if (typeof type == 'string') return create(type);
-  if (typeof type == 'number') return make(type);
-  if (type.id) return reviveZdog(type)
-  return null;
-}
+ const Z = {
+   make:(type) => {
+    if (typeof type == 'string') return create(type);
+    if (typeof type == 'number') return make(type);
+    if (type.id) return reviveZdog(type)
+    return null;
+  },
+  copy: copy,
+  is: isClass,
+  import: importExisting,
+  revive: reviveZdog,
+  toObject: toObject,
+  justProps: justProps,
+  propsFor: validProps,
+  CLASS: ZCLASS,
+  Tree: Ztree,
+  Reader: ZtreeReader,
+ }
 
-const  ZCLASS = {
-  TYPES: ZDOG_CLASS_TYPE,
-  ENUMS: ZDOG_CLASS,
-  NAMES: ZDOG_CLASS_NAME
-}
 
 const StringUtils = {
   capitalize: capitalize,
   toString: (o) => {return JSON.stringify(o)}
 }
 
-const zCopy = copy;
-
-Z.copy = zCopy
-Z.is = isClass
-Z.import = importExisting
-Z.revive = reviveZdog
-Z.toObject = toObject
-Z.justProps = justProps
-Z.propsFor = validProps
-Z.CLASS = ZCLASS
-Z.Tree = Ztree
-Z.Reader = ZtreeReader
 
 export {Z, Ztree, ZtreeReader,
   ZCLASS, zCopy, justProps, StringUtils }

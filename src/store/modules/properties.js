@@ -1,7 +1,6 @@
-import {Ztree} from '../index'
-import {propsFor} from '../../zdogger'
+import {ztree} from '../index'
+import {justProps} from '../../zdogger/ztree'
 
-import {CYCLIC_PROPS} from '../../zdogrigger'
 import ZdogJSONSchema from '../../zdogobjects.json'
 
 
@@ -142,9 +141,9 @@ let list = {
  */
 function getDisplay(rootState){
   if (!rootState.selected) return
-  let n = Ztree.find(rootState.selected)
+  let n = ztree.find(rootState.selected)
   let arr = n.constructor.optionKeys
-  let node = Ztree.constructor.getProps(n)
+  let node = justProps(n)
   let p = ['colors', 'vectors', 'bools', 'nums']
   let props = {};
   p.forEach(type=>{
@@ -177,9 +176,6 @@ const getters = {
   VECTOR_PROPS(){
     return VECTOR_PROPS
   },
-  CYCLIC_PROPS(){
-    return CYCLIC_PROPS
-  },
   COLOR_PROPS(){
     return COLOR_PROPS
   },
@@ -189,16 +185,12 @@ const getters = {
   NUM_PROPS(){
     return NUM_PROPS
   },
-  props(){
-    return propsFor;
-  }
 }
 // Actions 
 const actions = {
 
   changeDisplay({commit, rootState}){
     commit('setDisplayProps', getDisplay(rootState))
-    //commit('setWipOPTIONS', Ztree.constructor.getProps())
   },
 
   reset({commit}){
@@ -206,9 +198,9 @@ const actions = {
   },
 
 
-  updateProps({dispatch, rootGetters}, incomingOptions){
+  updateProps({dispatch, rootState}, incomingOptions){
     
-    let node = rootGetters.selectedNode, options = Object.assign({}, incomingOptions)
+    let id = rootState.selected, options = Object.assign({}, incomingOptions)
     
     delete options['type']
     delete options['id']
@@ -219,7 +211,7 @@ const actions = {
         options[prop] = Number(options[prop]);
       }
     }
-    dispatch('history/updateProps', {node:node,options:options}, {root: true})
+    dispatch('history/updateProps', {id,options}, {root: true})
   },
 
   validateFields({commit}, incomingOptions){

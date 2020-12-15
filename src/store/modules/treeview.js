@@ -1,4 +1,4 @@
-import {Ztree} from '../index'
+import {ztree} from '../index'
 
 /* Module1.store.js */
 // State object
@@ -17,7 +17,7 @@ const getters = {
 const actions = {
 
   changeList({commit}){
-    commit('setList', Ztree.trimmedView())
+    commit('setList', ztree.trimmedView())
   },
 
   sortItem({dispatch}, payload){
@@ -46,8 +46,7 @@ const actions = {
   },
 
   createEmbed({commit}){
-    let e = Ztree.generateEmbed({selector:'.zdog-canvas', mini:true});
-    console.log(e)
+    let e = ztree.generateEmbed({selector:'.zdog-canvas', mini:true});
     commit('setEmbed', e)
   },
 

@@ -6,12 +6,17 @@ import {Z, StringUtils} from './ztree'
 
 const ZCLASS = Z.CLASS
 
-const Zdogger = {
+let Zdogger = (type) =>{
+  return Z.make(type)
+} 
+
+Object.assign(Zdogger, {
   Tree: Z.Tree,
   Reader: Z.Reader,
   Scene: Scene,
-  CLASS: ZCLASS
-}
+  CLASS: ZCLASS,
+  is: Z.is,
+})
 
 const StringMixin = {
   methods: StringUtils

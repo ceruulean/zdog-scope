@@ -105,11 +105,11 @@ export default {
 
 <style>
 
-div.picker-wrapper{
+.picker-wrapper{
   position:relative;
 }
 
-div.picker{
+.picker{
   position:absolute;
   margin:0;
   top:2rem;
@@ -129,11 +129,11 @@ a.picker-button{
   align-items:center;
 }
 
-div.picker-wrapper input{
+.picker-wrapper input{
   height:1.3rem;
 }
 
-div.patch{
+.patch{
   border-radius:50% 50%;
   width:1.5rem;
   height:1.5rem;

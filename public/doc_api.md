@@ -5,45 +5,46 @@ Short for "Zdog Rigger."
 ## Usage:
 
 ```
-import Zdogger from './zdogrigger.js'
+import Zdogger from './zdogrigger'
 
-const makeAnchor =  Zdogger('anchor'); // returns a maker function
-var myAnchor = makeAnchor(options); // returns new Zdog.Anchor()
-myAnchor.type // returns 0
+let illo = new Zdog.Illustration({...});
+let ztree = new Zdogger.Tree(illo);
 ```
 
-`Zdogger(itemName: String)(options: Object)`
-
-Creates a Zdog Item with custom properties for identification.
+All Zdog Items added to the Ztree gains custom properties for identification.
 
 | Property       | Type                                          |
 |----------------|------------------------------------------------|
 |`type`| Integer |
-| `id`| String (10-chars of base36) |
+| `id`| String (11-chars of base36) |
 |`name`|String|
 
-### Methods
----
+## Zdogger.CLASS
 
-`Zdogger.copy(zdog: Zdog.Item, deep: Boolean)`
+Static constant enums for type checking.
 
-Returns a copy of the Zdog item with unique id. Defaults to shallow copy, but can specify `deep` as true.
+| Property  | Type                                          |
+|----------------|------------------------------------------------|
+|`TYPES`| Array of Zdog Item constructors |
+|`ENUMS`| Object with key value pairs stored as {typeName: enum} |
+|`NAMES`| Array of String|
 
----
-`Zdogger.isClass(zdog: Zdog.Item, type: any)`
+### Method
 
-Returns a boolean whether the Zdog is a certain type.
-
-```
-Zdogger.isClass(new Zdog.Box(), 'Box'); //returns true
-Zdogger.isClass(new Zdog.Box(), 'box'); //returns true
-Zdogger.isClass(new Zdog.Box(), 12); //returns true
-Zdogger.isClass(new Zdog.Box(), '12'); //returns false
-```
-The integers are mapped to names like so:
+`Zdogger.is(zdog: Zdog.Item, arg: any)` checks for type. Returns `true` if it matches super classes, like Anchor is the parent of most Zdog Items.
 
 ```
-const ZDOG_CLASS = {
+Zdogger.is(new Zdog.Box(), 'Box'); //returns true
+Zdogger.is(new Zdog.Box(), 'box'); //returns true
+Zdogger.is(new Zdog.Box(), 'anchor'); //returns true
+Zdogger.is(new Zdog.Box(), 12); //returns true
+
+Zdogger.is(new Zdog.Box(), '12'); //returns false
+```
+The enums are mapped to names like so:
+
+```
+Zdogger.CLASS.ENUMS = {
   'anchor':0,
   'shape':1,
   'cone':2,
@@ -60,26 +61,29 @@ const ZDOG_CLASS = {
   'vector':13
 }
 ```
----
+
 ## Zdogger.Tree
 
-`Zdogger.Tree(illo: Zdog.Illustration)`
+`Zdogger.Tree(illo: Zdog.Illustration [, canvasQuery: String])`
 
-For keeping track of Zdog objects (referred to as nodes) in a tree structure (referred to as Ztree)
+For keeping track of Zdog objects (referred to as nodes) in a tree structure (referred to as Ztree).
+
+If no `canvasQuery` is supplied, it defaults to `.zdog-canvas`.
 
 ```
-let illo =
-  new Zdog.Illustration({...}) || Zdogger('illustration')({...})
+let illoOptions = {
+  element: 'my-custom-class',
+  zoom:5,
+}
 
-let ztree =  new Zdogger.Tree(illo);
+let ztree =  new Zdogger.Tree(illoOptions);
 ```
 
-| Property       | Notes                                          |
+| Properties       | Notes                                          |
 |----------------|------------------------------------------------|
 | `nodeMap`     | Returns all nodes in the tree as [Map][999]`<id:string, node:Zdog.Item>`|
-| `relationMap` | Returns the node relations as [Map][999]`<parentId: string, Set:<childId: string>>` . Calling `.relationMap.get(id)` will return a [Set][998] of all children ids. |
+| `relationMap` | Returns the node relations as [Map][999]`<parentId: string, Set:<childId: string>>` . Getting `relationMap.get(id)` will return a [Set][998] of all children ids. |
 | `nodes`       | Returns an array of the nodes in insertion order.|
-
 
 
 ### Methods
@@ -87,7 +91,9 @@ let ztree =  new Zdogger.Tree(illo);
 
 `.generateEmbed(options)`
 
-Returns a string that is HTML-ready (with the Zdog distributable `<script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>`)
+Returns a string that is HTML-ready (with the Zdog distributable
+
+`<script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>`
 
 Selector parsing is naive. Recommend to stick with id and class selectors such as `'#myId'` or `'.myClass'`. Basic implementation for `'[attr="myVal"]'`, but it will strip any `^*$` characters.
 
@@ -117,7 +123,7 @@ var nj4adf = new Zdog.Illustration ...
 
 Returns a stringified JSON of the tree.
 
-`._plain()` 
+`.plain()`
 
 Returns a JavaScript object of the tree.
 
@@ -151,11 +157,6 @@ Returns a JavaScript object of the tree.
 }
 ```
 ---
-`.download()`
-
-Requests download prompt of the tree as a .JSON file. It uses the illustration's name as the file name.
-
----
 
 `.find(id: String)`
 
@@ -168,7 +169,7 @@ ztree.find('d320valrw') // returns Zdog object
 
 `.clone()`
 
-Returns a new copy of the Ztree.
+Returns a clone of the Ztree that keeps the same ids.
 
 ---
 
@@ -209,7 +210,7 @@ reader.Ztree // essentailly a clone of the Ztree, keeping the ids
 
 | Property       | Notes                                          |
 |----------------|------------------------------------------------|
-| `Ztree`     | The currently loaded and parsed Ztree |
+| `tree`     | The currently loaded and parsed Ztree |
 
 ### Methods
 
@@ -219,24 +220,51 @@ reader.Ztree // essentailly a clone of the Ztree, keeping the ids
 
 Opens the client's File Explorer and only accepts .json. Returns a Promise that resolves to a FileList.
 
+```
+let FileList = await reader.import() // wait for client to select a file
+```
+
 `.load()`
 
-A wrapper that calls .import(), and returns a Promise that resolves to the newly parsed Ztree.
+A wrapper that calls .import(), and returns a Promise that resolves to the imported Ztree.
+
+```
+let importedTree = await reader.load() // wait for client to select and upload .json
+```
 
 ---
 
-# CanvasHelpers API (name change eventually)
+`.download()`
 
-## Scene
-Wrapper used for the modeling UI. Binds events and handles click/hit detection of shapes 
+Requests download prompt of the tree as a .JSON file. It uses the illustration's name as the file name.
 
-`Scene(ztree: ZTree, options: {})`
+---
+
+`.reviveTree(JSONstring)`
+
+If the constructor was called with an empty argument, you can you this to revive JSON into a Ztree.
 
 ```
-import Scene from './canvasHelpers.js'
+let reader = new Zdogger.Reader()
+
+let myJSON = {....} // let's say an async operation fetches this 
+
+reader.reviveTree(myJSON);
+let myZtree = reader.Ztree // property points to Ztree object
+```
+
+---
+
+## Zdogger.Scene
+Wrapper used for the modeling UI. Binds events and handles click/hit detection of shapes 
+
+`Zdogger.Scene(ztree: ZTree, options: {})`
+
+```
+import Zdogger from './zdogger/index.js'
 
 let ztree = new Zdogger.Tree({});
-let scene = new Scene(ztree);
+let scene = new Zdogger.Scene(ztree);
 ```
 Attaches render events to the canvas. Requires a Zdogger tree to be instantiated.
 
@@ -252,19 +280,16 @@ let scene = new Scene(ztree, defaults);
 ```
 `ghostQuery` is the query selector for the ghost \<canvas\>. You will have to style the canvas yourself. It can be completely hidden with css like `display:none` and `z-index:-1`. However, if it does not have the same position & size as the live canvas, hit-detection will not work.
 
-(Under Construction)
+### List of Scene Properties
 
 | Property       | Type                                          |
 |----------------|------------------------------------------------|
 |`canPan`| Boolean: whether the Scene is panning. See `.keydown()` and `.keyup()`. |
 | `isMouseDown`| Integer: the sum of mouse buttons pressed ([MouseEvent.buttons][997]) |
 |`zoom`|Number: the current zoom multiplier of the Zdog Illustration.|
-|`x`|(NOT FULLY IMPLEMENTED) Camera world coordinate.|
-|`y`|(NOT FULLY IMPLEMENTED) Camera world coordinate.|
-|`z`|(NOT FULLY IMPLEMENTED) Camera world coordinate.|
-|`rho`|(NOT FULLY IMPLEMENTED) Eye polar coordinate.|
-|`theta`|(NOT FULLY IMPLEMENTED) Eye polar coordinate.|
-|`phi`|(NOT FULLY IMPLEMENTED) Eye polar coordinate.|
+|`zoomSpeed`|Number: how fast to zoom. Default: 3|
+|`panSpeed`|Number: how fast to pan. Default: 30|
+|`panInverse`|Boolean: inverts panning direction. Default: false|
 
 ### Methods
 ---
@@ -287,24 +312,24 @@ scene.on('selectshape', (event)=>{
 ---
 `.keydown(event)` and `.keyup(event)`
 
-Handlers to set `canPan` and `isMouseDown` properties while pressing Shift or holding MMB. They are not called by default, so they can be registered in the global scope if needed.
+Handlers to set `canPan` and `isMouseDown` properties while pressing Shift or holding MMB. They are not bound by default, so they can be registered in the global scope if needed.
 ```
 window.addEventListener('keydown', (e)=>{
-  //do stuff
-  scene.keydown(e)
+    //do stuff
+    scene.keydown(e)
 })
 ```
 
 ---
 `.addNode(node: Zdog.Item)`
 
-Adds the Zdog item to the tree and the GhostCanvas.
+Adds the Zdog to the tree.
 
 ---
 
 `.updateNode({id: String, options: Object})`
 
-Updates the Zdog item along with the GhostCanvas.
+Updates the Zdog properties.
 
 ```
 let updates = {
@@ -314,10 +339,15 @@ let updates = {
   }
 
 scene.updateNode({
-  id: '4m1lzk2o1q',
-  options: updates
+    id: '4m1lzk2o1q',
+    options: updates
 })
 ```
+---
+
+`.changeParent(id: String, newParentId: String)`
+
+Updates the relation between the Zdog nodes.
 
 ---
 
@@ -341,6 +371,36 @@ This class is meant to be handled by Scene. Feel free to read the comments in th
 
 ---
 
+## Zdog.Axis
+
+A new Zdog Item added to render straight lines that won't scale with the zoom (unless wanted!)
+
+`new Zdog.Axis({options})`
+
+|option|value|
+|--|--|
+|`stroke`|Thickness of the axis.|
+|`color`|Color of the axis. Takes any color string that browsers can render (rgba, hsla, hex, etc.) If you input a string of 'x', 'y', or 'z', it will set to red, green or blue respectively|
+|`visible`|Boolean|
+|`t`|Parametrization constant. Effectively serves as the magnitude for unit vectors.|
+|`front`|Direction of the axis. Default: {x:1} // implies y:0 and z:0|
+|`scaleZoom`|Whether the axis should scale thickness on zoom.|
+
+```
+let defaults = {
+  stroke: 1,
+  color: 'hsl(0, 100%, 50%)',
+  visible: true,
+  t:1,
+  front:{x:1},
+  scaleZoom:false
+}
+
+let axis = new Zdog.Axis(defaults)
+```
+
+---
+
 ## AxesHelper
 
 Creates unit coordinate axes for the illustration.
@@ -349,10 +409,15 @@ Creates unit coordinate axes for the illustration.
 
 | Property       | Type                                          |
 |----------------|------------------------------------------------|
-|`pos`| Array of Zdog.Axis in the positive X,Y,Z direction |
-| `neg`| Array of Zdog.Axis in the negative X,Y,Z direction |
+|`axes`| Array of Zdog.Axis in the positive X,Y,Z and negative X,Y,Z in that order |
 
 ### No Methods Currently
+
+PROPOSED:
+
+`.toggle(index: Integer)`
+
+`comparator` should be -1, 0, 1 or 2. Passing `-1` enables visibility of the negative axes, `1` for the positive axes, `0` to turn off all, and `2` to turn on both.
 
 ---
 ---

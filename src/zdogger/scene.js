@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 //import Zdog from 'zdog' // ../../zdog
 import Zdog from '../../../zdog'
-import { Ztree, zCopy, justProps } from './ztree';
+import {Z} from './ztree';
 
 //import versor from 'versor'
 
@@ -32,14 +32,14 @@ function rgbString(data){
 }
 
 class GhostCanvas{
-  constructor(Ztree, ghostIllo){
-    this.Ztree = Ztree;
+  constructor(ztree, ghostIllo){
+    this.ztree = ztree;
     this.ghost = ghostIllo
     this.init()
     let ghostPrerender = (ctx) => {
       ctx.setTransform(...this.transformMatrix)
-      this.ghost.rotate = this.Ztree.illustration.rotate;
-      this.ghost.translate = this.Ztree.illustration.translate;
+      this.ghost.rotate = this.ztree.illustration.rotate;
+      this.ghost.translate = this.ztree.illustration.translate;
       this.ghost.updateGraph();
     }
     this.ghost.onPrerender = ghostPrerender
@@ -47,7 +47,7 @@ class GhostCanvas{
 
 
   init(){
-    let clone = this.Ztree.clone()
+    let clone = this.ztree.clone()
     this.ghostNodes = clone.nodeMap;
     this.ghost.children = clone.illustration.children
 
@@ -65,10 +65,10 @@ class GhostCanvas{
   }
 
   get nodeMap(){
-    return this.Ztree.nodeMap;
+    return this.ztree.nodeMap;
   }
   get transformMatrix(){
-    return this.Ztree.illustration.transformMatrix
+    return this.ztree.illustration.transformMatrix
   }
   /**
    * Updates nodes and deletes those that are not present in the live canvas.
@@ -103,7 +103,8 @@ class GhostCanvas{
   addNode(zdog){
     if (!zdog.id) throw new Error('Invalid zdog object (must have "id" property ')
     let color = getRandomRgb()
-    let clone = zCopy(zdog)
+    let clone = zdog.copy();
+    Object.assign(clone, Z.justProps(zdog))
     //
     let parentid = zdog.addTo.id
     if (this.ghostNodes.has(parentid)){
@@ -147,7 +148,7 @@ class GhostCanvas{
     //   return
     // }
     let o = {}
-    let nodeProps = this.Ztree.constructor.props(original).filter(prop=>{
+    let nodeProps = Z.propsFor(original).filter(prop=>{
       return !COLOR_PROPS.includes(prop)
     })
     nodeProps.forEach(prop=>{
@@ -184,7 +185,7 @@ class GhostCanvas{
   static setUniformColor(zdog, colorData){
     //Set all color props to same
     let string = rgbString(colorData);
-    let previous = justProps(zdog)
+    let previous = Z.justProps(zdog)
 
     let f = (zdog) => {
       COLOR_PROPS.forEach(prop=>
@@ -222,10 +223,10 @@ class Scene{
   totaldelta = 0;
 /**
  * Creates a Scene object that allows panning/zooming.
- * @param {Ztree} Ztree
+ * @param {Ztree} ztree
  * @param {*} options 
  */
-  constructor(Ztree, options={ghostQuery:'.zdog-ghost', zoomSpeed:3, panInverse:false, panSpeed:30}){
+  constructor(ztree, options={ghostQuery:'.zdog-ghost', zoomSpeed:3, panInverse:false, panSpeed:30}){
     for(let o in options){
       this[o] = options[o]
     }
@@ -241,18 +242,18 @@ class Scene{
         /
      */
 
-    this.Ztree = Ztree
-    this.illustration = Ztree.illustration;
+    this.ztree = ztree
+    this.illustration = ztree.illustration;
 
     this.ghostIllo = new Zdog.Illustration({
       element: this.ghostQuery,
       dragRotate:false
     })
 
-    this.ghostCanvas = new GhostCanvas(Ztree, this.ghostIllo)
-    //this.canvasAxes = new AxesHelper(newTree.illustration)
+    this.ghostCanvas = new GhostCanvas(ztree, this.ghostIllo)
+    this.unitAxes = new UnitAxes({addTo:ztree.illustration})
 
-    this.illustration.addChild(makeAxis({t:800}))
+    //this.illustration.addChild(makeAxis({t:800}))
 
     this.eye = {}
     this.worldPosition = new Zdog.Vector();
@@ -395,14 +396,14 @@ class Scene{
 
   selection(event){
     let id = this.ghostCanvas.getShape(event.offsetX, event.offsetY)
-    if (id){
+    if (id && id != this.selectActive){
       const selectShape = new CustomEvent('selectshape',{
         detail:
         {id: id}
       });
       this.illustration.element.dispatchEvent(selectShape)
-      this.selectActive = true;
-    } else if (this.selectActive) {
+      this.selectActive = id;
+    } else if (this.selectActive && !id) {
       this.illustration.element.dispatchEvent(eventDeselect)
       this.selectActive = false;
     }
@@ -460,22 +461,21 @@ class Scene{
 
   animate = () => {
     this.illustration.updateRenderGraph()
-   // this.canvasAxes.render()
     this.animReq = requestAnimationFrame(this.animate)
   }
 
   addNode(node){
-    this.Ztree.addNode(node)
+    this.ztree.addNode(node)
     this.ghostCanvas.addNode(node)
   }
 
   removeNode(id){
-    this.Ztree.removeNode(id)
+    this.ztree.removeNode(id)
     this.ghostCanvas.removeNode(id)
   }
 
   updateNode({id, options}){
-    let node = this.Ztree.find(id)
+    let node = this.ztree.find(id)
     for (let o in options){
       node[o] = options[o]
     }
@@ -483,7 +483,7 @@ class Scene{
   }
 
   changeParent(id, newParentId){
-    this.Ztree.changeParent(id, newParentId)
+    this.ztree.changeParent(id, newParentId)
     this.ghostCanvas.changeParent(id, newParentId)
   }
 
@@ -531,50 +531,101 @@ function drawAxis(illo, ZdogAxis){
     ctx.stroke()
   })
 }
-
-class AxesHelper{
-  pos = []
-  neg = []
-  constructor(illo){
-    this.illustration = illo
-
-    let t = window.innerWidth;
+/**
+ * A class to generate the 6 coordinate axes (XYZ and -XYZ)
+ */
+class UnitAxes{
+  flag = 0b111111;
+  axes = [];
+  constructor(options={addTo:null,scaleZoom:false}){
+    this.root = new Zdog.Anchor();
+    let opts = options;
+    if (!options) {
+      opts = {addTo:null,scaleZoom:false}
+    }
+    opts.t = opts.t || window.innerWidth || 100
 
     let form = (front, color) => {
-      return makeAxis({
+      let o = {
         front:front,
         color:color,
-        t:t, visible:false
-      })
+        visible:true,
+      }
+      Object.assign(o, opts)
+      let a = makeAxis(o);
+      this.root.addChild(a)
+      return a
     }
-    this.pos.push(form({x:1}, 'x'))
-    this.pos.push(form({y:1}, 'y'))
-    this.pos.push(form({z:1}, 'z'))
 
     let opacity = 0.6
-    this.neg.push(form({x:-1}, `hsla(0,100%,30%,${opacity})`))
-    this.neg.push(form({y:-1}, `hsla(120,100%,30%,${opacity})`))
-    this.neg.push(form({z:-1}, `hsla(240,100%,30%,${opacity})`))
+    this.axes = [
+      form({x:1}, 'x'),
+      form({y:1}, 'y'),
+      form({z:1}, 'z'),
+      form({x:-1}, `hsla(0,100%,30%,${opacity})`),
+      form({y:-1}, `hsla(120,100%,30%,${opacity})`),
+      form({z:-1}, `hsla(240,100%,30%,${opacity})`)
+    ]
 
-    this.pos.forEach(a=>{
-      illo.addChild(a)
-    })
-    this.neg.forEach(a=>{
-      illo.addChild(a)
-    })
+    if (options.addTo){
+      this.addTo(options.addTo)
+    }
   }
 
-  render(){
-    let illo = this.illustration;
-    this.pos.forEach(a=>{
-      drawAxis(illo, a)
-    })
-    this.neg.forEach(a=>{
-      drawAxis(illo, a)
-    })
+  addTo(zdog){
+    zdog.addChild(this.root)
   }
+
+  remove(){
+    this.root.remove();
+  }
+
+  update(){
+    for (let i = 0; i < this.axes.length; i++) {
+      this.axes[i].visible = ((this.flag & (1 << i)) > 0)
+    }
+    this.root.updateGraph();
+  }
+
+  hideAll(){
+    this.flag = 0;
+    this.update();
+  }
+
+  showAll(){
+    this.flag = 63;
+    this.update();
+  }
+
+  //sets visible flag for the positive axes, pass true to show and false to hide
+  showPos(bool){
+    if (bool){
+      this.flag = (this.flag | 7)
+    } else {
+      this.flag = (this.flag & (7 << 3))
+    }
+    this.update();
+  }
+
+  //same for negative axes
+  showNeg(bool){
+    if (bool){
+      this.flag = (this.flag | (7<<3))
+    } else {
+      this.flag = (this.flag & 7)
+    }
+    this.update();
+   }
 }
 
+//Checks if a bit is set at the position
+function getBit(num, p){
+  return ((num & (1 << p)) > 0)
+}
+// Toggle bit at position and return new number
+function toggleBit(num, p){
+  return (num ^ (1<<p))
+}
 
 /** ZDOG HELPERS SAUCE by Mootari:
  * https://observablehq.com/@mootari/zdog-helpers
@@ -930,8 +981,8 @@ const Color = {
 
 export {
   Scene,
+  UnitAxes,
   makeAxis,
-  axesHelper,
   Color,
 };
 

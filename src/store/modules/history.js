@@ -1,6 +1,6 @@
 
 import Zdogger from '../../zdogger'
-import {Ztree, CanvasScene} from '../index'
+import {ztree, CanvasScene} from '../index'
 
 //All history actions and mutations go here
 //https://stackoverflow.com/questions/42878329/going-back-to-states-like-undo-redo-on-vue-js-vuex/44865208#44865208
@@ -10,6 +10,30 @@ var undoRedoHistory
 
 function deepCopy(obj){
   return JSON.parse(JSON.stringify(obj));
+}
+
+//https://stackoverflow.com/questions/14962018/detecting-and-fixing-circular-references-in-javascript
+function isCyclic(obj) {
+  var seenObjects = [];
+
+  function detect (obj) {
+    if (obj && typeof obj === 'object') {
+      if (seenObjects.indexOf(obj) !== -1) {
+        return true;
+      }
+      seenObjects.push(obj);
+      for (var key in obj) {
+        /* eslint-disable no-prototype-builtins */
+        if (obj.hasOwnProperty(key) && detect(obj[key])) { 
+          console.log(obj, 'cycle at ' + key);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  return detect(obj);
 }
 
 class UndoRedo {
@@ -23,12 +47,18 @@ class UndoRedo {
   }
 
   addState(mstate) {
-    let tree = Ztree.JSON();
+    let tree = ztree.toJSON();
     let latestIndex = this.history.length - 1;
     for (let i = this.currentIndex; i < latestIndex; i++) {
       this.history.pop();
     }
-    this.history.push([deepCopy(mstate), tree]);
+    try{
+      this.history.push(tree);
+    } catch (e) {
+      console.log(e)
+      console.log(isCyclic(tree))
+    }
+
     // if (this.limit > 0 && this.history.length >= this.limit){
     //   this.history.shift();
     // }
@@ -49,9 +79,9 @@ class UndoRedo {
   }
 
   rebuild(){
-    let [state, tree] = this.history[this.currentIndex]
+    let tree = this.history[this.currentIndex]
    // this.store.replaceState(state);
-    this.store.dispatch('rebuildZtree', new Zdogger.Reader(tree).Ztree)
+    this.store.dispatch('rebuildZtree', new Zdogger.Reader(tree).tree)
   }
 
   reset(){
@@ -85,9 +115,9 @@ const actions = {
 
   newZdog({commit, dispatch}, {type, options, name}){
     if(options.addTo){
-      options.addTo = Ztree.find(options.addTo);
+      options.addTo = ztree.find(options.addTo);
     } else {
-      options.addTo = Ztree.illustration
+      options.addTo = ztree.illustration
     }
     let newO = Zdogger(type)(options);
     if (name) {newO.name = name}
@@ -124,14 +154,14 @@ const actions = {
 
 function render(node){
   node.updateGraph();
-  Ztree.illustration.renderGraph(node)
+  ztree.illustration.renderGraph(node)
 }
 
 // Mutations  
 const mutations = {
 
   addNode(state, node){
-    if (!Ztree) throw new Error('Cannot add node to nonexistent tree');
+    if (!ztree) throw new Error('Cannot add node to nonexistent tree');
     CanvasScene.addNode(node)
   },
 

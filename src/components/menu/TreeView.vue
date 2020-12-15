@@ -28,21 +28,34 @@
     <button @click="embedGen">
       Embed Dream
     </button>
-    <textarea v-if="embed" :value="embed"></textarea>
     <br>
   </ul>
+<teleport to="body">
+  <Modal
+    v-if="bEmbed"
+    @close="bEmbed = false"
+  >
+    <textarea ref="embedText"
+      :value="embed"/>
+    <button @click="embedCopy">
+      Copy
+    </button>
+  </Modal>
+</teleport>
 </template>
 
 <script>
 import { mapState} from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
+import Modal from '../Modal'
 
 
 export default {
   name: 'TreeView',
   components:{
     TreeItem,
+    Modal
     },
 
   data(){
@@ -51,6 +64,7 @@ export default {
       rerender:false,
       draggingObject:null,
       dragId:null,
+      bEmbed:false,
     }
   },
   computed:{
@@ -76,7 +90,14 @@ export default {
       console.log(this.treeView)
     },
     embedGen(){
+      this.bEmbed = true;
       this.$store.dispatch('treeview/createEmbed')
+    },
+    embedCopy(){
+      let r = this.$refs.embedText
+      r.select();
+      r.setSelectionRange(0, 99999);
+      document.execCommand("copy");
     }
   },
 }

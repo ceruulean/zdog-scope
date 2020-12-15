@@ -199,7 +199,7 @@ import ColorPicker from './menu/controls/ColorPicker'
 import Backface from './menu/controls/Backface'
 import InputLabel from './menu/controls/InputLabel'
 
-import StringMixin from '../zdogger'
+import {StringMixin, propsFor} from '../zdogger'
 
 export default {
   name: 'Creation',
@@ -296,7 +296,6 @@ export default {
     ...mapGetters('properties',[
         'BOOL_PROPS',
         'VECTOR_PROPS',
-        'CYCLIC_PROPS',
         'COLOR_PROPS',
         'NUM_PROPS',
         'CREATE_PROPS',
@@ -306,7 +305,7 @@ export default {
       return this.CREATE_PROPS[this.itemtype];
     },
     miscProps(){
-      return this.ALL_PROPS.filter(prop=>{
+      return propsFor(this.itemtype).filter(prop=>{
         return !this.mainProps.includes(prop)
       })
     },
@@ -322,9 +321,6 @@ export default {
           this.validationReset();
         }
       }
-    },
-    ALL_PROPS(){
-      return this.$store.getters['properties/props'](this.itemtype)
     },
     isThreeD(){
       return this.itemtype == 'cylinder' || this.itemtype == 'hemisphere'

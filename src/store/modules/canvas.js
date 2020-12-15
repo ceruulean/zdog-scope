@@ -1,12 +1,9 @@
 /* eslint-disable no-unused-vars */
-import {Ztree} from '../index'
+import {ztree} from '../index'
+import {UnitAxes} from '../../zdogger/scene'
 
-
-import {
-  axesHelper,
-} from '../../canvasHelpers'
-
-var selectedAxes, canvasAxes
+var selectedAxes = new UnitAxes({t:100,scaleZoom:true}), canvasAxes
+selectedAxes.showNeg(false)
 
 const getDefaultState = () => ({
   settings:{
@@ -34,40 +31,35 @@ const actions = {
 
   async showCanvasAxes({dispatch, state}){
     await dispatch('clearCanvasAxes')
-    let illo = Ztree.illustration;
-    let size = illo.canvasHeight / 2;
+    let illo = ztree.illustration;
+   // let size = illo.canvasHeight / 2;
    // canvasAxes = axesHelper({addTo: illo, size:size, stroke:1, head:10})
     illo.updateRenderGraph()
   },
 
   showSelectedAxes({rootState, rootGetters}){
-    if (selectedAxes) {
-      selectedAxes.remove();
-    }
-
     let n = rootGetters.selectedNode;
-    if (rootState.selected.id == rootState.illustration) return;
+    if (rootState.selected == rootState.illustration) return;
 
-    let si
-    if (n.stroke){
-      si = (n.stroke && n.stroke > 5)? n.stroke * 2 : 10; // minimum size length 10
-    } else {
-      si = 10
-    }
-    let he = (si < 11)? 2 : si / 10; // minimum head 2
-    let a = axesHelper({
-      size: si,
-      head: he
+    let si = [n.stroke, n.length, n.depth, n.width, n.height, n.radius, n.diameter].filter(e=>e)
+    let size = Math.max(...si)
+    let sfactor = n.scale.x * n.scale.y * n.scale.z;
+    size = (size * sfactor) * + 3;
+    
+
+    // let he = (si < 11)? 2 : si / 10; // minimum head 2
+    // let a = axesHelper({
+    //   size: si,
+    //   head: he
+    // })
+    selectedAxes.axes.forEach(a=>{
+      a.t = size;
     })
-    n.addChild(a)
-    selectedAxes = a
+    selectedAxes.addTo(n);
   },
 
   clearSelectedAxes(){
-    if (selectedAxes) {
-      selectedAxes.remove();
-    }
-    selectedAxes = null;
+    selectedAxes.remove();
   },
 
   clearCanvasAxes(){
