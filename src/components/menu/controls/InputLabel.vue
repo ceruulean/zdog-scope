@@ -10,11 +10,11 @@
         autocomplete="off"
         autocorrect="off"
       />
-      <div v-if="$attrs.type == 'number'"
+      <!-- <div v-if="$attrs.type == 'number'"
         class="numberarrows no-select">
         <div class="incr">+</div>
         <div class="decr">-</div>
-      </div>
+      </div> -->
     </label>
 </template>
 
@@ -63,7 +63,7 @@ export default {
 
 <style>
 
-.input input[type=number]::-webkit-inner-spin-button,
+/* .input input[type=number]::-webkit-inner-spin-button,
 .input input[type=number]::-webkit-outer-spin-button
 {
   -webkit-appearance: none;
@@ -73,7 +73,7 @@ export default {
 .input input[type=number]
 {
   -moz-appearance: textfield;
-}
+} */
 
 .input .numberarrows{
   position:absolute;

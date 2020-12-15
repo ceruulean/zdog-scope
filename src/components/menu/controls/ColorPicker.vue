@@ -42,7 +42,6 @@ export default {
       if (this.isActive) return;
       this.isActive = true;
       this.$nextTick(()=>{
-        console.log(this.color)
         this.wipColor = this.color;
         this.mountPicker();
       })

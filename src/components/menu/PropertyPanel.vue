@@ -63,7 +63,7 @@
           {{capitalize(prop)}}:
           <ColorPicker
           :color="selectedNode[prop]"
-          @update="updateColor(prop, $event)"
+          @update="inputChange(prop, $event)"
           />
         </label>
       </div>
@@ -190,15 +190,9 @@ export default {
     saveProps(e){
       e.preventDefault();
     },
-    updateColor(prop, newColor){
-      let o = {}
-      o[prop] = newColor
-
-    },
     editProp(prop, value){
       let p = {option: prop, value: value};
       this.editOption(p)
-
     },
     inputChange(prop, newVal){
       //this.editOption({option: prop, value: newVal})
