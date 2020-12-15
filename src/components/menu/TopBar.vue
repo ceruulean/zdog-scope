@@ -99,7 +99,7 @@ export default {
     creatables(){
       let c = [...ZCLASS.NAMES];
       return c.filter(name=>{
-        return (name != "dragger" || name != "vector")
+        return (name != "dragger" && name != "vector")
       })
     },
     currentSettings(){
