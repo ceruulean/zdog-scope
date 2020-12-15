@@ -464,6 +464,10 @@ class Scene{
     this.animReq = requestAnimationFrame(this.animate)
   }
 
+  unanimate(){
+    cancelAnimationFrame(this.animReq)
+  }
+
   addNode(node){
     this.ztree.addNode(node)
     this.ghostCanvas.addNode(node)

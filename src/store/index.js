@@ -6,7 +6,6 @@ const debug = process.env.NODE_ENV !== 'production'
 
 var ztree = new Zdogger.Tree();
 var Reader = new Zdogger.Reader();
-var GhostCanvas = null
 var CanvasScene = null;
 
 function newZtree(arg){
@@ -26,10 +25,8 @@ function initCanvasScene(state){
   if (CanvasScene || state == null) {
     CanvasScene.destroy();
     CanvasScene = null
-    GhostCanvas = null
   }
   CanvasScene = new Zdogger.Scene(ztree, state.canvas.settings.scene);
-  GhostCanvas = CanvasScene.ghostCanvas
 }
 
 const handlers = {
@@ -68,6 +65,7 @@ const getDefaultState = () => ({
   selected:null,
   illustration:null,
   treeLoaded:false,
+  paused:false
 })
 
 const state = getDefaultState()
@@ -89,14 +87,16 @@ const actions = {
     dispatch('canvas/showCanvasAxes')
   },
 
-  rebuildztree({commit, dispatch}, newTree){
-    
+  rebuildZtree({commit, dispatch}, newTree){
+    CanvasScene.unanimate()
     ztree.illustration.children = newTree.illustration.children
     ztree.nodeMap = newTree.nodeMap
     ztree.relationMap = newTree.relationMap
     ztree.illustration.updateRenderGraph();
 
-    GhostCanvas.pruneGhost();
+    CanvasScene.ghostCanvas.pruneGhost();
+    CanvasScene.unitAxes.addTo(CanvasScene.illustration);
+    CanvasScene.animate()
 
     commit('setZtree', true);
     //dispatch('canvas/showCanvasAxes')
@@ -138,6 +138,15 @@ const actions = {
     dispatch('properties/changeDisplay')
   },
 
+  pause({commit}, bool){
+    if (bool) {
+      CanvasScene.unanimate()
+    } else {
+      CanvasScene.animate()
+    }
+    commit('setPause', bool)
+  },
+
   exportTree(){
     //save current ztree TODO
     new Zdogger.Reader(ztree).download();
@@ -171,6 +180,9 @@ const mutations = {
     state.illustration = ztree.illustration.id
   },
 
+  setPause(state, bool){
+    state.paused = bool;
+  },
 
   setSelected(state, id){
     state.selected = id;
@@ -190,6 +202,7 @@ import treeview from './modules/treeview'
 import properties from './modules/properties'
 import canvas from './modules/canvas'
 import history, {undoRedoPlugin, undoRedoHistory} from './modules/history'
+import { ifStatement } from '@babel/types';
 
 let plugins = [undoRedoPlugin]
 

@@ -26,6 +26,10 @@ export default {
 
   mounted(){
     this.$refs.figure.focus();
+    this.$store.dispatch('pause', true)
+  },
+  unmounted(){
+    this.$store.dispatch('pause', false)
   }
 }
 </script>
