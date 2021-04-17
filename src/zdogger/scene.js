@@ -604,20 +604,20 @@ class UnitAxes{
 
   //sets visible flag for the positive axes, pass true to show and false to hide
   showPos(bool){
-    if (bool){
-      this.flag = (this.flag | 7)
-    } else {
+    if (bool === false){
       this.flag = (this.flag & (7 << 3))
+    } else {
+      this.flag = (this.flag | 7)
     }
     this.update();
   }
 
   //same for negative axes
   showNeg(bool){
-    if (bool){
-      this.flag = (this.flag | (7<<3))
-    } else {
+    if (bool === false){
       this.flag = (this.flag & 7)
+    } else {
+      this.flag = (this.flag | (7<<3))
     }
     this.update();
    }

@@ -16,8 +16,20 @@ All Zdog Items added to the Ztree gains custom properties for identification.
 | Property       | Type                                          |
 |----------------|------------------------------------------------|
 |`type`| Integer |
-| `id`| String (11-chars of base36) |
+| `id`| String (length 7 chars) |
 |`name`|String|
+
+`Zdogger(type: String or Int)(options: {});`
+
+This will add properties to Zdog Items.
+
+```
+let makeCone = Zogger('cone') //returns a function
+let myCone = makeCone({
+  diameter:40,
+  length:100,
+})
+```
 
 ## Zdogger.CLASS
 
@@ -68,7 +80,7 @@ Zdogger.CLASS.ENUMS = {
 
 For keeping track of Zdog objects (referred to as nodes) in a tree structure (referred to as Ztree).
 
-If no `canvasQuery` is supplied, it defaults to `.zdog-canvas`.
+If no `canvasQuery` is supplied, it defaults to `.zdog-canvas`. You can also pass in an object with options and automatically create the Zdog Illustration:
 
 ```
 let illoOptions = {
@@ -91,7 +103,7 @@ let ztree =  new Zdogger.Tree(illoOptions);
 
 `.generateEmbed(options)`
 
-Returns a string that is HTML-ready (with the Zdog distributable
+Returns a string that is HTML-ready with the Zdog distributable in the page:
 
 `<script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>`
 
@@ -169,7 +181,7 @@ ztree.find('d320valrw') // returns Zdog object
 
 `.clone()`
 
-Returns a clone of the Ztree that keeps the same ids.
+Returns a clone of the Ztree that preserves ids.
 
 ---
 
@@ -199,13 +211,13 @@ Creates a reader for exporting and parsing a Ztree to and from JSON.
 
 ```
 let ztree = new Zdogger.Tree(...)
-letplain = ztree._plain() // returns a JavaScript Object
+letplain = ztree.plain() // returns a JavaScript Object
 
 let reader = new Zdogger.Reader(ztree)
 let readJSON = new Zdogger.Reader('{"illustration:'br35bskl', ..."}')
 let readPlain = new Zdogger.Reader(plain)
 
-reader.Ztree // essentailly a clone of the Ztree, keeping the ids
+reader.tree // essentailly a clone of the Ztree, keeping the ids
 ```
 
 | Property       | Notes                                          |
@@ -242,7 +254,7 @@ Requests download prompt of the tree as a .JSON file. It uses the illustration's
 
 `.reviveTree(JSONstring)`
 
-If the constructor was called with an empty argument, you can you this to revive JSON into a Ztree.
+If the constructor was called with an empty argument, use this to revive JSON into a Ztree.
 
 ```
 let reader = new Zdogger.Reader()
@@ -256,9 +268,10 @@ let myZtree = reader.Ztree // property points to Ztree object
 ---
 
 ## Zdogger.Scene
-Wrapper used for the modeling UI. Binds events and handles click/hit detection of shapes 
 
 `Zdogger.Scene(ztree: ZTree, options: {})`
+
+Wrapper used for the modeling UI. Binds events and handles click/hit detection of shapes. Requires a Zdogger tree to be instantiated.
 
 ```
 import Zdogger from './zdogger/index.js'
@@ -266,7 +279,6 @@ import Zdogger from './zdogger/index.js'
 let ztree = new Zdogger.Tree({});
 let scene = new Zdogger.Scene(ztree);
 ```
-Attaches render events to the canvas. Requires a Zdogger tree to be instantiated.
 
 ```
 let defaults = {
@@ -278,7 +290,7 @@ let defaults = {
 
 let scene = new Scene(ztree, defaults);
 ```
-`ghostQuery` is the query selector for the ghost \<canvas\>. You will have to style the canvas yourself. It can be completely hidden with css like `display:none` and `z-index:-1`. However, if it does not have the same position & size as the live canvas, hit-detection will not work.
+`ghostQuery` is the query selector for the ghost \<canvas\>. You will have to style the canvas yourself. It can be completely hidden with css like `display:none` and `z-index:-1`. However, if it does not have the same position & size as the live canvas, click-detection will not work.
 
 ### List of Scene Properties
 
@@ -292,6 +304,11 @@ let scene = new Scene(ztree, defaults);
 |`panInverse`|Boolean: inverts panning direction. Default: false|
 
 ### Methods
+
+`.animate()` and `.unanimate()`
+
+Renders the Zdog Illustration, calling `requestAnimFrame` and `cancelAnimFrame` respectively.
+
 ---
 `.on(eventName: String, callback: (event)=>{})`
 
@@ -373,17 +390,17 @@ This class is meant to be handled by Scene. Feel free to read the comments in th
 
 ## Zdog.Axis
 
-A new Zdog Item added to render straight lines that won't scale with the zoom (unless wanted!)
+A new Zdog Item added to render straight lines that won't scale with zoom (unless desired!)
 
 `new Zdog.Axis({options})`
 
 |option|value|
 |--|--|
 |`stroke`|Thickness of the axis.|
-|`color`|Color of the axis. Takes any color string that browsers can render (rgba, hsla, hex, etc.) If you input a string of 'x', 'y', or 'z', it will set to red, green or blue respectively|
+|`color`|Color of the axis. Takes any color string that browsers can render (rgba, hsla, hex, etc.) If you input a string of 'x', 'y', or 'z', it will set to red, green or blue respectively, in HSL|
 |`visible`|Boolean|
 |`t`|Parametrization constant. Effectively serves as the magnitude for unit vectors.|
-|`front`|Direction of the axis. Default: {x:1} // implies y:0 and z:0|
+|`front`|Direction of the axis. Default: `{x:1}` // implies y:0 and z:0|
 |`scaleZoom`|Whether the axis should scale thickness on zoom.|
 
 ```
@@ -396,28 +413,44 @@ let defaults = {
   scaleZoom:false
 }
 
-let axis = new Zdog.Axis(defaults)
+let x_axis = new Zdog.Axis(defaults)
+
+let y_axis = new Zdog.Axis({
+  color: 'hsl(120, 100%, 50%)',
+  front:{y:-1}
+})
 ```
 
 ---
 
-## AxesHelper
+## UnitAxes
 
-Creates unit coordinate axes for the illustration.
+Helper to create unit coordinate axes for the scene.
 
-`new AxesHelper(illo: Zdog.Illustration)`
+`new UnitAxes(illo: Zdog.Illustration)`
 
 | Property       | Type                                          |
 |----------------|------------------------------------------------|
 |`axes`| Array of Zdog.Axis in the positive X,Y,Z and negative X,Y,Z in that order |
+|`root`| The root Anchor for all axes. |
 
-### No Methods Currently
+### Methods
 
-PROPOSED:
+`.addTo(zdog: Zdog.Item)`
 
-`.toggle(index: Integer)`
+Adds the unit axes to the item.
 
-`comparator` should be -1, 0, 1 or 2. Passing `-1` enables visibility of the negative axes, `1` for the positive axes, `0` to turn off all, and `2` to turn on both.
+`.remove()`
+
+Removes the axes from their parent.
+
+`.showAll()` and `.hideAll()`
+
+Sets the visibility of all the axes.
+
+`.showPos(show: Boolean)` and `.showNeg(show: Boolean)`
+
+Toggles the positive/negative axes depending on the passed in value. Pass `false` to turn off. Not passing in a value will default to `true` and show the axes.
 
 ---
 ---
