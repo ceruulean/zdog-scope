@@ -24,7 +24,7 @@ All Zdog Items added to the Ztree gains custom properties for identification.
 This will add properties to Zdog Items.
 
 ```
-let makeCone = Zogger('cone') //returns a function
+let makeCone = Zdogger('cone') //returns a function
 let myCone = makeCone({
   diameter:40,
   length:100,

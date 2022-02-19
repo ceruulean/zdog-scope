@@ -1,7 +1,7 @@
 
 /* eslint-disable no-unused-vars */
 //import Zdog from 'zdog' // ../../zdog
-import Zdog from '../../../zdog'
+import Zdog from 'zdog'
 import {Z} from './ztree';
 
 //import versor from 'versor'
@@ -226,12 +226,12 @@ class Scene{
  * @param {Ztree} ztree
  * @param {*} options 
  */
-  constructor(ztree, options={ghostQuery:'.zdog-ghost', zoomSpeed:3, panInverse:false, panSpeed:30}){
+  constructor(ztree, options={ghostQuery:'.zdog-ghost', zoomSpeed:1, panInverse:false, panSpeed:30}){
     for(let o in options){
       this[o] = options[o]
     }
-    //phi is polar (xy plane)
-    //theta is azimuthal (zx plane)
+    //theta is azimuthal angle (along zx plane)
+    //phi is polar angle (along xy plane)
     /**
             | -y
             |
@@ -260,7 +260,7 @@ class Scene{
 
     this.phi = this.illustration.rotate.x
     this.theta = this.illustration.rotate.y
-    this.zoom = this.illustration.zoom
+    this.rho = this.defaultRho
 
     /**EVENTS***************/
     this.events = {
@@ -289,7 +289,7 @@ class Scene{
     this.on('wheel', this.zooming.bind(this))
 
     this.label = document.createElement('span')
-    this.label.innerText = `${Math.round(this.zoom * 100)}%`
+    // this.label.innerText = `${Math.round(this.zoom * 100)}%`
     this.animate();
   }
 
@@ -304,18 +304,19 @@ class Scene{
   get z(){
     return this.rho * Math.cos(this.phi) * Math.cos(this.theta)
   }
+  // starting ρ value (distance from origin)
   get defaultRho(){
     return (this.illustration.canvasHeight / 2)
   }
 
-  get zoom(){
-    return 1 / (this.rho  / this.defaultRho)
-  }
+  // get zoom(){
+  //   return 1 / (this.rho  / this.defaultRho)
+  // }
 
-  set zoom(newZoom){
-    this.rho = this.defaultRho / newZoom;
-    this.illustration.zoom = newZoom
-  }
+  // set zoom(newZoom){
+  //   this.rho = this.defaultRho / newZoom;
+  //   this.illustration.zoom = newZoom
+  // }
 
   /**
    * Cursor events handle touch/mouse/pointer
@@ -388,10 +389,16 @@ class Scene{
 
   zooming(event){
     event.preventDefault();
-    const z0 = this.rho, z = z0 + event.deltaY * this.zoomSpeed;
-    this.rho = Math.max(0.1, z);
-    this.illustration.zoom = this.zoom;
-    this.label.innerText = `${Math.round(this.zoom * 100)}%`
+    let z0 = this.illustration.zoom, z = z0 + event.deltaY * this.zoomSpeed;
+    console.log(z0)
+    console.log(`(ρ,θ,φ):(${this.rho},${this.theta},${this.phi})`)
+    // this.rho = Math.max(0.1, z);
+    console.log(this.defaultRho)
+    this.illustration.zoom -= z / this.defaultRho
+    if (this.illustration.zoom < 0) { this.illustration.zoom = 0.1 }
+    // z = vertical screen pixels scrolled (on a normal webpage)
+    this.rho -= this.rho + z
+    this.label.innerText = `${Math.round(this.illustration.zoom * 100)}%`
   }
 
   selection(event){

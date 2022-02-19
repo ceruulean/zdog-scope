@@ -1,4 +1,4 @@
-import Zdog from '../../../zdog'
+import Zdog from 'zdog'
 
 import json_beautifier from 'csvjson-json_beautifier';
 

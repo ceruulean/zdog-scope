@@ -3,6 +3,7 @@
 .eslintignore
 /dist
 
+package-lock.json
 
 # local env files
 .env.local
