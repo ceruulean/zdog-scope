@@ -4,7 +4,7 @@ process.env.VUE_APP_VERSION = require('./package.json').version
 
 
 module.exports = {
-  publicPath: "/prototypes/zdogscope",
+  publicPath: "/zdog-scope/",
   configureWebpack:{
     // plugins: [
     //   new HtmlWebpackPlugin({

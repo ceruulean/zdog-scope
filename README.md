@@ -12,7 +12,7 @@ Visual display and editor for [Zdog](https://zzz.dog/), a pseudo 3D library
 - Canvas object selection
 
 
-[Check out the demo (last build: Dec 15, 2020)](https://www.the-gale.com/prototypes/zdogscope/)
+[Check out the demo](https://ceruulean.github.io/zdog-scope/)
 
 Demo model by Zdog creator, Alex Desandro.
 
@@ -80,6 +80,12 @@ npm run serve
 ### Compiles and minifies for production
 ```
 npm run build
+```
+
+If using Node v17 on Linux you need to set `--openssl-legacy-provider` flag
+
+```
+export NODE_OPTIONS=--openssl-legacy-provider&&npx vue-cli-service build --dest docs
 ```
 
 ### Lints and fixes files
