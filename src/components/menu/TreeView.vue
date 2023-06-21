@@ -1,7 +1,15 @@
 <template>
   <h2>Tree View</h2>
-    TODO: filter anchors, add icon, searchbar
-  <header class="row between text-display-type">
+    <button v-if="!treeLoaded" @click="demo">
+      Try Demo
+    </button>
+    <button v-if="treeLoaded" @click="embedGen">
+      Code Embed
+    </button>
+  <header 
+    v-if="treeLoaded"
+    class="row between text-display-type"
+  >
     <div class="col index">
       Index
     </div>
@@ -22,10 +30,6 @@
       :node="node"
       :depth="0"
     />
-    <button @click="embedGen">
-      Code Embed
-    </button>
-    <br>
   </ul>
 <teleport to="body">
   <Modal
@@ -44,7 +48,7 @@
 </template>
 
 <script>
-import { mapState} from 'vuex'// mapActions mapGetters
+import { mapState, mapActions } from 'vuex'// mapActions mapGetters
 
 import TreeItem from './TreeItem.vue'
 import Modal from '../Modal'
@@ -68,8 +72,8 @@ export default {
   },
   computed:{
     ...mapState({
-      illustration:'illustration',
-      treeLoaded:'treeLoaded',
+      illustration: 'illustration',
+      treeLoaded: 'treeLoaded',
       embed:state=>state.treeview.embed,
       treeView:state=>state.treeview.list
     }),
@@ -82,6 +86,9 @@ export default {
     },
   },
   methods:{
+    ...mapActions([
+      'demoJSON',
+    ]),
     getPanelWidth(){
       return this.$parent.$refs.treeview.clientWidth
     },
@@ -97,7 +104,11 @@ export default {
       r.select();
       r.setSelectionRange(0, 99999);
       document.execCommand("copy");
-    }
+    },
+    demo(){
+      let testmodel = require('../../testmodel').default;
+      this.demoJSON(testmodel);
+    },
   },
 }
 </script>
@@ -123,6 +134,7 @@ textarea.embed{
     padding-left:1.1rem;
   }
   header{
+    margin-top:10px;
     background-color:rgba(0,0,0,0.7);
     color:rgba(255,255,255,1);
   }

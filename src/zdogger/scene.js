@@ -34,22 +34,24 @@ function rgbString(data){
 class GhostCanvas{
   constructor(ztree, ghostIllo){
     this.ztree = ztree;
-    this.ghost = ghostIllo
+    this.illustration = ghostIllo
+    this.illustration.name = 'ghost'
     this.init()
-    let ghostPrerender = (ctx) => {
+
+    let syncWithCanvas = (ctx) => {
       ctx.setTransform(...this.transformMatrix)
-      this.ghost.rotate = this.ztree.illustration.rotate;
-      this.ghost.translate = this.ztree.illustration.translate;
-      this.ghost.updateGraph();
+      this.illustration.rotate = this.ztree.illustration.rotate;
+      this.illustration.translate = this.ztree.illustration.translate;
+      this.illustration.updateGraph();
     }
-    this.ghost.onPrerender = ghostPrerender
+    this.illustration.onPrerender = syncWithCanvas
   }
 
 
   init(){
     let clone = this.ztree.clone()
     this.ghostNodes = clone.nodeMap;
-    this.ghost.children = clone.illustration.children
+    this.illustration.children = clone.illustration.children
 
     this.colorMap = new Map(); //<rgba:[3], id: string>
     this.nodeColors = new Map(); //<id: string, rgba:[3]>
@@ -62,6 +64,7 @@ class GhostCanvas{
         GhostCanvas.setUniformColor(node, color)
         this._setMaps(node, color)
     }
+
   }
 
   get nodeMap(){
@@ -111,8 +114,11 @@ class GhostCanvas{
       let parentGhost = this.ghostNodes.get(parentid)
       parentGhost.addChild(clone)
     }
+    
     GhostCanvas.setUniformColor(clone, color)
     this._setMaps(clone, color)
+
+
     return clone
   }
 /**
@@ -167,13 +173,18 @@ class GhostCanvas{
 
 /**
  * Returns the node id that is under the coordinates
- * (pass in transformed coordinates if the <canvas> is offset from live)
- * @param {Number} canvasX 
- * @param {Number} canvasY
+ * @param {Number} screenX 
+ * @param {Number} screenY
+ * @returns {String}
  */
-  getShape(canvasX, canvasY){
-    this.ghost.renderGraph()
-    let color = getPixel(this.ghost.ctx, canvasX, canvasY)
+  pickSelectShape(screenX, screenY){
+    this.illustration.renderGraph()
+    let pr = this.illustration.pixelRatio;
+    let color = getPixel(
+      this.illustration.ctx,
+      screenX * pr,
+      screenY * pr
+      )
     return this.colorMap.get(colorKey(color))
   }
 
@@ -251,6 +262,8 @@ class Scene{
     })
 
     this.ghostCanvas = new GhostCanvas(ztree, this.ghostIllo)
+
+    this.setSize(window.innerWidth, window.innerHeight);
     this.unitAxes = new UnitAxes({addTo:ztree.illustration})
 
     this.eye = {}
@@ -305,6 +318,12 @@ class Scene{
   // starting ρ value (distance from origin)
   get defaultRho(){
     return (this.illustration.canvasHeight / 2)
+  }
+
+  /** Sync ghost and canvas */
+  setSize(width, height){
+    this.illustration.setSize(width, height);
+    this.ghostIllo.setSize(width, height);
   }
 
 
@@ -363,6 +382,7 @@ class Scene{
     }
     //detect if drag or click
     if (Math.abs(this.totaldelta) < 5 ) {    //might need a threshold depending on mobile/web... maybe later
+      // it is a click
       this.selection(event)
     }
     this._dispatch('up', event)
@@ -381,10 +401,9 @@ class Scene{
   zooming(event){
     event.preventDefault();
     let z0 = this.illustration.zoom, z = z0 + event.deltaY * this.zoomSpeed;
-    console.log(z0)
+
     console.log(`(ρ,θ,φ):(${this.rho},${this.theta},${this.phi})`)
-    // this.rho = Math.max(0.1, z);
-    console.log(this.defaultRho)
+
     this.illustration.zoom -= z / this.defaultRho
     if (this.illustration.zoom < 0) { this.illustration.zoom = 0.1 }
     // z = vertical screen pixels scrolled (on a normal webpage)
@@ -393,7 +412,8 @@ class Scene{
   }
 
   selection(event){
-    let id = this.ghostCanvas.getShape(event.offsetX, event.offsetY)
+    let id = this.ghostCanvas.pickSelectShape(event.offsetX, event.offsetY)
+
     if (id && id != this.selectActive){
       const selectShape = new CustomEvent('selectshape',{
         detail:
@@ -411,6 +431,12 @@ class Scene{
     //Shift -> pan
     if (e.keyCode == 16){
       this.canPan = true;
+    }
+    // Tilde graves `
+    else if (e.keyCode == 192) {
+      let ghost = this.ghostCanvas.illustration.element;
+      let isHidden = ghost.classList.contains('hidden');
+      isHidden? ghost.classList.remove('hidden') : ghost.classList.add('hidden') ;
     }
   }
 
@@ -478,7 +504,6 @@ class Scene{
 
   updateNode({node, options}){
     //let node = this.ztree.find(id)
-    console.log(node)
     for (let o in options){
       node[o] = options[o]
     }
@@ -512,17 +537,23 @@ class Scene{
 
 /**
  * A class to generate the 6 coordinate axes (XYZ and -XYZ)
+ * Options:
+ *  - addTo: Zdog object
+ *  - scaleZoom: Set true to use stroke
+ *  - t: Specify Length of axis, otherwise set to inner Window
+ * 
+ * And you can pass standard Zdog shape options.
  */
 class UnitAxes{
   flag = 0b111111;
   axes = [];
-  constructor(options={addTo:null,scaleZoom:false}){
+  constructor(options={addTo:null,scaleZoom:false }){
     this.root = new Zdog.Anchor();
     let opts = options;
     if (!options) {
       opts = {addTo:null,scaleZoom:false}
     }
-    opts.t = opts.t || window.innerWidth || 100
+    opts.t = opts.t || window.innerWidth || 100;
 
     let form = (front, color) => {
       let o = {

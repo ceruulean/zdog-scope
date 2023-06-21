@@ -10,9 +10,6 @@
     <button @click="importing">
       Import
     </button>
-    <button @click="demo">
-      Demo
-    </button>
     <div
       :aria-label="`Create new`"
       tabIndex="0"
@@ -109,7 +106,6 @@ export default {
   methods:{
     ...mapActions([
       'newIllustration',
-      'demoJSON',
       'exportTree',
       'importTree'
     ]),
@@ -147,10 +143,7 @@ export default {
         this.bImporting = false;
       }
     },
-    demo(){
-    let testmodel = require('../../testmodel').default;
-    this.demoJSON(testmodel);
-    },
+
     settings(){
       this.bSettings = true;
     },

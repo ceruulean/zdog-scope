@@ -2,7 +2,7 @@
 import {ztree} from '../index'
 import {UnitAxes} from '../../zdogger/scene'
 
-var selectedAxes = new UnitAxes({t:100,scaleZoom:true}), canvasAxes
+var selectedAxes = new UnitAxes({t:100,scaleZoom: true, stroke:0.1}), canvasAxes
 selectedAxes.showNeg(false)
 
 const getDefaultState = () => ({
@@ -41,19 +41,14 @@ const actions = {
     let n = rootGetters.selectedNode;
     if (rootState.selected == rootState.illustration) return;
 
-    let si = [n.stroke, n.length, n.depth, n.width, n.height, n.radius, n.diameter].filter(e=>e)
-    let size = Math.max(...si)
+    let size = [n.stroke, n.length, n.depth, n.width, n.height, n.radius, n.diameter].filter(e=>e)
     let sfactor = n.scale.x * n.scale.y * n.scale.z;
-    size = (size * sfactor) * + 3;
-    
+    let longest = Math.max(...size)
 
-    // let he = (si < 11)? 2 : si / 10; // minimum head 2
-    // let a = axesHelper({
-    //   size: si,
-    //   head: he
-    // })
+    longest = Math.max(15, (longest * sfactor) * + 3);
+    
     selectedAxes.axes.forEach(a=>{
-      a.t = size;
+      a.t = longest;
     })
     selectedAxes.addTo(n);
   },

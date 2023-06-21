@@ -506,9 +506,7 @@ class Ztree{
         this.illustration.name = 'root'
       }
     }
-    this.illustration.setSize(optionsDefault.width, optionsDefault.height)
     this.addNode(this.illustration);
-
   }
 
   //flatten existing zdog object into Map and Set to record relations
