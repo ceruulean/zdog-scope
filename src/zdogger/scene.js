@@ -247,13 +247,11 @@ class Scene{
 
     this.ghostIllo = new Zdog.Illustration({
       element: this.ghostQuery,
-      dragRotate:false
+      dragRotate:false,
     })
 
     this.ghostCanvas = new GhostCanvas(ztree, this.ghostIllo)
     this.unitAxes = new UnitAxes({addTo:ztree.illustration})
-
-    //this.illustration.addChild(makeAxis({t:800}))
 
     this.eye = {}
     this.worldPosition = new Zdog.Vector();
@@ -309,14 +307,7 @@ class Scene{
     return (this.illustration.canvasHeight / 2)
   }
 
-  // get zoom(){
-  //   return 1 / (this.rho  / this.defaultRho)
-  // }
 
-  // set zoom(newZoom){
-  //   this.rho = this.defaultRho / newZoom;
-  //   this.illustration.zoom = newZoom
-  // }
 
   /**
    * Cursor events handle touch/mouse/pointer
@@ -519,30 +510,6 @@ class Scene{
 
 }
 
-
-function drawAxis(illo, ZdogAxis){
-  let matrix = illo.transformMatrix
-  // //matrix( scaleX(), skewY(), skewX(), scaleY(), translateX(), translateY() )
-    let p = ZdogAxis.getPoints();
-    let u = new Zdog.Vector(p[0])
-    let v = new Zdog.Vector(p[1])
-
-    ZdogAxis.t = 100 / matrix[0]
-  //Transform the points to match the illo
-  u.multiply({x:matrix[0], y:matrix[3]})
-  v.multiply({x:matrix[0], y:matrix[3]})
-  u.add({x:matrix[4], y:matrix[5]})
-  v.add({x:matrix[4], y:matrix[5]})
-
-  drawRaw(illo, ctx => {
-    ctx.beginPath()
-    ctx.strokeStyle = ZdogAxis.color
-    ctx.lineWidth = ZdogAxis.stroke
-    ctx.moveTo(u.x, u.y)
-    ctx.lineTo(v.x, v.y)
-    ctx.stroke()
-  })
-}
 /**
  * A class to generate the 6 coordinate axes (XYZ and -XYZ)
  */

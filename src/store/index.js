@@ -121,7 +121,9 @@ const actions = {
   },
 
   demoJSON({dispatch}, payload){
-    Reader = new Zdogger.Reader(payload);
+    let Reader = new Zdogger.Reader(payload);
+    dispatch('changeSelected', null)
+    dispatch('treeview/resetView')
     dispatch('newIllustration', Reader.tree)
   },
 
@@ -139,11 +141,15 @@ const actions = {
   },
 
   pause({commit}, bool){
-    if (bool) {
-      CanvasScene.unanimate()
-    } else {
-      CanvasScene.animate()
+
+    if (CanvasScene) {
+      if (bool) {
+        CanvasScene.unanimate()
+      } else {
+        CanvasScene.animate()
+      }
     }
+
     commit('setPause', bool)
   },
 

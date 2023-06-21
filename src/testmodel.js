@@ -15,6 +15,7 @@ const illo = new Zdog.Illustration({
   zoom: 5,
  // rotate: { y: -TAU/8 },
   dragRotate: true,
+
 });
 
 // ----- model ----- //

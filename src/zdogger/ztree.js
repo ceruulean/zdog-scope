@@ -224,8 +224,9 @@ function reviveZdog(plainObject){
     plainObject = JSON.parse(plainObject);
   }
   let {id, name, type, ...options} = plainObject;
+
   let ZdogO = new ZDOG_CLASS_TYPE[type](options);
-  
+
   assignName(ZdogO, name);
   assignType(ZdogO, type)
   ZdogO.id = id;
@@ -362,6 +363,7 @@ class ZtreeReader{
   reviveTree(JSONstring){
     //parse arg into a Ztree
     let objecT = JSONstring
+
     if (typeof JSONstring == 'string'){
       objecT = JSON.parse(JSONstring, ZtreeReader.revivePlain);
     } else {
@@ -369,13 +371,16 @@ class ZtreeReader{
         return reviveZdog(plain)
       })
     }
+
     let maP = new Map()
     objecT.nodes.forEach(node=>{
       maP.set(node.id, node);
       if(node.id == objecT.illustration){
         this.tree = new Ztree(node, objecT.canvasQuery);
+
       }
     })
+
     this.tree.nodeMap = maP;
     //set relations, each relation is {parent:'parentid', children:[array of childids]}
     this.tree.relationMap = new Map();
@@ -439,14 +444,18 @@ class ZtreeReader{
   async load(){
     return new Promise((resolve, reject) => {
       ZtreeReader.import().then(fileList=>{
+
         var fileReader = new FileReader();
+
         fileReader.onloadend = (ev) => {
           this.reviveTree(ev.target.result);
           resolve(this.tree);
         }
+
         for (let f of fileList){
           fileReader.readAsText(f);
         }
+
       }).catch(e=>{
         reject(e);
       })
@@ -485,16 +494,21 @@ class Ztree{
       }
       let options = Object.assign(optionsDefault, illustration)
       this.illustration = create('illustration')(options);
+
     } else if (Z.is(illustration, 'illustration')) {
       if (illustration.id){
+
         this.illustration = illustration
+
       } else {
         this.illustration = importExisting(illustration)
         this.flatten(this.illustration)
         this.illustration.name = 'root'
       }
     }
+    this.illustration.setSize(optionsDefault.width, optionsDefault.height)
     this.addNode(this.illustration);
+
   }
 
   //flatten existing zdog object into Map and Set to record relations
@@ -758,9 +772,10 @@ class Ztree{
 
   generateEmbed({selector, width, height, bgColor, mini}){
     let combined = ''
-   combined += canvasTagGenerate(selector, width, height, bgColor) + '\n'
-   combined += scriptTagGenerate(this, selector, mini)
-   return combined
+    combined += canvasTagGenerate(selector, width, height, bgColor) + '\n'
+    combined += '<script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>' + '\n'
+    combined += scriptTagGenerate(this, selector, mini)
+    return combined
   }
 }
 
@@ -932,6 +947,9 @@ const zCopy = copy;
   propsFor: validProps,
   CLASS: ZCLASS,
   Tree: Ztree,
+  /**
+   * Reads a JSON import
+   */
   Reader: ZtreeReader,
  }
 

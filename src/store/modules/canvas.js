@@ -75,17 +75,23 @@ const actions = {
     dispatch('clearSelectedAxes')
     dispatch('clearCanvasAxes')
     commit('resetState')
+  },
+
+  restoreDefaultSettings({commit}) {
+    commit('setDefaultSettings')
   }
 }
 
 // Mutations  
 const mutations = {
-  setSetting(state, {name, value}){
-    state.setting[name] = value;
+  setSetting(state, payload){
+    for (let [name, value] of Object.entries(payload)) {
+      state.settings[name] = value;
+    }
   },
 
-  resetState(){
-    Object.assign(state, getDefaultState())
+  setDefaultSettings(state){
+    Object.assign(state.settings, getDefaultState().settings)
   }
 }
 

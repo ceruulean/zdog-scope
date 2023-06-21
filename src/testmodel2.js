@@ -1637,6 +1637,7 @@ ZdogSpookyHouse.init = function( canvas ) {
     zoom: zoom,
     rotate: { y: TAU/8 },
     dragRotate: true,
+
     onDragStart: function() {
       ZdogSpookyHouse.wobbling = false;
     },

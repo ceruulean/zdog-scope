@@ -5,7 +5,7 @@
     class="zdog-canvas"
     :width="windowWidth"
     :height="windowHeight"
-    :style="{backgroundColor:settings.backgroundColor}"
+    :style="canvasStyle"
   />
 
   <canvas
@@ -37,19 +37,8 @@ import {mapState, mapActions, mapGetters} from 'vuex'
 
 export default {
   name: 'Canvas',
-  // data(){
-  //   return{
-  //     zoomDisplay:null
-  //   }
-  // },
-  // setup(){
-  //   const { width, height } = useWindowSize();
 
-  //   return{
-  //     windowWidth: width,
-  //     windowHeight: height,
-  //   }
-  // },
+
   data(){
     return{
       hideGhost:true
@@ -70,6 +59,11 @@ export default {
     windowHeight(){
       return window.innerHeight;
     },
+    canvasStyle(){
+      return {
+        backgroundColor: this.settings.backgroundColor
+      }
+    }
   },
   watch:{
     selectedNode(nVal, oVal){
@@ -84,7 +78,7 @@ export default {
     ...mapActions('canvas',[
       'showSelectedAxes',
       'clearSelectedAxes',
-      'clearCanvasAxes'
+      'clearCanvasAxes',
     ]),
     clickHandler(event){
       console.log(this.getMousePos(event));

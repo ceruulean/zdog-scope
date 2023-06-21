@@ -23,7 +23,7 @@
       :depth="0"
     />
     <button @click="embedGen">
-      Embed Dream
+      Code Embed
     </button>
     <br>
   </ul>
@@ -32,7 +32,9 @@
     v-if="bEmbed"
     @close="bEmbed = false"
   >
-    <textarea ref="embedText"
+    <h2>HTML Code</h2>
+    <p>Copy and paste into an HTML file.</p>
+    <textarea class="embed" ref="embedText"
       :value="embed"/>
     <button @click="embedCopy">
       Copy
@@ -101,6 +103,12 @@ export default {
 </script>
 
 <style lang="scss">
+textarea.embed{
+  height:70ch;
+  max-height: 40vh;
+  width: 100%;
+}
+
 .tree-view {
   ul.tree-bg{
     background-image: linear-gradient(0deg,

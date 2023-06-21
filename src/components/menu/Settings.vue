@@ -4,6 +4,7 @@
       v-model="wipSettings['backgroundColor']"
       element="ColorPicker"
       :color="currentSettings.backgroundColor"
+      @update="setWipSettings('backgroundColor', $event)"
     >
     Background Color:
     </InputLabel>
@@ -32,7 +33,8 @@ export default {
     }
   },
   mounted(){
-    this.wipSettings = this.currentSettings
+    // copy current settings to wipSettings
+    Object.assign(this.wipSettings, this.currentSettings)
   },
   computed:{
     currentSettings(){
@@ -40,15 +42,14 @@ export default {
     }
   },
   methods:{
-    saveSetting(name){
-      let payload = {
-        name: name,
-        value: this.wipSettings[name]
-      }
-      this.$store.dispatch('canvas/changeSetting', payload)
+    setWipSettings(property, newValue){
+      this.wipSettings[property] = newValue;
+    },
+    saveSettings(){
+      this.$store.dispatch('canvas/changeSetting', this.wipSettings)
     },
     defaultSettings(){
-
+      this.$store.dispatch('canvas/restoreDefaultSettings')
     }
   }
 }
